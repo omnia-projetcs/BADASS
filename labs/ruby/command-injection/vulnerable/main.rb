@@ -1,0 +1,1 @@
+print IO.popen('printf %s ' + ARGV[0], &:read)

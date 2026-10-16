@@ -1,0 +1,1 @@
+print '<p>' + ARGV[0].gsub('&', '&amp;').gsub('<', '&lt;').gsub('>', '&gt;') + '</p>'

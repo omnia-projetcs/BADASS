@@ -1,0 +1,1 @@
+print ARGV[0] == 'welcome.txt' ? File.read('public/welcome.txt') : 'DENIED'

@@ -1,0 +1,109 @@
+# Local benchmark outputs and scratch data
+/.build/
+/reports/
+/tmp/
+/temp/
+*.log
+*.tmp
+*.temp
+*.bak
+*.orig
+*.rej
+core
+core.*
+vgcore.*
+
+# Local configuration and credentials (keep example files versioned)
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+.envrc
+
+# Python: bytecode, environments, caches and packaging
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+*.egg-info/
+.eggs/
+
+# Node.js and TypeScript: dependencies, build caches and coverage
+node_modules/
+.npm/
+.pnpm-store/
+*.tsbuildinfo
+.nyc_output/
+coverage/
+.cache/
+.parcel-cache/
+.turbo/
+
+# PHP, Go and Ruby: locally installed dependencies and caches
+vendor/
+.bundle/
+.phpunit.cache/
+.phpunit.result.cache
+
+# C/C++, Go, Rust, Java and .NET: compiler and build outputs
+build/
+dist/
+bin/
+obj/
+target/
+out/
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+compile_commands.json
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.so.*
+*.dylib
+*.dll
+*.exe
+*.pdb
+*.ilk
+*.exp
+*.dSYM/
+*.gcda
+*.gcno
+*.gcov
+*.class
+*.jar
+*.war
+*.ear
+.gradle/
+.vs/
+TestResults/
+*.user
+*.suo
+*.rsuser
+
+# Editor and operating-system files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+._*
+Thumbs.db
+Desktop.ini
+
+# Keep dependency manifests and lockfiles versioned for benchmark reproducibility:
+# package-lock.json, pnpm-lock.yaml, yarn.lock, composer.lock, go.sum,
+# Cargo.lock, Gemfile.lock, packages.lock.json and Python lockfiles.

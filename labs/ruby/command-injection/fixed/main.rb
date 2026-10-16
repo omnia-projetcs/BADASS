@@ -1,0 +1,1 @@
+print IO.popen(['/usr/bin/printf', '%s', ARGV[0]], &:read)

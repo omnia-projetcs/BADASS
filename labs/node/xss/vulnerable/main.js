@@ -1,0 +1,1 @@
+process.stdout.write('<p>' + process.argv[2] + '</p>');
