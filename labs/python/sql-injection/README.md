@@ -1,6 +1,6 @@
 # SQL injection
 
-Concatenated SQL exposes another account.
+Untrusted input changes an SQL predicate and exposes other accounts or injects result rows.
 
 **Technology:** Python  
 **CWE:** CWE-89  
@@ -11,7 +11,7 @@ Concatenated SQL exposes another account.
 
 ## Correction
 
-Bind parameters instead of interpolating SQL.
+Keep SQL structure constant and bind the untrusted value as a parameter. Execute against a fresh in-memory SQLite database.
 
 ## Regression
 
@@ -25,7 +25,12 @@ Run from the repository root. Exact inputs and expected outputs are in
 | Vector | Type | Vulnerable expectation | Fixed expectation |
 |---|---|---|---|
 | existing account | benign | {"equals": ["alice"]} | {"equals": ["alice"]} |
-| SQL predicate | attack | {"equals": ["alice", "admin"]} | {"equals": []} |
+| missing account | benign | {"equals": []} | {"equals": []} |
+| empty value | benign | {"equals": []} | {"equals": []} |
+| ordinary SQL-looking text | benign | {"equals": []} | {"equals": []} |
+| tautology with comment | attack | {"equals": ["alice", "admin"]} | {"equals": []} |
+| targeted account bypass | attack | {"equals": ["admin"]} | {"equals": []} |
+| UNION injected row | attack | {"equals": ["LAB_UNION"]} | {"equals": []} |
 
 This example demonstrates the declared weakness within the documented fixture assumptions.
 It is not a production application or a proof that every related attack is prevented.

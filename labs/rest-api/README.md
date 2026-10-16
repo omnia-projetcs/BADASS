@@ -20,3 +20,4 @@ Run commands from the repository root. Cases are independent and use synthetic f
 | [Credentialed CORS misconfiguration](cors-misconfiguration/README.md) | CWE-942 | API8:2023 | handler-unit |
 | [Legacy endpoint](legacy-endpoint/README.md) | CWE-489 | API9:2023 | handler-unit |
 | [Unsafe upstream data](unsafe-upstream-data/README.md) | CWE-20 | API10:2023 | handler-unit |
+| [SQL injection](sql-injection/README.md) | CWE-89 | A05:2025 | handler-unit |

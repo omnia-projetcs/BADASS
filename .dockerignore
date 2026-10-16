@@ -1,3 +1,7 @@
 *
 !Dockerfile
-
+!labs/
+!labs/dotnet/
+!labs/dotnet/sql-injection/
+!labs/dotnet/sql-injection/fixed/
+!labs/dotnet/sql-injection/fixed/Lab.csproj

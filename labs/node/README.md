@@ -14,3 +14,4 @@ Run commands from the repository root. Cases are independent and use synthetic f
 | [Path traversal](path-traversal/README.md) | CWE-22 | A01:2025 | executable |
 | [Command injection](command-injection/README.md) | CWE-78 | A05:2025 | executable |
 | [Prototype pollution](prototype-pollution/README.md) | CWE-1321 | A08:2025 | executable |
+| [SQL injection](sql-injection/README.md) | CWE-89 | A05:2025 | executable |

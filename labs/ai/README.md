@@ -20,3 +20,4 @@ Run commands from the repository root. Cases are independent and use synthetic f
 | [Cross tenant retrieval](cross-tenant-retrieval/README.md) | CWE-863 | LLM08:2025 | ai-boundary-unit |
 | [Unverified security claim](unverified-security-claim/README.md) | CWE-345 | LLM09:2025 | ai-boundary-unit |
 | [Unbounded agent loop](unbounded-agent-loop/README.md) | CWE-834 | LLM10:2025 | ai-boundary-unit |
+| [SQL injection](sql-injection/README.md) | CWE-89 | A05:2025, LLM05:2025 | ai-boundary-unit |

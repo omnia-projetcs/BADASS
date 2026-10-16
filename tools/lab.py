@@ -23,6 +23,7 @@ def validate(cases):
         assert case["id"] not in seen, "Duplicate case: " + case["id"]
         seen.add(case["id"])
         assert case["language"] in RUNTIMES
+        assert case.get("database") in {None, "sqlite"}, case["id"] + ": unsupported database"
         assert case["cwe"] and set(case["cwe"]) <= cwes, case["id"] + ": unknown CWE"
         assert set(case["owasp"]) <= categories, case["id"] + ": unknown OWASP category"
         assert case["description"] and case["remediation"] and case["scope"]
@@ -85,13 +86,15 @@ def main():
     parser.add_argument("command", choices=["list", "validate", "test", "coverage", "score"])
     parser.add_argument("--language", choices=sorted(RUNTIMES))
     parser.add_argument("--case")
+    parser.add_argument("--cwe", help="Select cases for a weakness, for example CWE-89")
     parser.add_argument("--strict", action="store_true", help="Fail when a runtime is missing")
     parser.add_argument("--output", type=Path)
     parser.add_argument("--findings", type=Path)
     args = parser.parse_args()
     cases = read_catalog()
     validate(cases)
-    cases = [c for c in cases if (not args.language or c["language"] == args.language) and (not args.case or c["id"] == args.case)]
+    cases = [c for c in cases if (not args.language or c["language"] == args.language)
+             and (not args.case or c["id"] == args.case) and (not args.cwe or args.cwe in c["cwe"])]
     if not cases:
         parser.error("No matching cases")
     failed = False

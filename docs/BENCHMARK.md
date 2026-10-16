@@ -22,6 +22,7 @@ API examples mostly test handler logic rather than authentication middleware.
 python3 tools/lab.py list --language java
 python3 tools/lab.py test --case java/xxe --strict
 python3 tools/lab.py test --language python --strict
+python3 tools/lab.py test --cwe CWE-89 --strict
 python3 tools/lab.py test --strict --output reports/regression.json
 ```
 
@@ -63,6 +64,11 @@ explicit normalization step using file paths and documented rule-to-CWE mappings
 Fixed examples are negative controls only for the declared target weakness under
 the documented assumptions. Other scanner findings need manual triage; the corpus
 does not assert that every line is production hardened.
+
+SQL injection is implemented in every technology section with real SQLite
+queries, filter-bypass and UNION vectors, and parameter-bound corrections. See
+[SQL injection coverage and driver prerequisites](SQL-INJECTION.md). These cases
+do not simulate a database by printing SQL or searching for known payload strings.
 
 Keep `fixed/`, the catalog, README files and test expectations out of blind scanner
 or agent input. Otherwise labels and corrections leak the answer. For normal SAST,

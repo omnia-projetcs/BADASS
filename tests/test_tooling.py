@@ -1,6 +1,7 @@
 import copy
 import json
 from pathlib import Path
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -10,7 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 from ai_evaluate import evaluate
 from import_cwe import parse_archive
 from lab import coverage, read_catalog, score, validate
-from runner import matches
+from runner import ROOT, RUNTIMES, matches
 from subprocess import CompletedProcess
 
 
@@ -46,6 +47,32 @@ class CatalogTests(unittest.TestCase):
             data = parse_archive(path)
         self.assertEqual([row["kind"] for row in data["entries"]], ["weakness", "category", "view"])
         self.assertEqual(len(data["xml_sha256"]), 64)
+
+    def test_sql_injection_has_paired_cases_in_every_technology(self):
+        cases = [c for c in read_catalog() if "CWE-89" in c["cwe"]]
+        self.assertEqual({c["language"] for c in cases}, set(RUNTIMES))
+        for case in cases:
+            self.assertEqual(case.get("database"), "sqlite")
+            self.assertGreaterEqual(sum(t["kind"] == "benign" for t in case["tests"]), 2)
+            self.assertGreaterEqual(sum(t["kind"] == "attack" for t in case["tests"]), 2)
+
+    def test_cli_can_select_sql_injection_across_technologies(self):
+        result = subprocess.run([sys.executable, str(ROOT / "tools/lab.py"), "list", "--cwe", "CWE-89"],
+                                text=True, capture_output=True, check=True)
+        cases = json.loads(result.stdout)
+        self.assertEqual({c["language"] for c in cases}, set(RUNTIMES))
+        self.assertTrue(all("CWE-89" in c["cwe"] for c in cases))
+
+    def test_cli_combines_language_and_cwe_filters(self):
+        result = subprocess.run([sys.executable, str(ROOT / "tools/lab.py"), "list", "--cwe", "CWE-89",
+                                 "--language", "java"], text=True, capture_output=True, check=True)
+        self.assertEqual([c["id"] for c in json.loads(result.stdout)], ["java/sql-injection"])
+
+    def test_unknown_cwe_selection_fails_instead_of_passing_empty_suite(self):
+        result = subprocess.run([sys.executable, str(ROOT / "tools/lab.py"), "test", "--cwe", "CWE-999999"],
+                                text=True, capture_output=True)
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("No matching cases", result.stderr)
 
 
 class ScoringTests(unittest.TestCase):

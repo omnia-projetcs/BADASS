@@ -18,7 +18,7 @@ RUNTIMES = {
 }
 
 
-def process(command, cwd, timeout=30):
+def process(command, cwd, timeout=30, env_overrides=None):
     # Recent .NET runtimes need an owned runtime directory for named mutexes when
     # a container is run as a host UID without a matching /etc/passwd entry.
     runtime_dir = ROOT / ".build/runtime"
@@ -26,9 +26,10 @@ def process(command, cwd, timeout=30):
     env = dict(os.environ, PYTHONDONTWRITEBYTECODE="1", GOCACHE=str(ROOT / ".build/go-cache"),
                DOTNET_CLI_HOME=str(ROOT / ".build/dotnet-home"),
                XDG_RUNTIME_DIR=str(runtime_dir), XDG_DATA_HOME=str(ROOT / ".build/data"),
-               NUGET_PACKAGES=str(ROOT / ".build/nuget"),
+               NUGET_PACKAGES=os.environ.get("BADASS_NUGET_PACKAGES", str(ROOT / ".build/nuget")),
                DOTNET_SKIP_FIRST_TIME_EXPERIENCE="1", DOTNET_CLI_TELEMETRY_OPTOUT="1",
                ASAN_OPTIONS="detect_leaks=0:abort_on_error=0")
+    env.update(env_overrides or {})
     return subprocess.run(command, cwd=cwd, env=env, capture_output=True, text=True,
                           timeout=timeout, check=False)
 
@@ -38,29 +39,46 @@ def prepare(case, variant, build):
     lang = case["language"]
     output = build / "fixture"
     commands = []
+    build_env = {}
+    sqlite = case.get("database") == "sqlite"
     if lang in {"python", "cgi", "rest-api", "ai"}:
         return [sys.executable, str(ROOT / "tools/invoke.py"), str(source)]
     if lang in {"c", "cpp"}:
         compiler = "cc" if lang == "c" else "c++"
         commands = [[compiler, "-g", "-O0", "-Wall", "-Wextra", "-fsanitize=address,undefined", "-fno-pie", "-no-pie", str(source), "-o", str(output)]]
+        if sqlite:
+            commands[0].append("-lsqlite3")
     elif lang == "go":
         commands = [["go", "build", "-o", str(output), str(source)]]
+        if sqlite:
+            # Debian supplies an offline copy of the database/sql SQLite driver.
+            build_env = {"GO111MODULE": "off", "CGO_ENABLED": "1",
+                         "GOPATH": os.environ.get("BADASS_GO_SQLITE_GOPATH", "/usr/share/gocode")}
+            commands[0][2:2] = ["-tags", "libsqlite3"]
     elif lang == "rust":
         commands = [["rustc", "--edition=2021", str(source), "-o", str(output)]]
     elif lang == "java":
         commands = [["javac", "-d", str(build), str(source)]]
         output = ["java", "-cp", str(build), "Main"]
+        if sqlite:
+            jar = Path(os.environ.get("BADASS_SQLITE_JDBC_JAR", "/usr/share/java/sqlite-jdbc.jar"))
+            if not jar.is_file():
+                raise RuntimeError("SQLite JDBC driver missing: install libxerial-sqlite-jdbc-java or set BADASS_SQLITE_JDBC_JAR")
+            output[2] += os.pathsep + str(jar.resolve())
     elif lang == "typescript":
         commands = [["tsc", "--strict", "--target", "ES2020", "--module", "commonjs", "--outDir", str(build), str(source)]]
         output = ["node", str(build / (source.stem + ".js"))]
     elif lang == "dotnet":
         commands = [["dotnet", "build", str(source.parent / "Lab.csproj"), "--output", str(build / "out"),
-                     "--property:BaseIntermediateOutputPath=" + str(build / "obj") + "/", "--nologo", "--verbosity", "quiet"]]
+                     "--property:BaseIntermediateOutputPath=" + str(build / "obj") + "/",
+                     "--property:NuGetAudit=false", "--nologo", "--verbosity", "quiet"]]
+        if os.environ.get("BADASS_NUGET_SOURCE"):
+            commands[0] += ["--source", os.environ["BADASS_NUGET_SOURCE"]]
         output = ["dotnet", str(build / "out/Lab.dll")]
     else:
         return [{"node": "node", "php": "php", "ruby": "ruby"}[lang], str(source)]
     for command in commands:
-        result = process(command, ROOT, timeout=120)
+        result = process(command, ROOT, timeout=120, env_overrides=build_env)
         if result.returncode:
             raise RuntimeError((result.stdout + result.stderr)[-4000:])
     return output if isinstance(output, list) else [str(output)]

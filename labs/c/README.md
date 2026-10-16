@@ -15,3 +15,4 @@ Run commands from the repository root. Cases are independent and use synthetic f
 | [Command injection](command-injection/README.md) | CWE-78 | A05:2025 | executable |
 | [Stack buffer overflow](stack-buffer-overflow/README.md) | CWE-121 | A06:2025 | executable |
 | [Format string](format-string/README.md) | CWE-134 | A05:2025 | executable |
+| [SQL injection](sql-injection/README.md) | CWE-89 | A05:2025 | executable |

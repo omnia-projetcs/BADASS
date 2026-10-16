@@ -1767,9 +1767,10 @@
     "owasp": [
       "A05:2025"
     ],
-    "description": "Concatenated SQL exposes another account.",
-    "remediation": "Bind parameters instead of interpolating SQL.",
+    "description": "Untrusted input changes an SQL predicate and exposes other accounts or injects result rows.",
+    "remediation": "Keep SQL structure constant and bind the untrusted value as a parameter. Execute against a fresh in-memory SQLite database.",
     "scope": "executable",
+    "database": "sqlite",
     "tests": [
       {
         "name": "existing account",
@@ -1787,13 +1788,72 @@
         }
       },
       {
-        "name": "SQL predicate",
+        "name": "missing account",
+        "kind": "benign",
+        "input": "unknown",
+        "vulnerable": {
+          "equals": []
+        },
+        "fixed": {
+          "equals": []
+        }
+      },
+      {
+        "name": "empty value",
+        "kind": "benign",
+        "input": "",
+        "vulnerable": {
+          "equals": []
+        },
+        "fixed": {
+          "equals": []
+        }
+      },
+      {
+        "name": "ordinary SQL-looking text",
+        "kind": "benign",
+        "input": "UNION SELECT admin",
+        "vulnerable": {
+          "equals": []
+        },
+        "fixed": {
+          "equals": []
+        }
+      },
+      {
+        "name": "tautology with comment",
         "kind": "attack",
         "input": "' OR 1=1 --",
         "vulnerable": {
           "equals": [
             "alice",
             "admin"
+          ]
+        },
+        "fixed": {
+          "equals": []
+        }
+      },
+      {
+        "name": "targeted account bypass",
+        "kind": "attack",
+        "input": "' OR name='admin' --",
+        "vulnerable": {
+          "equals": [
+            "admin"
+          ]
+        },
+        "fixed": {
+          "equals": []
+        }
+      },
+      {
+        "name": "UNION injected row",
+        "kind": "attack",
+        "input": "' UNION SELECT 'LAB_UNION' --",
+        "vulnerable": {
+          "equals": [
+            "LAB_UNION"
           ]
         },
         "fixed": {
@@ -3647,5 +3707,1333 @@
     ],
     "vulnerable": "labs/ai/unbounded-agent-loop/vulnerable/main.py",
     "fixed": "labs/ai/unbounded-agent-loop/fixed/main.py"
+  },
+  {
+    "id": "c/sql-injection",
+    "language": "c",
+    "cwe": [
+      "CWE-89"
+    ],
+    "owasp": [
+      "A05:2025"
+    ],
+    "description": "Untrusted input changes an SQL predicate and exposes other accounts or injects result rows.",
+    "remediation": "Keep SQL structure constant and bind the untrusted value as a parameter. Execute against a fresh in-memory SQLite database.",
+    "scope": "executable",
+    "database": "sqlite",
+    "tests": [
+      {
+        "name": "existing account",
+        "kind": "benign",
+        "input": "alice",
+        "vulnerable": {
+          "equals": "alice"
+        },
+        "fixed": {
+          "equals": "alice"
+        }
+      },
+      {
+        "name": "missing account",
+        "kind": "benign",
+        "input": "unknown",
+        "vulnerable": {
+          "equals": ""
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "empty value",
+        "kind": "benign",
+        "input": "",
+        "vulnerable": {
+          "equals": ""
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "ordinary SQL-looking text",
+        "kind": "benign",
+        "input": "UNION SELECT admin",
+        "vulnerable": {
+          "equals": ""
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "tautology with comment",
+        "kind": "attack",
+        "input": "' OR 1=1 --",
+        "vulnerable": {
+          "equals": "alice\nadmin"
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "targeted account bypass",
+        "kind": "attack",
+        "input": "' OR name='admin' --",
+        "vulnerable": {
+          "equals": "admin"
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "UNION injected row",
+        "kind": "attack",
+        "input": "' UNION SELECT 'LAB_UNION' --",
+        "vulnerable": {
+          "equals": "LAB_UNION"
+        },
+        "fixed": {
+          "equals": ""
+        }
+      }
+    ],
+    "vulnerable": "labs/c/sql-injection/vulnerable/main.c",
+    "fixed": "labs/c/sql-injection/fixed/main.c"
+  },
+  {
+    "id": "cpp/sql-injection",
+    "language": "cpp",
+    "cwe": [
+      "CWE-89"
+    ],
+    "owasp": [
+      "A05:2025"
+    ],
+    "description": "Untrusted input changes an SQL predicate and exposes other accounts or injects result rows.",
+    "remediation": "Keep SQL structure constant and bind the untrusted value as a parameter. Execute against a fresh in-memory SQLite database.",
+    "scope": "executable",
+    "database": "sqlite",
+    "tests": [
+      {
+        "name": "existing account",
+        "kind": "benign",
+        "input": "alice",
+        "vulnerable": {
+          "equals": "alice"
+        },
+        "fixed": {
+          "equals": "alice"
+        }
+      },
+      {
+        "name": "missing account",
+        "kind": "benign",
+        "input": "unknown",
+        "vulnerable": {
+          "equals": ""
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "empty value",
+        "kind": "benign",
+        "input": "",
+        "vulnerable": {
+          "equals": ""
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "ordinary SQL-looking text",
+        "kind": "benign",
+        "input": "UNION SELECT admin",
+        "vulnerable": {
+          "equals": ""
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "tautology with comment",
+        "kind": "attack",
+        "input": "' OR 1=1 --",
+        "vulnerable": {
+          "equals": "alice\nadmin"
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "targeted account bypass",
+        "kind": "attack",
+        "input": "' OR name='admin' --",
+        "vulnerable": {
+          "equals": "admin"
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "UNION injected row",
+        "kind": "attack",
+        "input": "' UNION SELECT 'LAB_UNION' --",
+        "vulnerable": {
+          "equals": "LAB_UNION"
+        },
+        "fixed": {
+          "equals": ""
+        }
+      }
+    ],
+    "vulnerable": "labs/cpp/sql-injection/vulnerable/main.cpp",
+    "fixed": "labs/cpp/sql-injection/fixed/main.cpp"
+  },
+  {
+    "id": "go/sql-injection",
+    "language": "go",
+    "cwe": [
+      "CWE-89"
+    ],
+    "owasp": [
+      "A05:2025"
+    ],
+    "description": "Untrusted input changes an SQL predicate and exposes other accounts or injects result rows.",
+    "remediation": "Keep SQL structure constant and bind the untrusted value as a parameter. Execute against a fresh in-memory SQLite database.",
+    "scope": "executable",
+    "database": "sqlite",
+    "tests": [
+      {
+        "name": "existing account",
+        "kind": "benign",
+        "input": "alice",
+        "vulnerable": {
+          "equals": "alice"
+        },
+        "fixed": {
+          "equals": "alice"
+        }
+      },
+      {
+        "name": "missing account",
+        "kind": "benign",
+        "input": "unknown",
+        "vulnerable": {
+          "equals": ""
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "empty value",
+        "kind": "benign",
+        "input": "",
+        "vulnerable": {
+          "equals": ""
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "ordinary SQL-looking text",
+        "kind": "benign",
+        "input": "UNION SELECT admin",
+        "vulnerable": {
+          "equals": ""
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "tautology with comment",
+        "kind": "attack",
+        "input": "' OR 1=1 --",
+        "vulnerable": {
+          "equals": "alice\nadmin"
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "targeted account bypass",
+        "kind": "attack",
+        "input": "' OR name='admin' --",
+        "vulnerable": {
+          "equals": "admin"
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "UNION injected row",
+        "kind": "attack",
+        "input": "' UNION SELECT 'LAB_UNION' --",
+        "vulnerable": {
+          "equals": "LAB_UNION"
+        },
+        "fixed": {
+          "equals": ""
+        }
+      }
+    ],
+    "vulnerable": "labs/go/sql-injection/vulnerable/main.go",
+    "fixed": "labs/go/sql-injection/fixed/main.go"
+  },
+  {
+    "id": "php/sql-injection",
+    "language": "php",
+    "cwe": [
+      "CWE-89"
+    ],
+    "owasp": [
+      "A05:2025"
+    ],
+    "description": "Untrusted input changes an SQL predicate and exposes other accounts or injects result rows.",
+    "remediation": "Keep SQL structure constant and bind the untrusted value as a parameter. Execute against a fresh in-memory SQLite database.",
+    "scope": "executable",
+    "database": "sqlite",
+    "tests": [
+      {
+        "name": "existing account",
+        "kind": "benign",
+        "input": "alice",
+        "vulnerable": {
+          "equals": "alice"
+        },
+        "fixed": {
+          "equals": "alice"
+        }
+      },
+      {
+        "name": "missing account",
+        "kind": "benign",
+        "input": "unknown",
+        "vulnerable": {
+          "equals": ""
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "empty value",
+        "kind": "benign",
+        "input": "",
+        "vulnerable": {
+          "equals": ""
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "ordinary SQL-looking text",
+        "kind": "benign",
+        "input": "UNION SELECT admin",
+        "vulnerable": {
+          "equals": ""
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "tautology with comment",
+        "kind": "attack",
+        "input": "' OR 1=1 --",
+        "vulnerable": {
+          "equals": "alice\nadmin"
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "targeted account bypass",
+        "kind": "attack",
+        "input": "' OR name='admin' --",
+        "vulnerable": {
+          "equals": "admin"
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "UNION injected row",
+        "kind": "attack",
+        "input": "' UNION SELECT 'LAB_UNION' --",
+        "vulnerable": {
+          "equals": "LAB_UNION"
+        },
+        "fixed": {
+          "equals": ""
+        }
+      }
+    ],
+    "vulnerable": "labs/php/sql-injection/vulnerable/main.php",
+    "fixed": "labs/php/sql-injection/fixed/main.php"
+  },
+  {
+    "id": "node/sql-injection",
+    "language": "node",
+    "cwe": [
+      "CWE-89"
+    ],
+    "owasp": [
+      "A05:2025"
+    ],
+    "description": "Untrusted input changes an SQL predicate and exposes other accounts or injects result rows.",
+    "remediation": "Keep SQL structure constant and bind the untrusted value as a parameter. Execute against a fresh in-memory SQLite database.",
+    "scope": "executable",
+    "database": "sqlite",
+    "tests": [
+      {
+        "name": "existing account",
+        "kind": "benign",
+        "input": "alice",
+        "vulnerable": {
+          "equals": "alice"
+        },
+        "fixed": {
+          "equals": "alice"
+        }
+      },
+      {
+        "name": "missing account",
+        "kind": "benign",
+        "input": "unknown",
+        "vulnerable": {
+          "equals": ""
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "empty value",
+        "kind": "benign",
+        "input": "",
+        "vulnerable": {
+          "equals": ""
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "ordinary SQL-looking text",
+        "kind": "benign",
+        "input": "UNION SELECT admin",
+        "vulnerable": {
+          "equals": ""
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "tautology with comment",
+        "kind": "attack",
+        "input": "' OR 1=1 --",
+        "vulnerable": {
+          "equals": "alice\nadmin"
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "targeted account bypass",
+        "kind": "attack",
+        "input": "' OR name='admin' --",
+        "vulnerable": {
+          "equals": "admin"
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "UNION injected row",
+        "kind": "attack",
+        "input": "' UNION SELECT 'LAB_UNION' --",
+        "vulnerable": {
+          "equals": "LAB_UNION"
+        },
+        "fixed": {
+          "equals": ""
+        }
+      }
+    ],
+    "vulnerable": "labs/node/sql-injection/vulnerable/main.js",
+    "fixed": "labs/node/sql-injection/fixed/main.js"
+  },
+  {
+    "id": "typescript/sql-injection",
+    "language": "typescript",
+    "cwe": [
+      "CWE-89"
+    ],
+    "owasp": [
+      "A05:2025"
+    ],
+    "description": "Untrusted input changes an SQL predicate and exposes other accounts or injects result rows.",
+    "remediation": "Keep SQL structure constant and bind the untrusted value as a parameter. Execute against a fresh in-memory SQLite database.",
+    "scope": "executable",
+    "database": "sqlite",
+    "tests": [
+      {
+        "name": "existing account",
+        "kind": "benign",
+        "input": "alice",
+        "vulnerable": {
+          "equals": "alice"
+        },
+        "fixed": {
+          "equals": "alice"
+        }
+      },
+      {
+        "name": "missing account",
+        "kind": "benign",
+        "input": "unknown",
+        "vulnerable": {
+          "equals": ""
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "empty value",
+        "kind": "benign",
+        "input": "",
+        "vulnerable": {
+          "equals": ""
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "ordinary SQL-looking text",
+        "kind": "benign",
+        "input": "UNION SELECT admin",
+        "vulnerable": {
+          "equals": ""
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "tautology with comment",
+        "kind": "attack",
+        "input": "' OR 1=1 --",
+        "vulnerable": {
+          "equals": "alice\nadmin"
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "targeted account bypass",
+        "kind": "attack",
+        "input": "' OR name='admin' --",
+        "vulnerable": {
+          "equals": "admin"
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "UNION injected row",
+        "kind": "attack",
+        "input": "' UNION SELECT 'LAB_UNION' --",
+        "vulnerable": {
+          "equals": "LAB_UNION"
+        },
+        "fixed": {
+          "equals": ""
+        }
+      }
+    ],
+    "vulnerable": "labs/typescript/sql-injection/vulnerable/main.ts",
+    "fixed": "labs/typescript/sql-injection/fixed/main.ts"
+  },
+  {
+    "id": "java/sql-injection",
+    "language": "java",
+    "cwe": [
+      "CWE-89"
+    ],
+    "owasp": [
+      "A05:2025"
+    ],
+    "description": "Untrusted input changes an SQL predicate and exposes other accounts or injects result rows.",
+    "remediation": "Keep SQL structure constant and bind the untrusted value as a parameter. Execute against a fresh in-memory SQLite database.",
+    "scope": "executable",
+    "database": "sqlite",
+    "tests": [
+      {
+        "name": "existing account",
+        "kind": "benign",
+        "input": "alice",
+        "vulnerable": {
+          "equals": "alice"
+        },
+        "fixed": {
+          "equals": "alice"
+        }
+      },
+      {
+        "name": "missing account",
+        "kind": "benign",
+        "input": "unknown",
+        "vulnerable": {
+          "equals": ""
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "empty value",
+        "kind": "benign",
+        "input": "",
+        "vulnerable": {
+          "equals": ""
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "ordinary SQL-looking text",
+        "kind": "benign",
+        "input": "UNION SELECT admin",
+        "vulnerable": {
+          "equals": ""
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "tautology with comment",
+        "kind": "attack",
+        "input": "' OR 1=1 --",
+        "vulnerable": {
+          "equals": "alice\nadmin"
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "targeted account bypass",
+        "kind": "attack",
+        "input": "' OR name='admin' --",
+        "vulnerable": {
+          "equals": "admin"
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "UNION injected row",
+        "kind": "attack",
+        "input": "' UNION SELECT 'LAB_UNION' --",
+        "vulnerable": {
+          "equals": "LAB_UNION"
+        },
+        "fixed": {
+          "equals": ""
+        }
+      }
+    ],
+    "vulnerable": "labs/java/sql-injection/vulnerable/Main.java",
+    "fixed": "labs/java/sql-injection/fixed/Main.java"
+  },
+  {
+    "id": "ruby/sql-injection",
+    "language": "ruby",
+    "cwe": [
+      "CWE-89"
+    ],
+    "owasp": [
+      "A05:2025"
+    ],
+    "description": "Untrusted input changes an SQL predicate and exposes other accounts or injects result rows.",
+    "remediation": "Keep SQL structure constant and bind the untrusted value as a parameter. Execute against a fresh in-memory SQLite database.",
+    "scope": "executable",
+    "database": "sqlite",
+    "tests": [
+      {
+        "name": "existing account",
+        "kind": "benign",
+        "input": "alice",
+        "vulnerable": {
+          "equals": "alice"
+        },
+        "fixed": {
+          "equals": "alice"
+        }
+      },
+      {
+        "name": "missing account",
+        "kind": "benign",
+        "input": "unknown",
+        "vulnerable": {
+          "equals": ""
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "empty value",
+        "kind": "benign",
+        "input": "",
+        "vulnerable": {
+          "equals": ""
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "ordinary SQL-looking text",
+        "kind": "benign",
+        "input": "UNION SELECT admin",
+        "vulnerable": {
+          "equals": ""
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "tautology with comment",
+        "kind": "attack",
+        "input": "' OR 1=1 --",
+        "vulnerable": {
+          "equals": "alice\nadmin"
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "targeted account bypass",
+        "kind": "attack",
+        "input": "' OR name='admin' --",
+        "vulnerable": {
+          "equals": "admin"
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "UNION injected row",
+        "kind": "attack",
+        "input": "' UNION SELECT 'LAB_UNION' --",
+        "vulnerable": {
+          "equals": "LAB_UNION"
+        },
+        "fixed": {
+          "equals": ""
+        }
+      }
+    ],
+    "vulnerable": "labs/ruby/sql-injection/vulnerable/main.rb",
+    "fixed": "labs/ruby/sql-injection/fixed/main.rb"
+  },
+  {
+    "id": "dotnet/sql-injection",
+    "language": "dotnet",
+    "cwe": [
+      "CWE-89"
+    ],
+    "owasp": [
+      "A05:2025"
+    ],
+    "description": "Untrusted input changes an SQL predicate and exposes other accounts or injects result rows.",
+    "remediation": "Keep SQL structure constant and bind the untrusted value as a parameter. Execute against a fresh in-memory SQLite database.",
+    "scope": "executable",
+    "database": "sqlite",
+    "tests": [
+      {
+        "name": "existing account",
+        "kind": "benign",
+        "input": "alice",
+        "vulnerable": {
+          "equals": "alice"
+        },
+        "fixed": {
+          "equals": "alice"
+        }
+      },
+      {
+        "name": "missing account",
+        "kind": "benign",
+        "input": "unknown",
+        "vulnerable": {
+          "equals": ""
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "empty value",
+        "kind": "benign",
+        "input": "",
+        "vulnerable": {
+          "equals": ""
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "ordinary SQL-looking text",
+        "kind": "benign",
+        "input": "UNION SELECT admin",
+        "vulnerable": {
+          "equals": ""
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "tautology with comment",
+        "kind": "attack",
+        "input": "' OR 1=1 --",
+        "vulnerable": {
+          "equals": "alice\nadmin"
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "targeted account bypass",
+        "kind": "attack",
+        "input": "' OR name='admin' --",
+        "vulnerable": {
+          "equals": "admin"
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "UNION injected row",
+        "kind": "attack",
+        "input": "' UNION SELECT 'LAB_UNION' --",
+        "vulnerable": {
+          "equals": "LAB_UNION"
+        },
+        "fixed": {
+          "equals": ""
+        }
+      }
+    ],
+    "vulnerable": "labs/dotnet/sql-injection/vulnerable/Program.cs",
+    "fixed": "labs/dotnet/sql-injection/fixed/Program.cs"
+  },
+  {
+    "id": "rust/sql-injection",
+    "language": "rust",
+    "cwe": [
+      "CWE-89"
+    ],
+    "owasp": [
+      "A05:2025"
+    ],
+    "description": "Untrusted input changes an SQL predicate and exposes other accounts or injects result rows.",
+    "remediation": "Keep SQL structure constant and bind the untrusted value as a parameter. Execute against a fresh in-memory SQLite database.",
+    "scope": "executable",
+    "database": "sqlite",
+    "tests": [
+      {
+        "name": "existing account",
+        "kind": "benign",
+        "input": "alice",
+        "vulnerable": {
+          "equals": "alice"
+        },
+        "fixed": {
+          "equals": "alice"
+        }
+      },
+      {
+        "name": "missing account",
+        "kind": "benign",
+        "input": "unknown",
+        "vulnerable": {
+          "equals": ""
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "empty value",
+        "kind": "benign",
+        "input": "",
+        "vulnerable": {
+          "equals": ""
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "ordinary SQL-looking text",
+        "kind": "benign",
+        "input": "UNION SELECT admin",
+        "vulnerable": {
+          "equals": ""
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "tautology with comment",
+        "kind": "attack",
+        "input": "' OR 1=1 --",
+        "vulnerable": {
+          "equals": "alice\nadmin"
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "targeted account bypass",
+        "kind": "attack",
+        "input": "' OR name='admin' --",
+        "vulnerable": {
+          "equals": "admin"
+        },
+        "fixed": {
+          "equals": ""
+        }
+      },
+      {
+        "name": "UNION injected row",
+        "kind": "attack",
+        "input": "' UNION SELECT 'LAB_UNION' --",
+        "vulnerable": {
+          "equals": "LAB_UNION"
+        },
+        "fixed": {
+          "equals": ""
+        }
+      }
+    ],
+    "vulnerable": "labs/rust/sql-injection/vulnerable/main.rs",
+    "fixed": "labs/rust/sql-injection/fixed/main.rs"
+  },
+  {
+    "id": "cgi/sql-injection",
+    "language": "cgi",
+    "cwe": [
+      "CWE-89"
+    ],
+    "owasp": [
+      "A05:2025"
+    ],
+    "description": "A decoded CGI query parameter changes an executed SQL query and leaks account rows.",
+    "remediation": "Keep SQL structure constant and bind the untrusted value as a parameter. Execute against a fresh in-memory SQLite database.",
+    "scope": "handler-unit",
+    "database": "sqlite",
+    "tests": [
+      {
+        "name": "existing account",
+        "kind": "benign",
+        "input": "name=alice",
+        "vulnerable": {
+          "equals": "Content-Type: application/json\r\n\r\n[\"alice\"]"
+        },
+        "fixed": {
+          "equals": "Content-Type: application/json\r\n\r\n[\"alice\"]"
+        }
+      },
+      {
+        "name": "missing account",
+        "kind": "benign",
+        "input": "name=unknown",
+        "vulnerable": {
+          "equals": "Content-Type: application/json\r\n\r\n[]"
+        },
+        "fixed": {
+          "equals": "Content-Type: application/json\r\n\r\n[]"
+        }
+      },
+      {
+        "name": "empty value",
+        "kind": "benign",
+        "input": "name=",
+        "vulnerable": {
+          "equals": "Content-Type: application/json\r\n\r\n[]"
+        },
+        "fixed": {
+          "equals": "Content-Type: application/json\r\n\r\n[]"
+        }
+      },
+      {
+        "name": "ordinary SQL-looking text",
+        "kind": "benign",
+        "input": "name=UNION+SELECT+admin",
+        "vulnerable": {
+          "equals": "Content-Type: application/json\r\n\r\n[]"
+        },
+        "fixed": {
+          "equals": "Content-Type: application/json\r\n\r\n[]"
+        }
+      },
+      {
+        "name": "tautology with comment",
+        "kind": "attack",
+        "input": "name=%27+OR+1%3D1+--",
+        "vulnerable": {
+          "equals": "Content-Type: application/json\r\n\r\n[\"alice\", \"admin\"]"
+        },
+        "fixed": {
+          "equals": "Content-Type: application/json\r\n\r\n[]"
+        }
+      },
+      {
+        "name": "targeted account bypass",
+        "kind": "attack",
+        "input": "name=%27+OR+name%3D%27admin%27+--",
+        "vulnerable": {
+          "equals": "Content-Type: application/json\r\n\r\n[\"admin\"]"
+        },
+        "fixed": {
+          "equals": "Content-Type: application/json\r\n\r\n[]"
+        }
+      },
+      {
+        "name": "UNION injected row",
+        "kind": "attack",
+        "input": "name=%27+UNION+SELECT+%27LAB_UNION%27+--",
+        "vulnerable": {
+          "equals": "Content-Type: application/json\r\n\r\n[\"LAB_UNION\"]"
+        },
+        "fixed": {
+          "equals": "Content-Type: application/json\r\n\r\n[]"
+        }
+      }
+    ],
+    "vulnerable": "labs/cgi/sql-injection/vulnerable/main.py",
+    "fixed": "labs/cgi/sql-injection/fixed/main.py"
+  },
+  {
+    "id": "rest-api/sql-injection",
+    "language": "rest-api",
+    "cwe": [
+      "CWE-89"
+    ],
+    "owasp": [
+      "A05:2025"
+    ],
+    "description": "A JSON API field is concatenated into SQL and bypasses the account lookup predicate.",
+    "remediation": "Keep SQL structure constant and bind the untrusted value as a parameter. Execute against a fresh in-memory SQLite database.",
+    "scope": "handler-unit",
+    "database": "sqlite",
+    "tests": [
+      {
+        "name": "existing account",
+        "kind": "benign",
+        "input": {
+          "name": "alice"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "body": [
+              "alice"
+            ]
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "body": [
+              "alice"
+            ]
+          }
+        }
+      },
+      {
+        "name": "missing account",
+        "kind": "benign",
+        "input": {
+          "name": "unknown"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "body": []
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "body": []
+          }
+        }
+      },
+      {
+        "name": "empty value",
+        "kind": "benign",
+        "input": {
+          "name": ""
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "body": []
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "body": []
+          }
+        }
+      },
+      {
+        "name": "ordinary SQL-looking text",
+        "kind": "benign",
+        "input": {
+          "name": "UNION SELECT admin"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "body": []
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "body": []
+          }
+        }
+      },
+      {
+        "name": "tautology with comment",
+        "kind": "attack",
+        "input": {
+          "name": "' OR 1=1 --"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "body": [
+              "alice",
+              "admin"
+            ]
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "body": []
+          }
+        }
+      },
+      {
+        "name": "targeted account bypass",
+        "kind": "attack",
+        "input": {
+          "name": "' OR name='admin' --"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "body": [
+              "admin"
+            ]
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "body": []
+          }
+        }
+      },
+      {
+        "name": "UNION injected row",
+        "kind": "attack",
+        "input": {
+          "name": "' UNION SELECT 'LAB_UNION' --"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "body": [
+              "LAB_UNION"
+            ]
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "body": []
+          }
+        }
+      }
+    ],
+    "vulnerable": "labs/rest-api/sql-injection/vulnerable/main.py",
+    "fixed": "labs/rest-api/sql-injection/fixed/main.py"
+  },
+  {
+    "id": "ai/sql-injection",
+    "language": "ai",
+    "cwe": [
+      "CWE-89"
+    ],
+    "owasp": [
+      "A05:2025",
+      "LLM05:2025"
+    ],
+    "description": "A model-supplied database-tool argument is concatenated into SQL and changes the query structure.",
+    "remediation": "Keep SQL structure constant and bind the untrusted value as a parameter. Execute against a fresh in-memory SQLite database.",
+    "scope": "ai-boundary-unit",
+    "database": "sqlite",
+    "tests": [
+      {
+        "name": "existing account",
+        "kind": "benign",
+        "input": {
+          "name": "alice"
+        },
+        "vulnerable": {
+          "equals": [
+            "alice"
+          ]
+        },
+        "fixed": {
+          "equals": [
+            "alice"
+          ]
+        }
+      },
+      {
+        "name": "missing account",
+        "kind": "benign",
+        "input": {
+          "name": "unknown"
+        },
+        "vulnerable": {
+          "equals": []
+        },
+        "fixed": {
+          "equals": []
+        }
+      },
+      {
+        "name": "empty value",
+        "kind": "benign",
+        "input": {
+          "name": ""
+        },
+        "vulnerable": {
+          "equals": []
+        },
+        "fixed": {
+          "equals": []
+        }
+      },
+      {
+        "name": "ordinary SQL-looking text",
+        "kind": "benign",
+        "input": {
+          "name": "UNION SELECT admin"
+        },
+        "vulnerable": {
+          "equals": []
+        },
+        "fixed": {
+          "equals": []
+        }
+      },
+      {
+        "name": "tautology with comment",
+        "kind": "attack",
+        "input": {
+          "name": "' OR 1=1 --"
+        },
+        "vulnerable": {
+          "equals": [
+            "alice",
+            "admin"
+          ]
+        },
+        "fixed": {
+          "equals": []
+        }
+      },
+      {
+        "name": "targeted account bypass",
+        "kind": "attack",
+        "input": {
+          "name": "' OR name='admin' --"
+        },
+        "vulnerable": {
+          "equals": [
+            "admin"
+          ]
+        },
+        "fixed": {
+          "equals": []
+        }
+      },
+      {
+        "name": "UNION injected row",
+        "kind": "attack",
+        "input": {
+          "name": "' UNION SELECT 'LAB_UNION' --"
+        },
+        "vulnerable": {
+          "equals": [
+            "LAB_UNION"
+          ]
+        },
+        "fixed": {
+          "equals": []
+        }
+      }
+    ],
+    "vulnerable": "labs/ai/sql-injection/vulnerable/main.py",
+    "fixed": "labs/ai/sql-injection/fixed/main.py"
   }
 ]
