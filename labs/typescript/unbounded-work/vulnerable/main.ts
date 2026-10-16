@@ -1,0 +1,9 @@
+declare const process: {argv: string[], env: {[key: string]: string | undefined}, stdout: {write(s: string): void}};
+declare function require(name: string): any;
+function run(value: string): string {
+    const size = Number(value);
+    if (!Number.isSafeInteger(size) || size < 0) throw new Error("Invalid size");
+    const data = new Uint8Array(size);
+    return String(data.length);
+}
+process.stdout.write(run(process.argv[2]));

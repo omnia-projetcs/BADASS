@@ -8,15 +8,22 @@ from pathlib import Path
 import sys
 
 from runner import ROOT, RUNTIMES, run_cases
+from technology_coverage import build_matrix, validate_plan
 
 
 def read_catalog():
     return json.loads((ROOT / "catalog/cases.json").read_text())
 
 
+def read_plan():
+    return json.loads((ROOT / "catalog/coverage-plan.json").read_text())
+
+
 def validate(cases):
     seen = set()
-    cwes = {x["id"] for x in json.loads((ROOT / "catalog/cwe.json").read_text())["entries"] if x["kind"] == "weakness"}
+    entries = json.loads((ROOT / "catalog/cwe.json").read_text())["entries"]
+    validate_plan(read_plan(), entries, RUNTIMES)
+    cwes = {x["id"] for x in entries if x["kind"] == "weakness"}
     frameworks = json.loads((ROOT / "catalog/frameworks.json").read_text())
     categories = {c for f in frameworks for c in f["categories"]}
     for case in cases:
@@ -53,7 +60,8 @@ def coverage(cases):
     owasp = {key: [c["id"] for c in cases if key in c["owasp"]] for f in frameworks for key in f["categories"]}
     return {"cwe_version": taxonomy["version"], "counts": dict(Counter(r["coverage"] for r in rows)),
             "note": "Implemented means source pair and vectors exist, not that a runtime passed or a scanner detected it.",
-            "cwe": rows, "owasp": owasp}
+            "cwe": rows, "owasp": owasp,
+            "by_technology": build_matrix(cases, taxonomy["entries"], read_plan())}
 
 
 def score(cases, findings):
