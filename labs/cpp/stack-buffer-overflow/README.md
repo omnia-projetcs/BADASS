@@ -1,0 +1,33 @@
+# Stack buffer overflow
+
+Unbounded copying overwrites a stack buffer.
+
+**Technology:** C++  
+**CWE:** CWE-121  
+**OWASP:** A06:2025  
+**Test scope:** `executable`
+
+[Vulnerable source](vulnerable/main.cpp) · [Corrected source](fixed/main.cpp)
+
+## Correction
+
+Check the length before copying and preserve room for the terminator.
+
+## Regression
+
+```sh
+python3 tools/lab.py test --case cpp/stack-buffer-overflow --strict
+```
+
+Run from the repository root. Exact inputs and expected outputs are in
+[the catalog](../../../catalog/cases.json). Both variants are tested.
+
+| Vector | Type | Vulnerable expectation | Fixed expectation |
+|---|---|---|---|
+| short input | benign | {"equals": "hello"} | {"equals": "hello"} |
+| oversized input | attack | {"stderr_contains": "AddressSanitizer"} | {"equals": "DENIED"} |
+
+This example demonstrates the declared weakness within the documented fixture assumptions.
+It is not a production application or a proof that every related attack is prevented.
+
+[Technology index](../README.md) · [Benchmark methodology](../../../docs/BENCHMARK.md)

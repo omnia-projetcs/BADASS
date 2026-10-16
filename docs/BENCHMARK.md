@@ -82,6 +82,42 @@ and views. `implemented` means a code pair and vectors exist; test execution sta
 comes from a regression report. `gap` means no direct case exists. `taxonomy-only`
 means the entry is a category or view rather than an executable weakness.
 
+The [technology matrix](TECHNOLOGY-MATRIX.md) crosses every weakness with all
+14 sections. A case only fills its exact CWE and technology cell. The
+[coverage plan](../catalog/coverage-plan.json) defines a shared 16-family baseline
+and eight additional C/C++ targets. Within that plan, an absent case is `gap`.
+Outside it, an absent case is `unassessed`: applicability needs review, and the
+weakness must not be counted as covered or dismissed as not applicable. There is
+no defensible single count of all possible vulnerabilities for a language without
+specifying frameworks, native boundaries, configuration and deployment context.
+
+The CLI coverage JSON includes `by_technology` with case links, target flags,
+per-section totals and all weakness rows. Filters restrict the evidence used:
+`coverage --language java` leaves other sections without implementation evidence
+in that filtered report. Categories and views remain in the global `cwe` array.
+
+The common baseline includes SQL, command, HTML, log and HTTP-header injection;
+path traversal and symbolic-link following; object-level and function-level
+authorization; hardcoded credentials; error disclosure; fail-open decisions;
+open redirects; unbounded work; business logic; and file permissions. Context
+sections exercise these at handler or tool boundaries without running a web
+server or LLM. Native C/C++ cases additionally cover stack and heap overflow,
+out-of-bounds reads, use-after-free, double free, null dereferences, format strings
+and integer wraparound. Arithmetic wraparound is observed through the calculated
+result; unsigned wraparound is defined behavior and does not require a sanitizer.
+
+The symbolic-link cases create a real preplaced link and observe whether writing
+through it changes the synthetic secret. Exclusive creation protects the final
+path component in a trusted parent directory. This is not protection against
+attacker-controlled ancestor directories. Permission tests inspect actual POSIX
+mode bits, not ACLs, Windows permissions or the process umask. Resource tests use
+small allocations to exercise a limit without exhausting the machine.
+
+Further work includes framework-specific authentication and session handling,
+serialization, XML parsers, uploads, cryptographic APIs, concurrency and unsafe
+native interfaces in additional languages. An existing example in one section
+does not discharge this work for other sections.
+
 Mappings to OWASP are project-maintained topical mappings. They are not official
 MITRE mapping claims or a certification. The scope includes Web Top 10:2025,
 API Security Top 10:2023 and LLM Top 10:2025. ASVS, WSTG, MASVS, hardware verification,

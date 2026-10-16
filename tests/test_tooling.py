@@ -10,8 +10,9 @@ import zipfile
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 from ai_evaluate import evaluate
 from import_cwe import parse_archive
-from lab import coverage, read_catalog, score, validate
+from lab import coverage, read_catalog, read_plan, score, validate
 from runner import ROOT, RUNTIMES, matches
+from technology_coverage import validate_plan
 from subprocess import CompletedProcess
 
 
@@ -73,6 +74,50 @@ class CatalogTests(unittest.TestCase):
                                 text=True, capture_output=True)
         self.assertEqual(result.returncode, 2)
         self.assertIn("No matching cases", result.stderr)
+
+
+class TechnologyCoverageTests(unittest.TestCase):
+    def test_every_declared_target_has_a_source_pair(self):
+        report = coverage(read_catalog())["by_technology"]
+        self.assertEqual(set(report["technologies"]), set(RUNTIMES))
+        for language, summary in report["summary"].items():
+            self.assertEqual(summary["gap"], 0, language)
+            self.assertEqual(summary["targets_implemented"], summary["targets"], language)
+        for row in report["rows"]:
+            for cell in row["technologies"].values():
+                self.assertEqual(cell["status"] == "implemented", bool(cell["cases"]))
+
+    def test_matrix_contains_all_weaknesses_and_no_categories(self):
+        report = coverage(read_catalog())
+        expected = {row["id"] for row in report["cwe"] if row["kind"] == "weakness"}
+        rows = report["by_technology"]["rows"]
+        self.assertEqual({row["id"] for row in rows}, expected)
+        self.assertEqual(len(rows), len(expected))
+        self.assertTrue(all(set(row["technologies"]) == set(RUNTIMES) for row in rows))
+
+    def test_target_and_unassessed_absences_are_distinct(self):
+        rows = {r["id"]: r for r in coverage([])["by_technology"]["rows"]}
+        self.assertEqual(rows["CWE-89"]["technologies"]["java"]["status"], "gap")
+        self.assertEqual(rows["CWE-416"]["technologies"]["c"]["status"], "gap")
+        self.assertEqual(rows["CWE-416"]["technologies"]["java"]["status"], "unassessed")
+
+    def test_filtered_evidence_is_not_inherited_by_another_language_or_cwe(self):
+        case = next(c for c in read_catalog() if c["id"] == "java/sql-injection")
+        report = coverage([case])["by_technology"]
+        implemented = [(r["id"], lang, cell["cases"]) for r in report["rows"]
+                       for lang, cell in r["technologies"].items() if cell["status"] == "implemented"]
+        self.assertEqual(implemented, [("CWE-89", "java", [case["id"]])])
+
+    def test_unknown_target_and_missing_technology_are_rejected(self):
+        entries = json.loads((ROOT / "catalog/cwe.json").read_text())["entries"]
+        plan = read_plan()
+        plan["groups"][0]["cwe"].append("CWE-999999")
+        with self.assertRaises(AssertionError):
+            validate_plan(plan, entries, RUNTIMES)
+        plan = read_plan()
+        plan["technologies"].pop()
+        with self.assertRaises(AssertionError):
+            validate_plan(plan, entries, RUNTIMES)
 
 
 class ScoringTests(unittest.TestCase):

@@ -21,3 +21,16 @@ Run commands from the repository root. Cases are independent and use synthetic f
 | [Legacy endpoint](legacy-endpoint/README.md) | CWE-489 | API9:2023 | handler-unit |
 | [Unsafe upstream data](unsafe-upstream-data/README.md) | CWE-20 | API10:2023 | handler-unit |
 | [SQL injection](sql-injection/README.md) | CWE-89 | A05:2025 | handler-unit |
+| [Hardcoded credentials](hardcoded-credentials/README.md) | CWE-798 | A07:2025 | handler-unit |
+| [Log injection](log-injection/README.md) | CWE-117 | A09:2025 | executable |
+| [Error disclosure](error-disclosure/README.md) | CWE-209 | A02:2025 | handler-unit |
+| [Fail open](fail-open/README.md) | CWE-636 | A10:2025 | handler-unit |
+| [Open redirect](open-redirect/README.md) | CWE-601 | A01:2025 | handler-unit |
+| [Unbounded work](unbounded-work/README.md) | CWE-400 | A06:2025 | executable |
+| [Business logic](business-logic/README.md) | CWE-841 | A06:2025 | handler-unit |
+| [World readable secret](world-readable-secret/README.md) | CWE-732 | A01:2025 | executable |
+| [HTTP response header injection](header-injection/README.md) | CWE-113 | A05:2025 | handler-unit |
+| [Symlink following](symlink-following/README.md) | CWE-59 | A01:2025 | executable |
+| [Cross-site scripting (XSS)](xss/README.md) | CWE-79 | A05:2025 | handler-unit |
+| [Path traversal](path-traversal/README.md) | CWE-22 | A01:2025 | executable |
+| [Command injection](command-injection/README.md) | CWE-78 | A05:2025 | executable |

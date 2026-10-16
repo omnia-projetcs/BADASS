@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 import sys
 
-from lab import coverage, read_catalog, validate
+from lab import coverage, read_catalog, read_plan, validate
 from runner import ROOT
 
 LABELS = {'c': 'C', 'cpp': 'C++', 'go': 'Go', 'php': 'PHP', 'rest-api': 'REST API (Python handlers)',
@@ -35,6 +35,10 @@ def render():
     report = coverage(cases)
     cwe_count = sum(row['kind'] == 'weakness' for row in report['cwe'])
     covered = report['counts']['implemented']
+    matrix = report['by_technology']
+    plan = read_plan()
+    core = next(g for g in plan['groups'] if g['id'] == 'common-core')
+    core_ids = set(core['cwe'])
     lines = ['# BADASS', '', '**Broken Application Designed for Auditing Security Scanners**', '',
              'An executable security benchmark for validating vulnerability detection and remediation across languages,',
              'REST APIs, CGI handlers and AI-assisted audit workflows. Each case includes deliberately vulnerable',
@@ -55,10 +59,26 @@ def render():
              'Run all SQL injection cases with:', '', '```sh',
              "make container-test LAB_ARGS='test --cwe CWE-89 --strict --output reports/sql-injection.json'", '```', '',
              'See [SQL injection cases, drivers and test coverage](docs/SQL-INJECTION.md).', '',
+             '## Coverage by technology', '',
+             f'The shared baseline targets **{len(core_ids)} weakness families in all {len(LABELS)} sections**.',
+             'C and C++ also have explicit native memory, format-string and integer-arithmetic targets.',
+             'Counts below come from exact CWE mappings. They describe source pairs and regression vectors;',
+             'execution results remain in the regression reports.', '',
+             '| Technology | Case pairs | Distinct CWE | Shared baseline | Planned targets |',
+             '|---|---:|---:|---:|---:|']
+    for language in ORDER:
+        s = matrix['summary'][language]
+        implemented = {w for c in cases if c['language'] == language for w in c['cwe']}
+        lines.append(f"| [{LABELS[language]}](labs/{language}/README.md) | {s['cases']} | {s['implemented']} | "
+                     f"{len(core_ids & implemented)}/{len(core_ids)} | {s['targets_implemented']}/{s['targets']} |")
+    lines += ['', 'See the [baseline and native targets](docs/CORE-MATRIX.md) and the',
+              '[complete CWE × technology matrix](docs/TECHNOLOGY-MATRIX.md).',
+              'The latter includes every weakness in the pinned taxonomy. Missing cases outside the declared',
+              'targets remain `unassessed`; this does not mean they are impossible in that language.', '',
              '## Vulnerabilities by technology', '',
              'Every vulnerability currently implemented is listed below. Links open the case documentation, including',
              'the vulnerable and corrected source files. A case in the table is not a claim of full CWE coverage.', '',
-             '| Technology | Cases | Implemented vulnerabilities (CWE) |', '|---|---:|---|']
+              '| Technology | Cases | Implemented vulnerabilities (CWE) |', '|---|---:|---|']
     for language in ORDER:
         selected = [c for c in cases if c['language'] == language]
         entries = [f"[{title(c)}](labs/{c['id']}/README.md) ({', '.join(c['cwe'])})" for c in selected]
@@ -104,8 +124,7 @@ def render():
               'tools/         Regression runner, scorer, CWE importer and documentation renderer',
               'tests/         Regression tests for the benchmark tooling itself',
               'docs/          Complete CWE matrix, OWASP mappings and evaluation protocols',
-              'reports/       Generated execution and scoring reports (ignored by Git)',
-              '.github/       CI validation and full isolated regression workflow', '```', '',
+              'reports/       Generated execution and scoring reports (ignored by Git)', '```', '',
               '## Add a case or update the catalog', '',
               '1. Add a focused source pair under `labs/<technology>/<case>/{vulnerable,fixed}/`.',
               '2. Add an entry to `catalog/cases.json` with its CWE, OWASP mappings, scope, remediation and test vectors.',
@@ -160,6 +179,42 @@ def render():
         case_links=', '.join(f'[{cid}](../labs/{cid}/README.md)' for cid in r['cases'])
         lines.append('| '+ ' | '.join(table_cell(x) for x in [r['id'],r['name'],r['kind'],r['status'],r['coverage'],case_links])+' |')
     outputs['docs/CWE-MATRIX.md']='\n'.join(lines)+'\n'
+    technology_header = '| CWE | Weakness | ' + ' | '.join(LABELS[lang] for lang in ORDER) + ' |'
+    technology_separator = '|---|---|' + '---|' * len(ORDER)
+
+    def technology_row(row):
+        cells = []
+        for language in ORDER:
+            cell = row['technologies'][language]
+            cells.append('<br>'.join(f'[{cid.split("/", 1)[1]}](../labs/{cid}/README.md)'
+                                    for cid in cell['cases']) or cell['status'])
+        return '| ' + ' | '.join([row['id'], table_cell(row['name']), *cells]) + ' |'
+
+    lines = ['# Complete CWE × technology matrix', '',
+             f"MITRE CWE **{report['cwe_version']}**: **{len(matrix['rows'])} weaknesses × {len(ORDER)} technology sections**.", '',
+             'A linked case is implemented in that exact section. `gap` means a declared target has no case.',
+             '`unassessed` means there is no case and applicability has not been reviewed. Neither absence',
+             'status means not applicable. No coverage is inherited from parents, other languages or OWASP categories.',
+             'Deprecated weaknesses remain included. Categories and views are listed in the [taxonomy matrix](CWE-MATRIX.md).', '',
+             'Implementation is source/vector evidence; runtime pass/fail evidence is stored separately in reports.',
+             'The AI, REST API and CGI columns are Python application contexts, not additional programming languages.', '',
+             '[Declared targets](../catalog/coverage-plan.json) · [Target summary](CORE-MATRIX.md) · [Methodology](BENCHMARK.md)', '',
+             technology_header, technology_separator]
+    lines += [technology_row(row) for row in matrix['rows']]
+    outputs['docs/TECHNOLOGY-MATRIX.md'] = '\n'.join(lines) + '\n'
+    lines = ['# Shared baseline and native coverage targets', '', plan['scope'], '',
+             'These are finite implementation targets, not a count of all possible vulnerabilities.',
+             'Every link refers to a source pair with benign and attack vectors. See the',
+             '[complete per-technology matrix](TECHNOLOGY-MATRIX.md) for weaknesses outside these targets.', '',
+             '[Machine-readable plan](../catalog/coverage-plan.json)', '']
+    by_id = {row['id']: row for row in matrix['rows']}
+    for group in plan['groups']:
+        lines += [f"## {group['id']}", '', group['scope'], '',
+                  'Target sections: ' + ', '.join(LABELS[lang] for lang in group['technologies']) + '.', '',
+                  technology_header, technology_separator]
+        lines += [technology_row(by_id[w]) for w in group['cwe']]
+        lines.append('')
+    outputs['docs/CORE-MATRIX.md'] = '\n'.join(lines)
     lines=['# OWASP coverage matrix', '',
            'Project-maintained mappings to pinned editions. A mapped example is not exhaustive category coverage.',
            'Scope distinguishes executable sinks, handler models, configuration checks and AI application boundaries.', '',

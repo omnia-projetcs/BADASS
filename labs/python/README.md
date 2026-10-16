@@ -35,3 +35,6 @@ Run commands from the repository root. Cases are independent and use synthetic f
 | [World readable secret](world-readable-secret/README.md) | CWE-732 | A01:2025 | executable |
 | [Disabled TLS verification](tls-verification/README.md) | CWE-295 | A04:2025 | configuration-unit |
 | [Missing security audit events](missing-audit/README.md) | CWE-778 | A09:2025 | handler-unit |
+| [Missing authorization](missing-authorization/README.md) | CWE-862 | A01:2025 | handler-unit |
+| [HTTP response header injection](header-injection/README.md) | CWE-113 | A05:2025 | handler-unit |
+| [Symlink following](symlink-following/README.md) | CWE-59 | A01:2025 | executable |
