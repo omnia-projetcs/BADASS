@@ -2,10 +2,12 @@
 
 An export follows a preplaced symbolic link and overwrites a private file.
 
-**Technology:** Rust  
-**CWE:** CWE-59  
-**OWASP:** A01:2025  
-**Test scope:** `executable`
+| Attribute | Value |
+|---|---|
+| Technology | Rust |
+| CWE | CWE-59 |
+| OWASP | A01:2025 |
+| Test scope | `executable` |
 
 [Vulnerable source](vulnerable/main.rs) · [Corrected source](fixed/main.rs)
 
@@ -22,10 +24,14 @@ python3 tools/lab.py test --case rust/symlink-following --strict
 Run from the repository root. Exact inputs and expected outputs are in
 [the catalog](../../../catalog/cases.json). Both variants are tested.
 
+The runner also checks every declared file effect. `functional` vectors can specify a useful
+operation that the vulnerable implementation did not support correctly; `robustness` vectors
+exercise malformed inputs. `benign` vectors require identical expectations.
+
 | Vector | Type | Vulnerable expectation | Fixed expectation |
 |---|---|---|---|
-| ordinary export | benign | {"equals": "LAB_SECRET"} | {"equals": "LAB_SECRET"} |
-| preplaced link | attack | {"equals": "LAB_OVERWRITTEN"} | {"equals": "LAB_SECRET"} |
+| ordinary export | benign | {"equals": "LAB_SECRET", "files": [{"path": "secret.txt", "type": "file", "content": "LAB_SECRET"}, {"path": "export.tmp", "type": "file", "content": "LAB_OVERWRITTEN"}]} | {"equals": "LAB_SECRET", "files": [{"path": "secret.txt", "type": "file", "content": "LAB_SECRET"}, {"path": "export.tmp", "type": "file", "content": "LAB_OVERWRITTEN"}]} |
+| preplaced link | attack | {"equals": "LAB_OVERWRITTEN", "files": [{"path": "secret.txt", "type": "file", "content": "LAB_OVERWRITTEN"}, {"path": "export.tmp", "type": "symlink", "target": "secret.txt"}]} | {"equals": "LAB_SECRET", "files": [{"path": "secret.txt", "type": "file", "content": "LAB_SECRET"}, {"path": "export.tmp", "type": "symlink", "target": "secret.txt"}]} |
 
 This example demonstrates the declared weakness within the documented fixture assumptions.
 It is not a production application or a proof that every related attack is prevented.

@@ -2,10 +2,12 @@
 
 An authorization backend error grants access.
 
-**Technology:** Go  
-**CWE:** CWE-636  
-**OWASP:** A10:2025  
-**Test scope:** `handler-unit`
+| Attribute | Value |
+|---|---|
+| Technology | Go |
+| CWE | CWE-636 |
+| OWASP | A10:2025 |
+| Test scope | `handler-unit` |
 
 [Vulnerable source](vulnerable/main.go) · [Corrected source](fixed/main.go)
 
@@ -21,6 +23,10 @@ python3 tools/lab.py test --case go/fail-open --strict
 
 Run from the repository root. Exact inputs and expected outputs are in
 [the catalog](../../../catalog/cases.json). Both variants are tested.
+
+The runner also checks every declared file effect. `functional` vectors can specify a useful
+operation that the vulnerable implementation did not support correctly; `robustness` vectors
+exercise malformed inputs. `benign` vectors require identical expectations.
 
 | Vector | Type | Vulnerable expectation | Fixed expectation |
 |---|---|---|---|

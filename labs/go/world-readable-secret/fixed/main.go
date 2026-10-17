@@ -6,21 +6,22 @@ import (
 )
 
 func run(value string) string {
+	public := value == "public"
 	file, err := os.OpenFile("stored-secret", os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0600)
 	if err != nil {
 		panic(err)
 	}
 	defer file.Close()
 	content := "LAB_SECRET"
-	if value == "public" {
+	if public {
 		content = "PUBLIC"
 	}
 	if _, err := file.WriteString(content); err != nil {
 		panic(err)
 	}
-	mode := os.FileMode(0644)
-	if value == "secret" {
-		mode = 0600
+	mode := os.FileMode(0600)
+	if public {
+		mode = 0644
 	}
 	if err := file.Chmod(mode); err != nil {
 		panic(err)

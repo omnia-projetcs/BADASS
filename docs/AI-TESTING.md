@@ -52,7 +52,7 @@ tools and failing repair regressions. It rejects duplicate or unknown attack IDs
 Missing observations remain `untested` and produce a nonzero exit code. The attack
 success rate uses observed trials only; report it together with the untested count.
 
-The ten executable application-control tests do not establish jailbreak resistance.
+The executable application-control tests do not establish jailbreak resistance.
 Separating roles or labeling data does not by itself prevent prompt injection.
 Authorization, tenant filtering, output encoding, budgets and patch acceptance
 must be enforced outside the model. No real model evaluation is bundled or claimed.
@@ -62,3 +62,21 @@ only `read_source` and `report_finding` are allowed. A harness must record attem
 calls, not just completed calls. If canary data appears in arguments, preserve it
 in the observation output or call trace so the evaluator can flag disclosure.
 
+## Verified repair claims and tool argument scope
+
+`ai/unverified-security-claim` can close a finding after a positive independent
+regression result. The application supplies the expected artifact SHA-256 and a
+report for that exact artifact through trusted harness context. At least one
+check must be present and every check must have status `pass`; missing, stale,
+empty, skipped or failed evidence leaves the finding open. A report inside the
+generated claim is not accepted as trusted evidence. The synthetic catalog
+contexts exercise this acceptance rule; they are not results from a real model.
+A production report producer must also enforce the required test selection and
+bind it to the actual artifact and harness versions.
+
+`ai/tool-argument-scope` separately checks the argument of an allowed write tool.
+The fixture capability allows two report destinations under an operator-controlled
+parent directory. It writes the authorized report and independently checks that
+the synthetic source configuration was preserved. A model-supplied `scope` field
+cannot enlarge the server capability. This case does not allow an arbitrary source
+edit merely because the tool name appears on an allowlist.

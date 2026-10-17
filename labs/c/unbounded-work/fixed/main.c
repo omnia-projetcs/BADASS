@@ -11,8 +11,13 @@ int main(int argc, char **argv) {
     if (argc != 2) return 2;
     const char *value = argv[1];
     char *end = NULL;
+    errno = 0;
     long size = strtol(value, &end, 10);
-    if (!*value || *end || size < 0) return 2;
+    if (errno || end == value || *end ||
+        (*value != '-' && (*value < '0' || *value > '9')) || size < 0) {
+        puts("DENIED");
+        return 0;
+    }
     if (size > 100) { puts("DENIED"); return 0; }
     unsigned char *data = calloc((size_t)size, 1);
     if (!data && size != 0) return 1;

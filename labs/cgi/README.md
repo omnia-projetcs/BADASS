@@ -21,7 +21,7 @@ Run commands from the repository root. Cases are independent and use synthetic f
 | [Fail open](fail-open/README.md) | CWE-636 | A10:2025 | handler-unit |
 | [Open redirect](open-redirect/README.md) | CWE-601 | A01:2025 | handler-unit |
 | [Unbounded work](unbounded-work/README.md) | CWE-400 | A06:2025 | executable |
-| [Business logic](business-logic/README.md) | CWE-841 | A06:2025 | handler-unit |
+| [Invalid purchase quantity](business-logic/README.md) | CWE-1284 | A06:2025 | handler-unit |
 | [World readable secret](world-readable-secret/README.md) | CWE-732 | A01:2025 | executable |
 | [Symlink following](symlink-following/README.md) | CWE-59 | A01:2025 | executable |
 | [Path traversal](path-traversal/README.md) | CWE-22 | A01:2025 | executable |

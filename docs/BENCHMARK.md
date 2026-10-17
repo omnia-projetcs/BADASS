@@ -6,11 +6,20 @@ vectors. The same input reaches both versions. Benign inputs must retain the sam
 observable behavior. Attack inputs must demonstrate the weakness in the vulnerable
 version and satisfy the corrected contract in the fixed version.
 
+`functional` vectors exercise a legitimate operation that was already broken or
+unsupported in the vulnerable version, such as a configured password or an argument
+containing spaces. Their paired outcomes may differ. `robustness` vectors exercise
+malformed inputs and must declare the vulnerable failure explicitly when relevant.
+Every case still requires an identical benign vector and a discriminating attack.
+
 `executable` examples perform actual operations in a temporary working directory.
 `handler-unit`, `state-machine-unit`, and `configuration-unit` examples validate an
 application boundary without claiming to reproduce a complete deployment.
 `loopback-integration` exercises an actual local HTTP request. `ai-boundary-unit`
 validates application controls around a model; it does not run a model.
+`transaction-concurrency-unit` uses separate SQLite connections in concurrent
+threads with deterministic synchronization. It does not model a distributed
+delivery service or guarantee exactly-once effects outside its database transaction.
 
 The CLI examples isolate small data flows for auditing. They are not full web apps.
 For example, XSS fixtures generate an HTML body but do not launch a browser, and
@@ -38,6 +47,65 @@ failed output. C/C++ memory faults must produce the expected sanitizer diagnosti
 an unrelated crash is not a passing result. A missing runtime is `skip`, not `pass`.
 Use `--strict` to make missing runtimes fail the run. Compile failures and sandbox
 restrictions are failures, not successful mitigations.
+
+An empty selection, a case with no executed checks, or a run in which every case
+was skipped is a failure even without `--strict`. `make smoke` requires six named
+cases and a positive check count. The CI configuration also runs tooling tests
+and a separate strict container regression; an included workflow file is not
+evidence that a remote CI run has occurred.
+
+## Independent observations and repair contracts
+
+The normal invocation calls `run(input)` and compares its JSON result. Optional
+trusted `oracle` metadata instead selects an operation-level observer in
+`tools/repair_oracles.py`. Vector `context` is passed to the observer separately
+from the candidate's input; a model-supplied field cannot replace this context.
+The invocation loads trusted oracle dependencies before importing the candidate.
+This is separation of test responsibility, not a Python process security boundary.
+A candidate with arbitrary process access must still run in an appropriate sandbox.
+
+The token observer checks issuance, validation, consumption, public guesses and
+repeated issuance. The session observer checks authenticated state, rotation,
+logout and preservation of other users' sessions. The password observer verifies
+the real serialized record with an independently captured scrypt implementation,
+then tests correct and incorrect passwords. It bounds the accepted record profile
+before deriving a key. The fixture uses `n=16384`, `r=8`, `p=1`, a 16-byte salt and
+a 32-byte derived key; production cost and password policy need separate calibration.
+Rejecting a constant token or salt in these tests is not a statistical proof of
+entropy or a review of the operating system's random source.
+
+An expectation can declare `files` alongside its output:
+
+```json
+{
+  "equals": "0600",
+  "files": [
+    {"path": "stored-secret", "type": "file", "content": "LAB_SECRET", "mode": "0600"},
+    {"path": "export.tmp", "type": "symlink", "target": "secret.txt"},
+    {"path": "unexpected.txt", "type": "absent"}
+  ]
+}
+```
+
+These are independent examples of observation syntax, not a complete case vector.
+Paths must stay inside the temporary working directory. A `file` observation
+requires a regular file and checks each declared content/mode field. A `symlink`
+observation compares the link target without reading it. `absent` requires no
+directory entry, including a dangling link. Fields incompatible with a type are
+rejected. File observations are POSIX fixture checks; they are not a race-proof
+filesystem sandbox or a check of Windows ACLs.
+
+`equals` requires exit code zero unless a vector explicitly declares `exit_code`.
+`stderr_contains` requires both a nonzero return and the specified diagnostic,
+plus the exact code when declared. The runner preserves meaningful spaces and tabs;
+unstructured CLI output may have one additional final newline. JSON comparisons
+preserve boolean/number distinctions. A nonzero exit printing the expected text
+does not pass under the default contract.
+
+Trusted vector `env` may configure synthetic `BADASS_` variables. The runner
+removes an inherited `BADASS_ADMIN_PASSWORD` before applying this configuration.
+Configured-secret positive cases prevent a repair that simply denies every login
+from passing. Do not put real credentials in the catalog.
 
 ## Detection scoring
 
@@ -70,9 +138,25 @@ queries, filter-bypass and UNION vectors, and parameter-bound corrections. See
 [SQL injection coverage and driver prerequisites](SQL-INJECTION.md). These cases
 do not simulate a database by printing SQL or searching for known payload strings.
 
-Keep `fixed/`, the catalog, README files and test expectations out of blind scanner
-or agent input. Otherwise labels and corrections leak the answer. For normal SAST,
-scan the intended source directories and use the catalog only for scoring.
+For a blind repair task, provide only the candidate source and keep its counterpart,
+catalog, documentation and trusted expectations out of the agent input. For scanner
+evaluation with both positive and negative controls, export them under randomized
+opaque directory names and keep their mapping outside the corpus:
+
+```sh
+python3 tools/export_blind.py --output ../badass-blind --mapping ../badass-map.json
+python3 tools/export_blind.py --normalize scanner-findings.json --mapping ../badass-map.json --output normalized.json
+python3 tools/lab.py score --findings normalized.json
+```
+
+The scanner output for normalization is a JSON list of objects with `path` (exact
+relative exported source path) and `cwe`. Unknown paths are rejected. The mapping
+includes the original case, variant and source digest. Both output paths must be
+new; a mapping within the corpus is rejected. The exporter excludes documentation
+and preserves source bytes and local project siblings. It does not strip comments,
+remove all semantic clues, prove absence of training contamination, or package
+arbitrary cross-directory build dependencies. Review the exported scope before a
+campaign and keep expected findings in the separate scoring environment.
 
 ## Coverage semantics
 
@@ -107,7 +191,7 @@ in that filtered report. Categories and views remain in the global `cwe` array.
 The common baseline includes SQL, command, HTML, log and HTTP-header injection;
 path traversal and symbolic-link following; object-level and function-level
 authorization; hardcoded credentials; error disclosure; fail-open decisions;
-open redirects; unbounded work; business logic; and file permissions. Context
+open redirects; unbounded work; invalid purchase quantities; and file permissions. Context
 sections exercise these at handler or tool boundaries without running a web
 server or LLM. Native C/C++ cases additionally cover stack and heap overflow,
 out-of-bounds reads, use-after-free, double free, null dereferences, format strings
@@ -122,9 +206,15 @@ mode bits, not ACLs, Windows permissions or the process umask. Resource tests us
 small allocations to exercise a limit without exhausting the machine.
 
 Further work includes framework-specific authentication and session handling,
-serialization, XML parsers, uploads, cryptographic APIs, concurrency and unsafe
+serialization, XML parsers, uploads, cryptographic APIs, distributed concurrency and unsafe
 native interfaces in additional languages. An existing example in one section
 does not discharge this work for other sections.
+
+Negative purchase quantities are mapped to CWE-1284 (validation of a specified
+quantity), following the concrete fixture operation. CWE-841 is represented
+separately by the order workflow with payment, delivery and replay checks. The
+concurrent shipment fixture targets CWE-362. These mappings describe exact cases;
+neither a quantity bound nor one transaction covers an entire business process.
 
 Mappings to OWASP are project-maintained topical mappings. They are not official
 MITRE mapping claims or a certification. The scope includes Web Top 10:2025,

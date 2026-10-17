@@ -1,5 +1,5 @@
 LAB_ARGS ?= test --strict --output reports/container-regression.json
-.PHONY: validate test test-strict unit docs coverage container-build container-test dependency-prepare dependency-test
+.PHONY: validate test test-strict unit smoke docs coverage container-build container-test dependency-prepare dependency-test
 dependency-prepare:
 	@set -e; for case in vulnerable-dependency vulnerable-transitive-dependency; do \
 	  for variant in vulnerable fixed; do \
@@ -17,6 +17,8 @@ test-strict:
 	python3 tools/lab.py test --strict --output reports/regression.json
 unit:
 	python3 -m unittest discover -s tests -v
+smoke:
+	python3 tools/smoke.py --output reports/smoke.json
 docs:
 	python3 tools/render_docs.py
 coverage:

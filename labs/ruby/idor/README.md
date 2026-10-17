@@ -2,10 +2,12 @@
 
 A caller selects another account without an ownership check.
 
-**Technology:** Ruby  
-**CWE:** CWE-639  
-**OWASP:** A01:2025  
-**Test scope:** `handler-unit`
+| Attribute | Value |
+|---|---|
+| Technology | Ruby |
+| CWE | CWE-639 |
+| OWASP | A01:2025 |
+| Test scope | `handler-unit` |
 
 [Vulnerable source](vulnerable/main.rb) · [Corrected source](fixed/main.rb)
 
@@ -21,6 +23,10 @@ python3 tools/lab.py test --case ruby/idor --strict
 
 Run from the repository root. Exact inputs and expected outputs are in
 [the catalog](../../../catalog/cases.json). Both variants are tested.
+
+The runner also checks every declared file effect. `functional` vectors can specify a useful
+operation that the vulnerable implementation did not support correctly; `robustness` vectors
+exercise malformed inputs. `benign` vectors require identical expectations.
 
 | Vector | Type | Vulnerable expectation | Fixed expectation |
 |---|---|---|---|

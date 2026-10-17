@@ -9,8 +9,8 @@ python3 tools/lab.py test --language node --strict
 Run commands from the repository root. Cases are independent and use synthetic fixtures.
 
 For the direct and transitive dependency cases, use `make dependency-prepare` then
-`make dependency-test`. These standalone targets do not require the removed general
-runner. See [dependency setup and SCA evaluation](../../docs/DEPENDENCIES.md).
+`make dependency-test`. Prepare these packages before using the general runner.
+See [dependency setup and SCA evaluation](../../docs/DEPENDENCIES.md).
 
 | Vulnerability | CWE | OWASP | Scope |
 |---|---|---|---|
@@ -27,7 +27,7 @@ runner. See [dependency setup and SCA evaluation](../../docs/DEPENDENCIES.md).
 | [Fail open](fail-open/README.md) | CWE-636 | A10:2025 | handler-unit |
 | [Open redirect](open-redirect/README.md) | CWE-601 | A01:2025 | handler-unit |
 | [Unbounded work](unbounded-work/README.md) | CWE-400 | A06:2025 | executable |
-| [Business logic](business-logic/README.md) | CWE-841 | A06:2025 | handler-unit |
+| [Invalid purchase quantity](business-logic/README.md) | CWE-1284 | A06:2025 | handler-unit |
 | [World readable secret](world-readable-secret/README.md) | CWE-732 | A01:2025 | executable |
 | [HTTP response header injection](header-injection/README.md) | CWE-113 | A05:2025 | handler-unit |
 | [Symlink following](symlink-following/README.md) | CWE-59 | A01:2025 | executable |

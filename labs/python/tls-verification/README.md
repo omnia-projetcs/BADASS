@@ -2,10 +2,12 @@
 
 The client TLS context disables certificate verification.
 
-**Technology:** Python  
-**CWE:** CWE-295  
-**OWASP:** A04:2025  
-**Test scope:** `configuration-unit`
+| Attribute | Value |
+|---|---|
+| Technology | Python |
+| CWE | CWE-295 |
+| OWASP | A04:2025 |
+| Test scope | `configuration-unit` |
 
 [Vulnerable source](vulnerable/main.py) · [Corrected source](fixed/main.py)
 
@@ -21,6 +23,10 @@ python3 tools/lab.py test --case python/tls-verification --strict
 
 Run from the repository root. Exact inputs and expected outputs are in
 [the catalog](../../../catalog/cases.json). Both variants are tested.
+
+The runner also checks every declared file effect. `functional` vectors can specify a useful
+operation that the vulnerable implementation did not support correctly; `robustness` vectors
+exercise malformed inputs. `benign` vectors require identical expectations.
 
 | Vector | Type | Vulnerable expectation | Fixed expectation |
 |---|---|---|---|

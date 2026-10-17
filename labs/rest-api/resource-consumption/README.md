@@ -2,10 +2,12 @@
 
 An API allocates a client-selected number of result rows.
 
-**Technology:** REST API (Python handlers)  
-**CWE:** CWE-770  
-**OWASP:** API4:2023  
-**Test scope:** `handler-unit`
+| Attribute | Value |
+|---|---|
+| Technology | REST API (Python handlers) |
+| CWE | CWE-770 |
+| OWASP | API4:2023 |
+| Test scope | `handler-unit` |
 
 [Vulnerable source](vulnerable/main.py) · [Corrected source](fixed/main.py)
 
@@ -21,6 +23,10 @@ python3 tools/lab.py test --case rest-api/resource-consumption --strict
 
 Run from the repository root. Exact inputs and expected outputs are in
 [the catalog](../../../catalog/cases.json). Both variants are tested.
+
+The runner also checks every declared file effect. `functional` vectors can specify a useful
+operation that the vulnerable implementation did not support correctly; `robustness` vectors
+exercise malformed inputs. `benign` vectors require identical expectations.
 
 | Vector | Type | Vulnerable expectation | Fixed expectation |
 |---|---|---|---|

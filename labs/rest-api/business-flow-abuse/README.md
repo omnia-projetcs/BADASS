@@ -2,10 +2,12 @@
 
 Repeated reservations bypass a per-account purchase limit.
 
-**Technology:** REST API (Python handlers)  
-**CWE:** CWE-799  
-**OWASP:** API6:2023  
-**Test scope:** `state-machine-unit`
+| Attribute | Value |
+|---|---|
+| Technology | REST API (Python handlers) |
+| CWE | CWE-799 |
+| OWASP | API6:2023 |
+| Test scope | `state-machine-unit` |
 
 [Vulnerable source](vulnerable/main.py) · [Corrected source](fixed/main.py)
 
@@ -21,6 +23,10 @@ python3 tools/lab.py test --case rest-api/business-flow-abuse --strict
 
 Run from the repository root. Exact inputs and expected outputs are in
 [the catalog](../../../catalog/cases.json). Both variants are tested.
+
+The runner also checks every declared file effect. `functional` vectors can specify a useful
+operation that the vulnerable implementation did not support correctly; `robustness` vectors
+exercise malformed inputs. `benign` vectors require identical expectations.
 
 | Vector | Type | Vulnerable expectation | Fixed expectation |
 |---|---|---|---|

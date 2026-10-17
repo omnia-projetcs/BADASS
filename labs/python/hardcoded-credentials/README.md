@@ -2,16 +2,18 @@
 
 An embedded maintenance password grants access.
 
-**Technology:** Python  
-**CWE:** CWE-798  
-**OWASP:** A07:2025  
-**Test scope:** `executable`
+| Attribute | Value |
+|---|---|
+| Technology | Python |
+| CWE | CWE-798 |
+| OWASP | A07:2025 |
+| Test scope | `executable` |
 
 [Vulnerable source](vulnerable/main.py) · [Corrected source](fixed/main.py)
 
 ## Correction
 
-Remove embedded credentials and validate against the configured identity provider.
+Remove the embedded credential and require an independently configured secret. Fail closed when absent; validate input types and compare strict UTF-8 bytes so configured Unicode passwords work. Synthetic environment configuration is trusted test metadata.
 
 ## Regression
 
@@ -22,10 +24,21 @@ python3 tools/lab.py test --case python/hardcoded-credentials --strict
 Run from the repository root. Exact inputs and expected outputs are in
 [the catalog](../../../catalog/cases.json). Both variants are tested.
 
+The runner also checks every declared file effect. `functional` vectors can specify a useful
+operation that the vulnerable implementation did not support correctly; `robustness` vectors
+exercise malformed inputs. `benign` vectors require identical expectations.
+
 | Vector | Type | Vulnerable expectation | Fixed expectation |
 |---|---|---|---|
-| invalid password | benign | {"equals": "DENIED"} | {"equals": "DENIED"} |
-| embedded password | attack | {"equals": "ADMIN"} | {"equals": "DENIED"} |
+| wrong credential | benign | {"equals": "DENIED"} | {"equals": "DENIED"} |
+| empty credential | benign | {"equals": "DENIED"} | {"equals": "DENIED"} |
+| embedded credential | attack | {"equals": "ADMIN"} | {"equals": "DENIED"} |
+| configured credential succeeds | functional | {"equals": "DENIED"} | {"equals": "ADMIN"} |
+| wrong configured credential | benign | {"equals": "DENIED"} | {"equals": "DENIED"} |
+| configured Unicode credential succeeds | functional | {"equals": "DENIED"} | {"equals": "ADMIN"} |
+| non-ASCII wrong credential | robustness | {"equals": "DENIED"} | {"equals": "DENIED"} |
+| null credential | robustness | {"equals": "DENIED"} | {"equals": "DENIED"} |
+| structured credential | robustness | {"equals": "DENIED"} | {"equals": "DENIED"} |
 
 This example demonstrates the declared weakness within the documented fixture assumptions.
 It is not a production application or a proof that every related attack is prevented.

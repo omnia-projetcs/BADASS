@@ -2,10 +2,12 @@
 
 Untrusted text reaches an HTML body without contextual encoding.
 
-**Technology:** C  
-**CWE:** CWE-79  
-**OWASP:** A05:2025  
-**Test scope:** `executable`
+| Attribute | Value |
+|---|---|
+| Technology | C |
+| CWE | CWE-79 |
+| OWASP | A05:2025 |
+| Test scope | `executable` |
 
 [Vulnerable source](vulnerable/main.c) · [Corrected source](fixed/main.c)
 
@@ -21,6 +23,10 @@ python3 tools/lab.py test --case c/xss --strict
 
 Run from the repository root. Exact inputs and expected outputs are in
 [the catalog](../../../catalog/cases.json). Both variants are tested.
+
+The runner also checks every declared file effect. `functional` vectors can specify a useful
+operation that the vulnerable implementation did not support correctly; `robustness` vectors
+exercise malformed inputs. `benign` vectors require identical expectations.
 
 | Vector | Type | Vulnerable expectation | Fixed expectation |
 |---|---|---|---|

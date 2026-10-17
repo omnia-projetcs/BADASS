@@ -2,10 +2,12 @@
 
 A client-selected destination produces an external redirect.
 
-**Technology:** C++  
-**CWE:** CWE-601  
-**OWASP:** A01:2025  
-**Test scope:** `handler-unit`
+| Attribute | Value |
+|---|---|
+| Technology | C++ |
+| CWE | CWE-601 |
+| OWASP | A01:2025 |
+| Test scope | `handler-unit` |
 
 [Vulnerable source](vulnerable/main.cpp) · [Corrected source](fixed/main.cpp)
 
@@ -21,6 +23,10 @@ python3 tools/lab.py test --case cpp/open-redirect --strict
 
 Run from the repository root. Exact inputs and expected outputs are in
 [the catalog](../../../catalog/cases.json). Both variants are tested.
+
+The runner also checks every declared file effect. `functional` vectors can specify a useful
+operation that the vulnerable implementation did not support correctly; `robustness` vectors
+exercise malformed inputs. `benign` vectors require identical expectations.
 
 | Vector | Type | Vulnerable expectation | Fixed expectation |
 |---|---|---|---|

@@ -2,10 +2,12 @@
 
 The tool gateway authorizes writes solely because the model requested them.
 
-**Technology:** AI / LLM boundaries  
-**CWE:** CWE-862  
-**OWASP:** LLM06:2025  
-**Test scope:** `ai-boundary-unit`
+| Attribute | Value |
+|---|---|
+| Technology | AI / LLM boundaries |
+| CWE | CWE-862 |
+| OWASP | LLM06:2025 |
+| Test scope | `ai-boundary-unit` |
 
 [Vulnerable source](vulnerable/main.py) · [Corrected source](fixed/main.py)
 
@@ -21,6 +23,10 @@ python3 tools/lab.py test --case ai/excessive-agency --strict
 
 Run from the repository root. Exact inputs and expected outputs are in
 [the catalog](../../../catalog/cases.json). Both variants are tested.
+
+The runner also checks every declared file effect. `functional` vectors can specify a useful
+operation that the vulnerable implementation did not support correctly; `robustness` vectors
+exercise malformed inputs. `benign` vectors require identical expectations.
 
 | Vector | Type | Vulnerable expectation | Fixed expectation |
 |---|---|---|---|
