@@ -1,0 +1,8 @@
+{
+  "name": "badass-vulnerable-transitive-dependency-fixed",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "badass-settings-fixture": "file:./settings-wrapper"
+  }
+}

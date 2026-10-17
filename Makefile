@@ -1,5 +1,14 @@
 LAB_ARGS ?= test --strict --output reports/container-regression.json
-.PHONY: validate test test-strict unit docs coverage container-build container-test
+.PHONY: validate test test-strict unit docs coverage container-build container-test dependency-prepare dependency-test
+dependency-prepare:
+	@set -e; for case in vulnerable-dependency vulnerable-transitive-dependency; do \
+	  for variant in vulnerable fixed; do \
+	    npm ci --prefix "labs/node/$$case/$$variant" --install-links \
+	      --ignore-scripts --no-audit --no-fund --cache "$(CURDIR)/.build/npm-cache"; \
+	  done; \
+	done
+dependency-test:
+	node labs/node/dependency-regression.cjs
 validate:
 	python3 tools/lab.py validate
 test:

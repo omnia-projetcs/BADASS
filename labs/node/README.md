@@ -8,6 +8,10 @@ python3 tools/lab.py test --language node --strict
 
 Run commands from the repository root. Cases are independent and use synthetic fixtures.
 
+For the direct and transitive dependency cases, use `make dependency-prepare` then
+`make dependency-test`. These standalone targets do not require the removed general
+runner. See [dependency setup and SCA evaluation](../../docs/DEPENDENCIES.md).
+
 | Vulnerability | CWE | OWASP | Scope |
 |---|---|---|---|
 | [Cross-site scripting (XSS)](xss/README.md) | CWE-79 | A05:2025 | executable |
@@ -27,3 +31,5 @@ Run commands from the repository root. Cases are independent and use synthetic f
 | [World readable secret](world-readable-secret/README.md) | CWE-732 | A01:2025 | executable |
 | [HTTP response header injection](header-injection/README.md) | CWE-113 | A05:2025 | handler-unit |
 | [Symlink following](symlink-following/README.md) | CWE-59 | A01:2025 | executable |
+| [Vulnerable dependency](vulnerable-dependency/README.md) | CWE-1395 | A03:2025 | executable |
+| [Vulnerable transitive dependency](vulnerable-transitive-dependency/README.md) | CWE-1395 | A03:2025 | executable |

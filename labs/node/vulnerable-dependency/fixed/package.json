@@ -1,0 +1,8 @@
+{
+  "name": "badass-vulnerable-dependency-fixed",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "lodash.merge": "4.6.2"
+  }
+}

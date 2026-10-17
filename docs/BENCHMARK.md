@@ -76,6 +76,14 @@ scan the intended source directories and use the catalog only for scoring.
 
 ## Coverage semantics
 
+Dependency cases evaluate **CWE-1395** using real, pinned third-party packages.
+Include the selected variant's manifest, lockfile and local wrapper (when present)
+in SCA input; application source alone is insufficient. The dependency advisory
+and resolved graph establish the affected version; paired runtime tests demonstrate
+reachability in these fixtures. An SCA finding alone does not establish exploitability.
+See [dependency regression and evaluation](DEPENDENCIES.md). These cases use a
+standalone runner because the general `tools/` scripts are absent from this checkout.
+
 The exhaustive matrix enumerates every entry in the imported MITRE snapshot,
 including deprecated entries. It distinguishes actual weaknesses from categories
 and views. `implemented` means a code pair and vectors exist; test execution status

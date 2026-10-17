@@ -2,6 +2,16 @@
 
 Original project code is covered by [LICENSE](LICENSE).
 
+## Dependency laboratory fixtures
+
+The dependency cases install `lodash.merge` 4.6.1 and 4.6.2 from npm using pinned
+lockfiles. Lodash is distributed under the MIT license; its license and copyright
+notices are included in the downloaded packages. Package source is not vendored here.
+The `badass-settings-fixture` wrapper is original local benchmark code, not a
+published third-party package.
+
+Advisory reference: https://github.com/advisories/GHSA-h726-x36v-rx45
+
 ## MITRE Common Weakness Enumeration
 
 `catalog/cwe.json` and the generated CWE matrix contain identifiers, names and

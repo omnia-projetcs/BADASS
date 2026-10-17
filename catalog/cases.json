@@ -13590,5 +13590,191 @@
     ],
     "vulnerable": "labs/cpp/integer-overflow/vulnerable/main.cpp",
     "fixed": "labs/cpp/integer-overflow/fixed/main.cpp"
+  },
+  {
+    "id": "node/vulnerable-dependency",
+    "language": "node",
+    "cwe": [
+      "CWE-1395"
+    ],
+    "owasp": [
+      "A03:2025"
+    ],
+    "description": "A direct dependency on lodash.merge 4.6.1 lets untrusted settings pollute Object.prototype.",
+    "remediation": "Upgrade lodash.merge from 4.6.1 to 4.6.2 in the manifest and lockfile, preserving application behavior.",
+    "scope": "executable",
+    "dependency": {
+      "ecosystem": "npm",
+      "package": "lodash.merge",
+      "relationship": "direct",
+      "vulnerable_version": "4.6.1",
+      "fixed_version": "4.6.2",
+      "advisory": "GHSA-h726-x36v-rx45",
+      "advisory_url": "https://github.com/advisories/GHSA-h726-x36v-rx45",
+      "underlying_cwe": "CWE-1321"
+    },
+    "tests": [
+      {
+        "name": "empty settings",
+        "kind": "benign",
+        "input": "{}",
+        "vulnerable": {
+          "equals": "{\"theme\":\"light\",\"isAdmin\":false}"
+        },
+        "fixed": {
+          "equals": "{\"theme\":\"light\",\"isAdmin\":false}"
+        }
+      },
+      {
+        "name": "nested preference merge",
+        "kind": "benign",
+        "input": "{\"preferences\":{\"theme\":\"dark\"}}",
+        "vulnerable": {
+          "equals": "{\"theme\":\"dark\",\"isAdmin\":false}"
+        },
+        "fixed": {
+          "equals": "{\"theme\":\"dark\",\"isAdmin\":false}"
+        }
+      },
+      {
+        "name": "own property is not global authority",
+        "kind": "benign",
+        "input": "{\"isAdmin\":true}",
+        "vulnerable": {
+          "equals": "{\"theme\":\"light\",\"isAdmin\":false}"
+        },
+        "fixed": {
+          "equals": "{\"theme\":\"light\",\"isAdmin\":false}"
+        }
+      },
+      {
+        "name": "constructor prototype pollution",
+        "kind": "attack",
+        "input": "{\"constructor\":{\"prototype\":{\"isAdmin\":true}}}",
+        "vulnerable": {
+          "equals": "{\"theme\":\"light\",\"isAdmin\":true}"
+        },
+        "fixed": {
+          "equals": "{\"theme\":\"light\",\"isAdmin\":false}"
+        }
+      },
+      {
+        "name": "nested constructor prototype pollution",
+        "kind": "attack",
+        "input": "{\"preferences\":{\"constructor\":{\"prototype\":{\"isAdmin\":true}}}}",
+        "vulnerable": {
+          "equals": "{\"theme\":\"light\",\"isAdmin\":true}"
+        },
+        "fixed": {
+          "equals": "{\"theme\":\"light\",\"isAdmin\":false}"
+        }
+      },
+      {
+        "name": "proto key remains blocked",
+        "kind": "attack",
+        "input": "{\"__proto__\":{\"isAdmin\":true}}",
+        "vulnerable": {
+          "equals": "{\"theme\":\"light\",\"isAdmin\":false}"
+        },
+        "fixed": {
+          "equals": "{\"theme\":\"light\",\"isAdmin\":false}"
+        }
+      }
+    ],
+    "vulnerable": "labs/node/vulnerable-dependency/vulnerable/main.js",
+    "fixed": "labs/node/vulnerable-dependency/fixed/main.js"
+  },
+  {
+    "id": "node/vulnerable-transitive-dependency",
+    "language": "node",
+    "cwe": [
+      "CWE-1395"
+    ],
+    "owasp": [
+      "A03:2025"
+    ],
+    "description": "A local settings wrapper introduces lodash.merge 4.6.1 transitively; merging untrusted settings pollutes Object.prototype.",
+    "remediation": "Upgrade the wrapper dependency from 1.0.0 to 1.0.1, which pins lodash.merge 4.6.2; regenerate the lockfile and verify the resolved transitive version.",
+    "scope": "executable",
+    "dependency": {
+      "ecosystem": "npm",
+      "package": "lodash.merge",
+      "relationship": "transitive",
+      "vulnerable_version": "4.6.1",
+      "fixed_version": "4.6.2",
+      "advisory": "GHSA-h726-x36v-rx45",
+      "advisory_url": "https://github.com/advisories/GHSA-h726-x36v-rx45",
+      "underlying_cwe": "CWE-1321"
+    },
+    "tests": [
+      {
+        "name": "empty settings",
+        "kind": "benign",
+        "input": "{}",
+        "vulnerable": {
+          "equals": "{\"theme\":\"light\",\"isAdmin\":false}"
+        },
+        "fixed": {
+          "equals": "{\"theme\":\"light\",\"isAdmin\":false}"
+        }
+      },
+      {
+        "name": "nested preference merge",
+        "kind": "benign",
+        "input": "{\"preferences\":{\"theme\":\"dark\"}}",
+        "vulnerable": {
+          "equals": "{\"theme\":\"dark\",\"isAdmin\":false}"
+        },
+        "fixed": {
+          "equals": "{\"theme\":\"dark\",\"isAdmin\":false}"
+        }
+      },
+      {
+        "name": "own property is not global authority",
+        "kind": "benign",
+        "input": "{\"isAdmin\":true}",
+        "vulnerable": {
+          "equals": "{\"theme\":\"light\",\"isAdmin\":false}"
+        },
+        "fixed": {
+          "equals": "{\"theme\":\"light\",\"isAdmin\":false}"
+        }
+      },
+      {
+        "name": "constructor prototype pollution",
+        "kind": "attack",
+        "input": "{\"constructor\":{\"prototype\":{\"isAdmin\":true}}}",
+        "vulnerable": {
+          "equals": "{\"theme\":\"light\",\"isAdmin\":true}"
+        },
+        "fixed": {
+          "equals": "{\"theme\":\"light\",\"isAdmin\":false}"
+        }
+      },
+      {
+        "name": "nested constructor prototype pollution",
+        "kind": "attack",
+        "input": "{\"preferences\":{\"constructor\":{\"prototype\":{\"isAdmin\":true}}}}",
+        "vulnerable": {
+          "equals": "{\"theme\":\"light\",\"isAdmin\":true}"
+        },
+        "fixed": {
+          "equals": "{\"theme\":\"light\",\"isAdmin\":false}"
+        }
+      },
+      {
+        "name": "proto key remains blocked",
+        "kind": "attack",
+        "input": "{\"__proto__\":{\"isAdmin\":true}}",
+        "vulnerable": {
+          "equals": "{\"theme\":\"light\",\"isAdmin\":false}"
+        },
+        "fixed": {
+          "equals": "{\"theme\":\"light\",\"isAdmin\":false}"
+        }
+      }
+    ],
+    "vulnerable": "labs/node/vulnerable-transitive-dependency/vulnerable/main.js",
+    "fixed": "labs/node/vulnerable-transitive-dependency/fixed/main.js"
   }
 ]

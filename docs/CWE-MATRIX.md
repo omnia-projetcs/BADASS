@@ -2,7 +2,7 @@
 
 Source: MITRE CWE **4.20**. All **1450** entries from the imported snapshot are included.
 
-**50 implemented weaknesses**, **919 gaps**, **481 category/view entries**.
+**51 implemented weaknesses**, **918 gaps**, **481 category/view entries**.
 
 `implemented` means source pairs and vectors exist, not that a scanner detected them or a runtime was available.
 Test results are tracked separately. `gap` is an unimplemented weakness. `taxonomy-only` is a category or view.
@@ -1406,7 +1406,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-1392 | Use of Default Credentials | weakness | Incomplete | gap |  |
 | CWE-1393 | Use of Default Password | weakness | Incomplete | gap |  |
 | CWE-1394 | Use of Default Cryptographic Key | weakness | Incomplete | gap |  |
-| CWE-1395 | Dependency on Vulnerable Third-Party Component | weakness | Incomplete | gap |  |
+| CWE-1395 | Dependency on Vulnerable Third-Party Component | weakness | Incomplete | implemented | [node/vulnerable-dependency](../labs/node/vulnerable-dependency/README.md), [node/vulnerable-transitive-dependency](../labs/node/vulnerable-transitive-dependency/README.md) |
 | CWE-1396 | Comprehensive Categorization: Access Control | category | Incomplete | taxonomy-only |  |
 | CWE-1397 | Comprehensive Categorization: Comparison | category | Incomplete | taxonomy-only |  |
 | CWE-1398 | Comprehensive Categorization: Component Interaction | category | Incomplete | taxonomy-only |  |

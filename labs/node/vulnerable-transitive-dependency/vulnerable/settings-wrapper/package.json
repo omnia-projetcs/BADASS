@@ -1,0 +1,9 @@
+{
+  "name": "badass-settings-fixture",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.js",
+  "dependencies": {
+    "lodash.merge": "4.6.1"
+  }
+}
