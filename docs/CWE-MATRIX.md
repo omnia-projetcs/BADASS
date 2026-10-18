@@ -2,7 +2,7 @@
 
 Source: MITRE CWE **4.20**. All **1450** entries from the imported snapshot are included.
 
-**63 implemented weaknesses**, **906 gaps**, **481 category/view entries**.
+**66 implemented weaknesses**, **903 gaps**, **481 category/view entries**.
 
 `implemented` means source pairs and vectors exist, not that a scanner detected them or a runtime was available.
 Test results are tracked separately. `gap` is an unimplemented weakness. `taxonomy-only` is a category or view.
@@ -358,7 +358,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-344 | Use of Invariant Value in Dynamically Changing Context | weakness | Draft | gap |  |
 | CWE-345 | Insufficient Verification of Data Authenticity | weakness | Draft | implemented | [ai/unverified-security-claim](../labs/ai/unverified-security-claim/README.md) |
 | CWE-346 | Origin Validation Error | weakness | Draft | implemented | [python/password-reset-host](../labs/python/password-reset-host/README.md) |
-| CWE-347 | Improper Verification of Cryptographic Signature | weakness | Draft | gap |  |
+| CWE-347 | Improper Verification of Cryptographic Signature | weakness | Draft | implemented | [python/webhook-signature](../labs/python/webhook-signature/README.md) |
 | CWE-348 | Use of Less Trusted Source | weakness | Draft | gap |  |
 | CWE-349 | Acceptance of Extraneous Untrusted Data With Trusted Data | weakness | Draft | gap |  |
 | CWE-350 | Reliance on Reverse DNS Resolution for a Security-Critical Action | weakness | Draft | gap |  |
@@ -420,7 +420,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-406 | Insufficient Control of Network Message Volume (Network Amplification) | weakness | Incomplete | gap |  |
 | CWE-407 | Inefficient Algorithmic Complexity | weakness | Incomplete | gap |  |
 | CWE-408 | Incorrect Behavior Order: Early Amplification | weakness | Draft | gap |  |
-| CWE-409 | Improper Handling of Highly Compressed Data (Data Amplification) | weakness | Incomplete | gap |  |
+| CWE-409 | Improper Handling of Highly Compressed Data (Data Amplification) | weakness | Incomplete | implemented | [python/decompression-amplification](../labs/python/decompression-amplification/README.md) |
 | CWE-410 | Insufficient Resource Pool | weakness | Incomplete | gap |  |
 | CWE-411 | Resource Locking Problems | category | Draft | taxonomy-only |  |
 | CWE-412 | Unrestricted Externally Accessible Lock | weakness | Incomplete | gap |  |
@@ -624,7 +624,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-610 | Externally Controlled Reference to a Resource in Another Sphere | weakness | Draft | gap |  |
 | CWE-611 | Improper Restriction of XML External Entity Reference | weakness | Draft | implemented | [java/xxe](../labs/java/xxe/README.md), [python/xxe](../labs/python/xxe/README.md) |
 | CWE-612 | Improper Authorization of Index Containing Sensitive Information | weakness | Draft | gap |  |
-| CWE-613 | Insufficient Session Expiration | weakness | Incomplete | gap |  |
+| CWE-613 | Insufficient Session Expiration | weakness | Incomplete | implemented | [python/session-expiration](../labs/python/session-expiration/README.md) |
 | CWE-614 | Sensitive Cookie in HTTPS Session Without 'Secure' Attribute | weakness | Draft | gap |  |
 | CWE-615 | Inclusion of Sensitive Information in Source Code Comments | weakness | Incomplete | gap |  |
 | CWE-616 | Incomplete Identification of Uploaded File Variables (PHP) | weakness | Incomplete | gap |  |

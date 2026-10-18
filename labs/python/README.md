@@ -55,3 +55,6 @@ Run commands from the repository root. Cases are independent and use synthetic f
 | [Json parser conflict](json-parser-conflict/README.md) | CWE-436 | A06:2025 | executable |
 | [Unicode path validation](unicode-path-validation/README.md) | CWE-180 | A05:2025 | executable |
 | [Password reset replay](password-reset-replay/README.md) | CWE-640 | A07:2025 | executable |
+| [Webhook signature](webhook-signature/README.md) | CWE-347 | A04:2025 | executable |
+| [Decompression amplification](decompression-amplification/README.md) | CWE-409 | A06:2025 | executable |
+| [Session expiration](session-expiration/README.md) | CWE-613 | A07:2025 | executable |

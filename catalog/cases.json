@@ -29630,5 +29630,1635 @@
     "vulnerable": "labs/python/password-reset-replay/vulnerable/main.py",
     "fixed": "labs/python/password-reset-replay/fixed/main.py",
     "database": "sqlite"
+  },
+  {
+    "id": "python/webhook-signature",
+    "language": "python",
+    "cwe": [
+      "CWE-347"
+    ],
+    "owasp": [
+      "A04:2025"
+    ],
+    "scope": "executable",
+    "description": "A webhook computes an HMAC-SHA256 signature but discards the comparison result. A well-formed forged digest or a signature for another body still marks a real SQLite invoice as paid.",
+    "remediation": "Require a full matching HMAC over the exact raw body before parsing JSON or mutating invoices. Keep schema and invoice-total validation after authentication. The harness creates fresh synthetic keys and signatures locally; no webhook server or signing endpoint is exposed. Delivery replay protection is outside this signature-verification case.",
+    "references": [
+      {
+        "title": "MITRE CWE-347 — Improper Verification of Cryptographic Signature",
+        "url": "https://cwe.mitre.org/data/definitions/347.html"
+      },
+      {
+        "title": "GitHub — Validating webhook deliveries",
+        "url": "https://docs.github.com/en/webhooks/using-webhooks/validating-webhook-deliveries"
+      }
+    ],
+    "tests": [
+      {
+        "name": "signed first invoice",
+        "kind": "benign",
+        "input": {
+          "body": "{\"invoice\":1,\"amount\":120}",
+          "signature": "valid"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "invoice": 1
+          },
+          "files": [
+            {
+              "path": "invoices-state.json",
+              "content": "[[1, 120, 1], [2, 250, 0]]\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "invoice": 1
+          },
+          "files": [
+            {
+              "path": "invoices-state.json",
+              "content": "[[1, 120, 1], [2, 250, 0]]\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "signed second invoice",
+        "kind": "benign",
+        "input": {
+          "body": "{\"invoice\":2,\"amount\":250}",
+          "signature": "valid"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "invoice": 2
+          },
+          "files": [
+            {
+              "path": "invoices-state.json",
+              "content": "[[1, 120, 0], [2, 250, 1]]\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "invoice": 2
+          },
+          "files": [
+            {
+              "path": "invoices-state.json",
+              "content": "[[1, 120, 0], [2, 250, 1]]\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "signed whitespace",
+        "kind": "benign",
+        "input": {
+          "body": " { \"invoice\": 1, \"amount\": 120 } ",
+          "signature": "valid"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "invoice": 1
+          },
+          "files": [
+            {
+              "path": "invoices-state.json",
+              "content": "[[1, 120, 1], [2, 250, 0]]\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "invoice": 1
+          },
+          "files": [
+            {
+              "path": "invoices-state.json",
+              "content": "[[1, 120, 1], [2, 250, 0]]\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "forged digest",
+        "kind": "attack",
+        "input": {
+          "body": "{\"invoice\":1,\"amount\":120}",
+          "signature": "forged"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "invoice": 1
+          },
+          "files": [
+            {
+              "path": "invoices-state.json",
+              "content": "[[1, 120, 1], [2, 250, 0]]\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 401
+          },
+          "files": [
+            {
+              "path": "invoices-state.json",
+              "content": "[[1, 120, 0], [2, 250, 0]]\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "different signed body",
+        "kind": "attack",
+        "input": {
+          "body": "{\"invoice\":2,\"amount\":250}",
+          "signature": "other-body"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "invoice": 2
+          },
+          "files": [
+            {
+              "path": "invoices-state.json",
+              "content": "[[1, 120, 0], [2, 250, 1]]\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 401
+          },
+          "files": [
+            {
+              "path": "invoices-state.json",
+              "content": "[[1, 120, 0], [2, 250, 0]]\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "wrong signing key",
+        "kind": "attack",
+        "input": {
+          "body": "{\"invoice\":1,\"amount\":120}",
+          "signature": "wrong-key"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "invoice": 1
+          },
+          "files": [
+            {
+              "path": "invoices-state.json",
+              "content": "[[1, 120, 1], [2, 250, 0]]\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 401
+          },
+          "files": [
+            {
+              "path": "invoices-state.json",
+              "content": "[[1, 120, 0], [2, 250, 0]]\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "missing signature",
+        "kind": "robustness",
+        "input": {
+          "body": "{\"invoice\":1,\"amount\":120}",
+          "signature": "missing"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 401
+          },
+          "files": [
+            {
+              "path": "invoices-state.json",
+              "content": "[[1, 120, 0], [2, 250, 0]]\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 401
+          },
+          "files": [
+            {
+              "path": "invoices-state.json",
+              "content": "[[1, 120, 0], [2, 250, 0]]\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "malformed signature",
+        "kind": "robustness",
+        "input": {
+          "body": "{\"invoice\":1,\"amount\":120}",
+          "signature": "malformed"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 401
+          },
+          "files": [
+            {
+              "path": "invoices-state.json",
+              "content": "[[1, 120, 0], [2, 250, 0]]\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 401
+          },
+          "files": [
+            {
+              "path": "invoices-state.json",
+              "content": "[[1, 120, 0], [2, 250, 0]]\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "malformed JSON",
+        "kind": "robustness",
+        "input": {
+          "body": "{",
+          "signature": "valid"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "invoices-state.json",
+              "content": "[[1, 120, 0], [2, 250, 0]]\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "invoices-state.json",
+              "content": "[[1, 120, 0], [2, 250, 0]]\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "duplicate field",
+        "kind": "robustness",
+        "input": {
+          "body": "{\"invoice\":1,\"invoice\":2,\"amount\":250}",
+          "signature": "valid"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "invoices-state.json",
+              "content": "[[1, 120, 0], [2, 250, 0]]\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "invoices-state.json",
+              "content": "[[1, 120, 0], [2, 250, 0]]\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "amount mismatch",
+        "kind": "robustness",
+        "input": {
+          "body": "{\"invoice\":1,\"amount\":121}",
+          "signature": "valid"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 409
+          },
+          "files": [
+            {
+              "path": "invoices-state.json",
+              "content": "[[1, 120, 0], [2, 250, 0]]\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 409
+          },
+          "files": [
+            {
+              "path": "invoices-state.json",
+              "content": "[[1, 120, 0], [2, 250, 0]]\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "unknown invoice",
+        "kind": "robustness",
+        "input": {
+          "body": "{\"invoice\":3,\"amount\":120}",
+          "signature": "valid"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 404
+          },
+          "files": [
+            {
+              "path": "invoices-state.json",
+              "content": "[[1, 120, 0], [2, 250, 0]]\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 404
+          },
+          "files": [
+            {
+              "path": "invoices-state.json",
+              "content": "[[1, 120, 0], [2, 250, 0]]\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "boolean amount",
+        "kind": "robustness",
+        "input": {
+          "body": "{\"invoice\":1,\"amount\":true}",
+          "signature": "valid"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "invoices-state.json",
+              "content": "[[1, 120, 0], [2, 250, 0]]\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "invoices-state.json",
+              "content": "[[1, 120, 0], [2, 250, 0]]\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "unexpected field",
+        "kind": "robustness",
+        "input": {
+          "body": "{\"invoice\":1,\"amount\":120,\"extra\":1}",
+          "signature": "valid"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "invoices-state.json",
+              "content": "[[1, 120, 0], [2, 250, 0]]\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "invoices-state.json",
+              "content": "[[1, 120, 0], [2, 250, 0]]\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "non-string body",
+        "kind": "robustness",
+        "input": {
+          "body": [],
+          "signature": "valid"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "invoices.sqlite",
+              "type": "absent"
+            },
+            {
+              "path": "invoices-state.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "invoices.sqlite",
+              "type": "absent"
+            },
+            {
+              "path": "invoices-state.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "oversized body",
+        "kind": "robustness",
+        "input": {
+          "body": "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 ",
+          "signature": "valid"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "invoices.sqlite",
+              "type": "absent"
+            },
+            {
+              "path": "invoices-state.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "invoices.sqlite",
+              "type": "absent"
+            },
+            {
+              "path": "invoices-state.json",
+              "type": "absent"
+            }
+          ]
+        }
+      }
+    ],
+    "vulnerable": "labs/python/webhook-signature/vulnerable/main.py",
+    "fixed": "labs/python/webhook-signature/fixed/main.py",
+    "database": "sqlite"
+  },
+  {
+    "id": "python/decompression-amplification",
+    "language": "python",
+    "cwe": [
+      "CWE-409"
+    ],
+    "owasp": [
+      "A06:2025"
+    ],
+    "scope": "executable",
+    "description": "A zlib importer limits compressed input to 1024 bytes but inflates without an output limit. Small compressed inputs exceed the intended 1024-byte expanded-data budget and are written to a real file. Catalog attack outputs are limited to 4096 bytes.",
+    "remediation": "Use the decoder output limit to allocate at most the budget plus one detection byte. Reject oversized output before publication, and require one complete stream with no trailing data. Tests verify actual output bytes and the decoder allocation bound. This is a single-stream local model; archive recursion and sustained service-level exhaustion are outside scope.",
+    "references": [
+      {
+        "title": "MITRE CWE-409 — Data Amplification",
+        "url": "https://cwe.mitre.org/data/definitions/409.html"
+      },
+      {
+        "title": "Python zlib decompression objects",
+        "url": "https://docs.python.org/3/library/zlib.html#decompression-objects"
+      }
+    ],
+    "tests": [
+      {
+        "name": "empty content",
+        "kind": "benign",
+        "input": {
+          "payload": "eJwDAAAAAAE="
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 201,
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "files": [
+            {
+              "path": "expanded.bin",
+              "content": ""
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 201,
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "files": [
+            {
+              "path": "expanded.bin",
+              "content": ""
+            }
+          ]
+        }
+      },
+      {
+        "name": "ordinary text",
+        "kind": "benign",
+        "input": {
+          "payload": "eJwLCHXy8XSOD3IN8A8K4QIAH5gEBQ=="
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 201,
+            "bytes": 14,
+            "sha256": "0b9878f33a040d607bd4fbcd1953e493b423571303113b816c5c8a067bb1282e"
+          },
+          "files": [
+            {
+              "path": "expanded.bin",
+              "content": "PUBLIC_REPORT\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 201,
+            "bytes": 14,
+            "sha256": "0b9878f33a040d607bd4fbcd1953e493b423571303113b816c5c8a067bb1282e"
+          },
+          "files": [
+            {
+              "path": "expanded.bin",
+              "content": "PUBLIC_REPORT\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "exact output limit",
+        "kind": "benign",
+        "input": {
+          "payload": "eJxzdBwFo2AUjFQAAKR4BBA="
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 201,
+            "bytes": 1024,
+            "sha256": "6ab72eeb9e77b07540897e0c8d6d23ec8eef0f8c3a47e1b3f4e93443d9536bed"
+          },
+          "files": [
+            {
+              "path": "expanded.bin",
+              "content": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 201,
+            "bytes": 1024,
+            "sha256": "6ab72eeb9e77b07540897e0c8d6d23ec8eef0f8c3a47e1b3f4e93443d9536bed"
+          },
+          "files": [
+            {
+              "path": "expanded.bin",
+              "content": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+            }
+          ]
+        }
+      },
+      {
+        "name": "UTF-8 content",
+        "kind": "benign",
+        "input": {
+          "payload": "eJwLOryyuDT38EouABf2BIo="
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 201,
+            "bytes": 9,
+            "sha256": "f2289de8b83919a1c37faf51771976cb2e4d8b487544ce76936d34963266d8fd"
+          },
+          "files": [
+            {
+              "path": "expanded.bin",
+              "content": "Résumé\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 201,
+            "bytes": 9,
+            "sha256": "f2289de8b83919a1c37faf51771976cb2e4d8b487544ce76936d34963266d8fd"
+          },
+          "files": [
+            {
+              "path": "expanded.bin",
+              "content": "Résumé\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "one byte over output budget",
+        "kind": "attack",
+        "input": {
+          "payload": "eJxzdBwFo2AUjFgAAKjJBFE="
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 201,
+            "bytes": 1025,
+            "sha256": "3e86eb785ddb8469dd20dcc36d5b82a8f3026f18962c1db3ce65f5cdec227bda"
+          },
+          "files": [
+            {
+              "path": "expanded.bin",
+              "content": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 413
+          },
+          "files": [
+            {
+              "path": "expanded.bin",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "small input large expansion",
+        "kind": "attack",
+        "input": {
+          "payload": "eJztwQENAAAAwqBu7x/KHg4oAAAA4N0ADzwgPQ=="
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 201,
+            "bytes": 4096,
+            "sha256": "725bcd6c66d02acf6ebeab9c92410e010ea22e336876256aaf05a211f4ce1902"
+          },
+          "files": [
+            {
+              "path": "expanded.bin",
+              "content": "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 413
+          },
+          "files": [
+            {
+              "path": "expanded.bin",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "invalid stream",
+        "kind": "robustness",
+        "input": {
+          "payload": "bm90LXpsaWI="
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "expanded.bin",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "expanded.bin",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "truncated checksum",
+        "kind": "robustness",
+        "input": {
+          "payload": "eJwrS8zJTAEABlEC"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "expanded.bin",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "expanded.bin",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "concatenated streams",
+        "kind": "robustness",
+        "input": {
+          "payload": "eJwrS8zJTAEABlECEXicK0vMyUwBAAZRAhE="
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "expanded.bin",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "expanded.bin",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "trailing bytes",
+        "kind": "robustness",
+        "input": {
+          "payload": "eJwrS8zJTAEABlECEWV4dHJh"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "expanded.bin",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "expanded.bin",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "compressed input over limit",
+        "kind": "robustness",
+        "input": {
+          "payload": "eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHg="
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "expanded.bin",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "expanded.bin",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "invalid base64",
+        "kind": "robustness",
+        "input": {
+          "payload": "!!!"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "expanded.bin",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "expanded.bin",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "oversized encoding",
+        "kind": "robustness",
+        "input": {
+          "payload": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "expanded.bin",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "expanded.bin",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "non-string payload",
+        "kind": "robustness",
+        "input": {
+          "payload": []
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "expanded.bin",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "expanded.bin",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "non-object request",
+        "kind": "robustness",
+        "input": [],
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "expanded.bin",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "expanded.bin",
+              "type": "absent"
+            }
+          ]
+        }
+      }
+    ],
+    "vulnerable": "labs/python/decompression-amplification/vulnerable/main.py",
+    "fixed": "labs/python/decompression-amplification/fixed/main.py"
+  },
+  {
+    "id": "python/session-expiration",
+    "language": "python",
+    "cwe": [
+      "CWE-613"
+    ],
+    "owasp": [
+      "A07:2025"
+    ],
+    "scope": "executable",
+    "description": "A server-side session record contains expiry and revocation state, but access checks only that the token exists. The same token can still retrieve a private SQLite report after expiry or a committed logout.",
+    "remediation": "Check expiry and revocation on every authenticated operation before reading protected data. Persist logout revocation and reject at the exact expiry boundary. The harness uses unpredictable tokens stored as hashes and a synthetic monotonic clock. In-flight requests racing with logout, cookie transport, renewal and idle timeouts are outside scope.",
+    "references": [
+      {
+        "title": "MITRE CWE-613 — Insufficient Session Expiration",
+        "url": "https://cwe.mitre.org/data/definitions/613.html"
+      }
+    ],
+    "tests": [
+      {
+        "name": "active session",
+        "kind": "benign",
+        "input": {
+          "actions": [
+            {
+              "op": "read",
+              "at": 1000,
+              "token": "issued"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "events": [
+              {
+                "status": 200,
+                "report": "LAB_PRIVATE_REPORT"
+              }
+            ]
+          }
+        },
+        "fixed": {
+          "equals": {
+            "events": [
+              {
+                "status": 200,
+                "report": "LAB_PRIVATE_REPORT"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "name": "repeated active reads",
+        "kind": "benign",
+        "input": {
+          "actions": [
+            {
+              "op": "read",
+              "at": 1000,
+              "token": "issued"
+            },
+            {
+              "op": "read",
+              "at": 1001,
+              "token": "issued"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "events": [
+              {
+                "status": 200,
+                "report": "LAB_PRIVATE_REPORT"
+              },
+              {
+                "status": 200,
+                "report": "LAB_PRIVATE_REPORT"
+              }
+            ]
+          }
+        },
+        "fixed": {
+          "equals": {
+            "events": [
+              {
+                "status": 200,
+                "report": "LAB_PRIVATE_REPORT"
+              },
+              {
+                "status": 200,
+                "report": "LAB_PRIVATE_REPORT"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "name": "last valid instant",
+        "kind": "benign",
+        "input": {
+          "actions": [
+            {
+              "op": "read",
+              "at": 1059,
+              "token": "issued"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "events": [
+              {
+                "status": 200,
+                "report": "LAB_PRIVATE_REPORT"
+              }
+            ]
+          }
+        },
+        "fixed": {
+          "equals": {
+            "events": [
+              {
+                "status": 200,
+                "report": "LAB_PRIVATE_REPORT"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "name": "logout succeeds",
+        "kind": "benign",
+        "input": {
+          "actions": [
+            {
+              "op": "logout",
+              "at": 1000,
+              "token": "issued"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "events": [
+              {
+                "status": 204
+              }
+            ]
+          }
+        },
+        "fixed": {
+          "equals": {
+            "events": [
+              {
+                "status": 204
+              }
+            ]
+          }
+        }
+      },
+      {
+        "name": "unknown session",
+        "kind": "benign",
+        "input": {
+          "actions": [
+            {
+              "op": "read",
+              "at": 1000,
+              "token": "unknown"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "events": [
+              {
+                "status": 401
+              }
+            ]
+          }
+        },
+        "fixed": {
+          "equals": {
+            "events": [
+              {
+                "status": 401
+              }
+            ]
+          }
+        }
+      },
+      {
+        "name": "unknown logout leaves issued session active",
+        "kind": "benign",
+        "input": {
+          "actions": [
+            {
+              "op": "logout",
+              "at": 1000,
+              "token": "unknown"
+            },
+            {
+              "op": "read",
+              "at": 1001,
+              "token": "issued"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "events": [
+              {
+                "status": 401
+              },
+              {
+                "status": 200,
+                "report": "LAB_PRIVATE_REPORT"
+              }
+            ]
+          }
+        },
+        "fixed": {
+          "equals": {
+            "events": [
+              {
+                "status": 401
+              },
+              {
+                "status": 200,
+                "report": "LAB_PRIVATE_REPORT"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "name": "expired session",
+        "kind": "attack",
+        "input": {
+          "actions": [
+            {
+              "op": "read",
+              "at": 1061,
+              "token": "issued"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "events": [
+              {
+                "status": 200,
+                "report": "LAB_PRIVATE_REPORT"
+              }
+            ]
+          }
+        },
+        "fixed": {
+          "equals": {
+            "events": [
+              {
+                "status": 401
+              }
+            ]
+          }
+        }
+      },
+      {
+        "name": "exact expiry boundary",
+        "kind": "attack",
+        "input": {
+          "actions": [
+            {
+              "op": "read",
+              "at": 1060,
+              "token": "issued"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "events": [
+              {
+                "status": 200,
+                "report": "LAB_PRIVATE_REPORT"
+              }
+            ]
+          }
+        },
+        "fixed": {
+          "equals": {
+            "events": [
+              {
+                "status": 401
+              }
+            ]
+          }
+        }
+      },
+      {
+        "name": "read after logout",
+        "kind": "attack",
+        "input": {
+          "actions": [
+            {
+              "op": "read",
+              "at": 1000,
+              "token": "issued"
+            },
+            {
+              "op": "logout",
+              "at": 1001,
+              "token": "issued"
+            },
+            {
+              "op": "read",
+              "at": 1002,
+              "token": "issued"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "events": [
+              {
+                "status": 200,
+                "report": "LAB_PRIVATE_REPORT"
+              },
+              {
+                "status": 204
+              },
+              {
+                "status": 200,
+                "report": "LAB_PRIVATE_REPORT"
+              }
+            ]
+          }
+        },
+        "fixed": {
+          "equals": {
+            "events": [
+              {
+                "status": 200,
+                "report": "LAB_PRIVATE_REPORT"
+              },
+              {
+                "status": 204
+              },
+              {
+                "status": 401
+              }
+            ]
+          }
+        }
+      },
+      {
+        "name": "empty actions",
+        "kind": "robustness",
+        "input": {
+          "actions": []
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "sessions.sqlite",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "sessions.sqlite",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "unknown operation",
+        "kind": "robustness",
+        "input": {
+          "actions": [
+            {
+              "op": "delete",
+              "at": 1000,
+              "token": "issued"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "sessions.sqlite",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "sessions.sqlite",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "boolean clock",
+        "kind": "robustness",
+        "input": {
+          "actions": [
+            {
+              "op": "read",
+              "at": true,
+              "token": "issued"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "sessions.sqlite",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "sessions.sqlite",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "backwards clock",
+        "kind": "robustness",
+        "input": {
+          "actions": [
+            {
+              "op": "read",
+              "at": 1001,
+              "token": "issued"
+            },
+            {
+              "op": "read",
+              "at": 1000,
+              "token": "issued"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "sessions.sqlite",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "sessions.sqlite",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "missing token",
+        "kind": "robustness",
+        "input": {
+          "actions": [
+            {
+              "op": "read",
+              "at": 1000
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "sessions.sqlite",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "sessions.sqlite",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "too many actions",
+        "kind": "robustness",
+        "input": {
+          "actions": [
+            {
+              "op": "read",
+              "at": 1000,
+              "token": "issued"
+            },
+            {
+              "op": "read",
+              "at": 1000,
+              "token": "issued"
+            },
+            {
+              "op": "read",
+              "at": 1000,
+              "token": "issued"
+            },
+            {
+              "op": "read",
+              "at": 1000,
+              "token": "issued"
+            },
+            {
+              "op": "read",
+              "at": 1000,
+              "token": "issued"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "sessions.sqlite",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "sessions.sqlite",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "non-object request",
+        "kind": "robustness",
+        "input": [],
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "sessions.sqlite",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "sessions.sqlite",
+              "type": "absent"
+            }
+          ]
+        }
+      }
+    ],
+    "vulnerable": "labs/python/session-expiration/vulnerable/main.py",
+    "fixed": "labs/python/session-expiration/fixed/main.py",
+    "database": "sqlite"
   }
 ]
