@@ -22410,5 +22410,1714 @@
     ],
     "vulnerable": "labs/python/xxe/vulnerable/main.py",
     "fixed": "labs/python/xxe/fixed/main.py"
+  },
+  {
+    "id": "python/jwt-default-key",
+    "language": "python",
+    "cwe": [
+      "CWE-321"
+    ],
+    "owasp": [
+      "A04:2025"
+    ],
+    "description": "An HS256 JWT verifier silently falls back to a publicly known signing key when deployment configuration is absent. A forged administrator token then passes real HMAC verification. Inspired by the weak-secret pattern described in EDB-51354; this is original Python code, not the affected product.",
+    "remediation": "Require an externally supplied random signing key and fail closed when absent or shorter than 32 bytes. The bounded HS256-only profile also checks the signature, issuer, audience, expiration and not-before fields. BADASS_JWT_KEY values in tests are public synthetic fixtures, not deployment secrets; length is not an entropy test. NOW is a pinned lab clock, not wall time. This is not a general JWT library.",
+    "scope": "executable",
+    "references": [
+      {
+        "title": "EDB-51354 — ever gauzy v0.281.9 JWT weak HMAC secret — nu11secur1ty",
+        "url": "https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/typescript/webapps/51354.txt"
+      }
+    ],
+    "tests": [
+      {
+        "name": "active alice",
+        "kind": "benign",
+        "input": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhbGljZSIsImlzcyI6ImJhZGFzcy1maXh0dXJlIiwiYXVkIjoiYmFkYXNzLWFwaSIsImV4cCI6MjAwMDAwMDYwMCwibmJmIjoxOTk5OTk5OTAwfQ.OsJEQbH6PQUkwy42ibBh0ckh2m6B6eH-OC3uF1wf-oI"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "user": "alice",
+            "role": "reader"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "user": "alice",
+            "role": "reader"
+          }
+        },
+        "env": {
+          "BADASS_JWT_KEY": "LAB_SYNTHETIC_HS256_KEY_FOR_REGRESSION_2026"
+        }
+      },
+      {
+        "name": "active admin",
+        "kind": "benign",
+        "input": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImlzcyI6ImJhZGFzcy1maXh0dXJlIiwiYXVkIjoiYmFkYXNzLWFwaSIsImV4cCI6MjAwMDAwMDYwMCwibmJmIjoxOTk5OTk5OTAwfQ.K237_WsBTIRlVhBMl21JrBy-rv6GnWHbpkfnUSrIQuE"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "user": "admin",
+            "role": "admin"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "user": "admin",
+            "role": "admin"
+          }
+        },
+        "env": {
+          "BADASS_JWT_KEY": "LAB_SYNTHETIC_HS256_KEY_FOR_REGRESSION_2026"
+        }
+      },
+      {
+        "name": "wrong signature",
+        "kind": "benign",
+        "input": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhbGljZSIsImlzcyI6ImJhZGFzcy1maXh0dXJlIiwiYXVkIjoiYmFkYXNzLWFwaSIsImV4cCI6MjAwMDAwMDYwMCwibmJmIjoxOTk5OTk5OTAwfQ.OFXn2K1i52MPIf-yRq_RMcS91_sIicJQjEbU3cs43tM"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "env": {
+          "BADASS_JWT_KEY": "LAB_SYNTHETIC_HS256_KEY_FOR_REGRESSION_2026"
+        }
+      },
+      {
+        "name": "expired token",
+        "kind": "benign",
+        "input": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhbGljZSIsImlzcyI6ImJhZGFzcy1maXh0dXJlIiwiYXVkIjoiYmFkYXNzLWFwaSIsImV4cCI6MTk5OTk5OTk5OSwibmJmIjoxOTk5OTk5OTAwfQ.3c56jcsTJ79ymDiX0E08hnQv99b7z9WTc7ilIqGfHKU"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "env": {
+          "BADASS_JWT_KEY": "LAB_SYNTHETIC_HS256_KEY_FOR_REGRESSION_2026"
+        }
+      },
+      {
+        "name": "expiry boundary",
+        "kind": "benign",
+        "input": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhbGljZSIsImlzcyI6ImJhZGFzcy1maXh0dXJlIiwiYXVkIjoiYmFkYXNzLWFwaSIsImV4cCI6MjAwMDAwMDAwMCwibmJmIjoxOTk5OTk5OTAwfQ.tRyrorm0nHQHs8nRvQTnn7IZm4QrQSpsSxANReq5484"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "env": {
+          "BADASS_JWT_KEY": "LAB_SYNTHETIC_HS256_KEY_FOR_REGRESSION_2026"
+        }
+      },
+      {
+        "name": "future token",
+        "kind": "benign",
+        "input": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhbGljZSIsImlzcyI6ImJhZGFzcy1maXh0dXJlIiwiYXVkIjoiYmFkYXNzLWFwaSIsImV4cCI6MjAwMDAwMDYwMCwibmJmIjoyMDAwMDAwMDAxfQ.GLp22t2lvnfrce05R3r9P28mgrFH8nTCPr7YbEUTY-Y"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "env": {
+          "BADASS_JWT_KEY": "LAB_SYNTHETIC_HS256_KEY_FOR_REGRESSION_2026"
+        }
+      },
+      {
+        "name": "wrong audience",
+        "kind": "benign",
+        "input": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhbGljZSIsImlzcyI6ImJhZGFzcy1maXh0dXJlIiwiYXVkIjoib3RoZXItYXBpIiwiZXhwIjoyMDAwMDAwNjAwLCJuYmYiOjE5OTk5OTk5MDB9.AEFri1Y84a4L1IXX8AbTSvG8TW9uqQ4IWDOMdGwYdL8"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "env": {
+          "BADASS_JWT_KEY": "LAB_SYNTHETIC_HS256_KEY_FOR_REGRESSION_2026"
+        }
+      },
+      {
+        "name": "wrong issuer",
+        "kind": "benign",
+        "input": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhbGljZSIsImlzcyI6Im90aGVyLWlzc3VlciIsImF1ZCI6ImJhZGFzcy1hcGkiLCJleHAiOjIwMDAwMDA2MDAsIm5iZiI6MTk5OTk5OTkwMH0.5sADTQmzV-tna_GW-Yeahs6n3C1zJCEAddp385_GUgU"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "env": {
+          "BADASS_JWT_KEY": "LAB_SYNTHETIC_HS256_KEY_FOR_REGRESSION_2026"
+        }
+      },
+      {
+        "name": "unknown account",
+        "kind": "benign",
+        "input": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJyZW1vdmVkIiwiaXNzIjoiYmFkYXNzLWZpeHR1cmUiLCJhdWQiOiJiYWRhc3MtYXBpIiwiZXhwIjoyMDAwMDAwNjAwLCJuYmYiOjE5OTk5OTk5MDB9.0c2szE_w-f7DqQBbgbCFZjg9aotMlW2I5bTGt08rwAc"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "env": {
+          "BADASS_JWT_KEY": "LAB_SYNTHETIC_HS256_KEY_FOR_REGRESSION_2026"
+        }
+      },
+      {
+        "name": "malformed token",
+        "kind": "robustness",
+        "input": {
+          "token": "bad.token"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "env": {
+          "BADASS_JWT_KEY": "LAB_SYNTHETIC_HS256_KEY_FOR_REGRESSION_2026"
+        }
+      },
+      {
+        "name": "missing token",
+        "kind": "robustness",
+        "input": {},
+        "vulnerable": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "env": {
+          "BADASS_JWT_KEY": "LAB_SYNTHETIC_HS256_KEY_FOR_REGRESSION_2026"
+        }
+      },
+      {
+        "name": "non-string token",
+        "kind": "robustness",
+        "input": {
+          "token": 42
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "env": {
+          "BADASS_JWT_KEY": "LAB_SYNTHETIC_HS256_KEY_FOR_REGRESSION_2026"
+        }
+      },
+      {
+        "name": "non-object request",
+        "kind": "robustness",
+        "input": [],
+        "vulnerable": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "env": {
+          "BADASS_JWT_KEY": "LAB_SYNTHETIC_HS256_KEY_FOR_REGRESSION_2026"
+        }
+      },
+      {
+        "name": "unsupported algorithm",
+        "kind": "robustness",
+        "input": {
+          "token": "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiJhbGljZSIsImlzcyI6ImJhZGFzcy1maXh0dXJlIiwiYXVkIjoiYmFkYXNzLWFwaSIsImV4cCI6MjAwMDAwMDYwMCwibmJmIjoxOTk5OTk5OTAwfQ.qZZvcRbvOoZsJcj0JflV728fqCDh22pik85uByqOqCc"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "env": {
+          "BADASS_JWT_KEY": "LAB_SYNTHETIC_HS256_KEY_FOR_REGRESSION_2026"
+        }
+      },
+      {
+        "name": "boolean expiry",
+        "kind": "robustness",
+        "input": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhbGljZSIsImlzcyI6ImJhZGFzcy1maXh0dXJlIiwiYXVkIjoiYmFkYXNzLWFwaSIsImV4cCI6dHJ1ZSwibmJmIjoxOTk5OTk5OTAwfQ.iYqZ5ShCRMUpK_IDR426iKQJfBmM6ZYBqNg4lYcJK9o"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "env": {
+          "BADASS_JWT_KEY": "LAB_SYNTHETIC_HS256_KEY_FOR_REGRESSION_2026"
+        }
+      },
+      {
+        "name": "forged administrator via default secret",
+        "kind": "attack",
+        "input": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImlzcyI6ImJhZGFzcy1maXh0dXJlIiwiYXVkIjoiYmFkYXNzLWFwaSIsImV4cCI6MjAwMDAwMDYwMCwibmJmIjoxOTk5OTk5OTAwfQ.0petbohPWGsU3DTU1YVX_A1B6iG0UEqQrT84sTbp3Y4"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "user": "admin",
+            "role": "admin"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 503,
+            "error": "signing key unavailable"
+          }
+        },
+        "env": {}
+      },
+      {
+        "name": "forged reader via default secret",
+        "kind": "attack",
+        "input": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhbGljZSIsImlzcyI6ImJhZGFzcy1maXh0dXJlIiwiYXVkIjoiYmFkYXNzLWFwaSIsImV4cCI6MjAwMDAwMDYwMCwibmJmIjoxOTk5OTk5OTAwfQ.Wl7LYpIO689lNrjCjWqJ-oHdfGTzgt_rWvK2pPsFO3s"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "user": "alice",
+            "role": "reader"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 503,
+            "error": "signing key unavailable"
+          }
+        },
+        "env": {}
+      },
+      {
+        "name": "explicit short key",
+        "kind": "attack",
+        "input": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImlzcyI6ImJhZGFzcy1maXh0dXJlIiwiYXVkIjoiYmFkYXNzLWFwaSIsImV4cCI6MjAwMDAwMDYwMCwibmJmIjoxOTk5OTk5OTAwfQ.xOlFDZlADHCbv6BoNYCtQgtc89ikd38lGkYx5tOsTeQ"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "user": "admin",
+            "role": "admin"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 503,
+            "error": "signing key unavailable"
+          }
+        },
+        "env": {
+          "BADASS_JWT_KEY": "short"
+        }
+      },
+      {
+        "name": "explicit empty key",
+        "kind": "attack",
+        "input": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImlzcyI6ImJhZGFzcy1maXh0dXJlIiwiYXVkIjoiYmFkYXNzLWFwaSIsImV4cCI6MjAwMDAwMDYwMCwibmJmIjoxOTk5OTk5OTAwfQ.rmgfUev26NmlxRJ62EAYi0IpA6k6-HiVcgfQMN1drWg"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "user": "admin",
+            "role": "admin"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 503,
+            "error": "signing key unavailable"
+          }
+        },
+        "env": {
+          "BADASS_JWT_KEY": ""
+        }
+      },
+      {
+        "name": "configured key rejects public default",
+        "kind": "benign",
+        "input": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImlzcyI6ImJhZGFzcy1maXh0dXJlIiwiYXVkIjoiYmFkYXNzLWFwaSIsImV4cCI6MjAwMDAwMDYwMCwibmJmIjoxOTk5OTk5OTAwfQ.0petbohPWGsU3DTU1YVX_A1B6iG0UEqQrT84sTbp3Y4"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "env": {
+          "BADASS_JWT_KEY": "LAB_SYNTHETIC_HS256_KEY_FOR_REGRESSION_2026"
+        }
+      }
+    ],
+    "vulnerable": "labs/python/jwt-default-key/vulnerable/main.py",
+    "fixed": "labs/python/jwt-default-key/fixed/main.py"
+  },
+  {
+    "id": "python/jwt-disabled-user",
+    "language": "python",
+    "cwe": [
+      "CWE-863"
+    ],
+    "owasp": [
+      "A01:2025",
+      "A07:2025"
+    ],
+    "description": "An otherwise valid signed JWT continues to authorize a disabled account because the handler checks only account existence. Inspired by the inactive-user scenario in EDB-51992. The fixed handler consults current server-owned account state on every request.",
+    "remediation": "Verify the token cryptographically and require the current account to exist and be active before using its server-owned role. The token cannot override account activation or role. Tests use a bounded HS256 profile, a pinned clock, an in-memory account store and a synthetic external key; they do not reproduce Django or certify a third-party advisory.",
+    "scope": "executable",
+    "references": [
+      {
+        "title": "EDB-51992 — djangorestframework-simplejwt inactive-user scenario — Dhrumil Mistry",
+        "url": "https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/python/webapps/51992.py"
+      }
+    ],
+    "tests": [
+      {
+        "name": "active alice",
+        "kind": "benign",
+        "input": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhbGljZSIsImlzcyI6ImJhZGFzcy1maXh0dXJlIiwiYXVkIjoiYmFkYXNzLWFwaSIsImV4cCI6MjAwMDAwMDYwMCwibmJmIjoxOTk5OTk5OTAwfQ.OsJEQbH6PQUkwy42ibBh0ckh2m6B6eH-OC3uF1wf-oI"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "user": "alice",
+            "role": "reader"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "user": "alice",
+            "role": "reader"
+          }
+        },
+        "env": {
+          "BADASS_JWT_KEY": "LAB_SYNTHETIC_HS256_KEY_FOR_REGRESSION_2026"
+        }
+      },
+      {
+        "name": "active admin",
+        "kind": "benign",
+        "input": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImlzcyI6ImJhZGFzcy1maXh0dXJlIiwiYXVkIjoiYmFkYXNzLWFwaSIsImV4cCI6MjAwMDAwMDYwMCwibmJmIjoxOTk5OTk5OTAwfQ.K237_WsBTIRlVhBMl21JrBy-rv6GnWHbpkfnUSrIQuE"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "user": "admin",
+            "role": "admin"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "user": "admin",
+            "role": "admin"
+          }
+        },
+        "env": {
+          "BADASS_JWT_KEY": "LAB_SYNTHETIC_HS256_KEY_FOR_REGRESSION_2026"
+        }
+      },
+      {
+        "name": "wrong signature",
+        "kind": "benign",
+        "input": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhbGljZSIsImlzcyI6ImJhZGFzcy1maXh0dXJlIiwiYXVkIjoiYmFkYXNzLWFwaSIsImV4cCI6MjAwMDAwMDYwMCwibmJmIjoxOTk5OTk5OTAwfQ.OFXn2K1i52MPIf-yRq_RMcS91_sIicJQjEbU3cs43tM"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "env": {
+          "BADASS_JWT_KEY": "LAB_SYNTHETIC_HS256_KEY_FOR_REGRESSION_2026"
+        }
+      },
+      {
+        "name": "expired token",
+        "kind": "benign",
+        "input": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhbGljZSIsImlzcyI6ImJhZGFzcy1maXh0dXJlIiwiYXVkIjoiYmFkYXNzLWFwaSIsImV4cCI6MTk5OTk5OTk5OSwibmJmIjoxOTk5OTk5OTAwfQ.3c56jcsTJ79ymDiX0E08hnQv99b7z9WTc7ilIqGfHKU"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "env": {
+          "BADASS_JWT_KEY": "LAB_SYNTHETIC_HS256_KEY_FOR_REGRESSION_2026"
+        }
+      },
+      {
+        "name": "expiry boundary",
+        "kind": "benign",
+        "input": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhbGljZSIsImlzcyI6ImJhZGFzcy1maXh0dXJlIiwiYXVkIjoiYmFkYXNzLWFwaSIsImV4cCI6MjAwMDAwMDAwMCwibmJmIjoxOTk5OTk5OTAwfQ.tRyrorm0nHQHs8nRvQTnn7IZm4QrQSpsSxANReq5484"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "env": {
+          "BADASS_JWT_KEY": "LAB_SYNTHETIC_HS256_KEY_FOR_REGRESSION_2026"
+        }
+      },
+      {
+        "name": "future token",
+        "kind": "benign",
+        "input": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhbGljZSIsImlzcyI6ImJhZGFzcy1maXh0dXJlIiwiYXVkIjoiYmFkYXNzLWFwaSIsImV4cCI6MjAwMDAwMDYwMCwibmJmIjoyMDAwMDAwMDAxfQ.GLp22t2lvnfrce05R3r9P28mgrFH8nTCPr7YbEUTY-Y"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "env": {
+          "BADASS_JWT_KEY": "LAB_SYNTHETIC_HS256_KEY_FOR_REGRESSION_2026"
+        }
+      },
+      {
+        "name": "wrong audience",
+        "kind": "benign",
+        "input": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhbGljZSIsImlzcyI6ImJhZGFzcy1maXh0dXJlIiwiYXVkIjoib3RoZXItYXBpIiwiZXhwIjoyMDAwMDAwNjAwLCJuYmYiOjE5OTk5OTk5MDB9.AEFri1Y84a4L1IXX8AbTSvG8TW9uqQ4IWDOMdGwYdL8"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "env": {
+          "BADASS_JWT_KEY": "LAB_SYNTHETIC_HS256_KEY_FOR_REGRESSION_2026"
+        }
+      },
+      {
+        "name": "wrong issuer",
+        "kind": "benign",
+        "input": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhbGljZSIsImlzcyI6Im90aGVyLWlzc3VlciIsImF1ZCI6ImJhZGFzcy1hcGkiLCJleHAiOjIwMDAwMDA2MDAsIm5iZiI6MTk5OTk5OTkwMH0.5sADTQmzV-tna_GW-Yeahs6n3C1zJCEAddp385_GUgU"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "env": {
+          "BADASS_JWT_KEY": "LAB_SYNTHETIC_HS256_KEY_FOR_REGRESSION_2026"
+        }
+      },
+      {
+        "name": "unknown account",
+        "kind": "benign",
+        "input": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJyZW1vdmVkIiwiaXNzIjoiYmFkYXNzLWZpeHR1cmUiLCJhdWQiOiJiYWRhc3MtYXBpIiwiZXhwIjoyMDAwMDAwNjAwLCJuYmYiOjE5OTk5OTk5MDB9.0c2szE_w-f7DqQBbgbCFZjg9aotMlW2I5bTGt08rwAc"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "env": {
+          "BADASS_JWT_KEY": "LAB_SYNTHETIC_HS256_KEY_FOR_REGRESSION_2026"
+        }
+      },
+      {
+        "name": "malformed token",
+        "kind": "robustness",
+        "input": {
+          "token": "bad.token"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "env": {
+          "BADASS_JWT_KEY": "LAB_SYNTHETIC_HS256_KEY_FOR_REGRESSION_2026"
+        }
+      },
+      {
+        "name": "missing token",
+        "kind": "robustness",
+        "input": {},
+        "vulnerable": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "env": {
+          "BADASS_JWT_KEY": "LAB_SYNTHETIC_HS256_KEY_FOR_REGRESSION_2026"
+        }
+      },
+      {
+        "name": "non-string token",
+        "kind": "robustness",
+        "input": {
+          "token": 42
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "env": {
+          "BADASS_JWT_KEY": "LAB_SYNTHETIC_HS256_KEY_FOR_REGRESSION_2026"
+        }
+      },
+      {
+        "name": "non-object request",
+        "kind": "robustness",
+        "input": [],
+        "vulnerable": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "env": {
+          "BADASS_JWT_KEY": "LAB_SYNTHETIC_HS256_KEY_FOR_REGRESSION_2026"
+        }
+      },
+      {
+        "name": "unsupported algorithm",
+        "kind": "robustness",
+        "input": {
+          "token": "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiJhbGljZSIsImlzcyI6ImJhZGFzcy1maXh0dXJlIiwiYXVkIjoiYmFkYXNzLWFwaSIsImV4cCI6MjAwMDAwMDYwMCwibmJmIjoxOTk5OTk5OTAwfQ.qZZvcRbvOoZsJcj0JflV728fqCDh22pik85uByqOqCc"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "env": {
+          "BADASS_JWT_KEY": "LAB_SYNTHETIC_HS256_KEY_FOR_REGRESSION_2026"
+        }
+      },
+      {
+        "name": "boolean expiry",
+        "kind": "robustness",
+        "input": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhbGljZSIsImlzcyI6ImJhZGFzcy1maXh0dXJlIiwiYXVkIjoiYmFkYXNzLWFwaSIsImV4cCI6dHJ1ZSwibmJmIjoxOTk5OTk5OTAwfQ.iYqZ5ShCRMUpK_IDR426iKQJfBmM6ZYBqNg4lYcJK9o"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "env": {
+          "BADASS_JWT_KEY": "LAB_SYNTHETIC_HS256_KEY_FOR_REGRESSION_2026"
+        }
+      },
+      {
+        "name": "disabled account with signed token",
+        "kind": "attack",
+        "input": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJib2IiLCJpc3MiOiJiYWRhc3MtZml4dHVyZSIsImF1ZCI6ImJhZGFzcy1hcGkiLCJleHAiOjIwMDAwMDA2MDAsIm5iZiI6MTk5OTk5OTkwMH0.gKvH3kCjkhPRRGZZYu0BHQ0gv9sNliCY64QJbirdoQI"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "user": "bob",
+            "role": "reader"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "env": {
+          "BADASS_JWT_KEY": "LAB_SYNTHETIC_HS256_KEY_FOR_REGRESSION_2026"
+        }
+      },
+      {
+        "name": "token cannot reenable account",
+        "kind": "attack",
+        "input": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJib2IiLCJpc3MiOiJiYWRhc3MtZml4dHVyZSIsImF1ZCI6ImJhZGFzcy1hcGkiLCJleHAiOjIwMDAwMDA2MDAsIm5iZiI6MTk5OTk5OTkwMCwiYWN0aXZlIjp0cnVlLCJyb2xlIjoiYWRtaW4ifQ.fkcl9F-_F7RnUUEyn4a4SD44KFY3f6ZmBEi805Toy8U"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "user": "bob",
+            "role": "reader"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "env": {
+          "BADASS_JWT_KEY": "LAB_SYNTHETIC_HS256_KEY_FOR_REGRESSION_2026"
+        }
+      },
+      {
+        "name": "token cannot elevate active user role",
+        "kind": "benign",
+        "input": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhbGljZSIsImlzcyI6ImJhZGFzcy1maXh0dXJlIiwiYXVkIjoiYmFkYXNzLWFwaSIsImV4cCI6MjAwMDAwMDYwMCwibmJmIjoxOTk5OTk5OTAwLCJyb2xlIjoiYWRtaW4ifQ.hEcGvdsfHRoEJXz22358eqH1bfELrrNfxVK8gBfi6mU"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "user": "alice",
+            "role": "reader"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "user": "alice",
+            "role": "reader"
+          }
+        },
+        "env": {
+          "BADASS_JWT_KEY": "LAB_SYNTHETIC_HS256_KEY_FOR_REGRESSION_2026"
+        }
+      },
+      {
+        "name": "missing signing key fails closed",
+        "kind": "robustness",
+        "input": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhbGljZSIsImlzcyI6ImJhZGFzcy1maXh0dXJlIiwiYXVkIjoiYmFkYXNzLWFwaSIsImV4cCI6MjAwMDAwMDYwMCwibmJmIjoxOTk5OTk5OTAwfQ.OsJEQbH6PQUkwy42ibBh0ckh2m6B6eH-OC3uF1wf-oI"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 503,
+            "error": "signing key unavailable"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 503,
+            "error": "signing key unavailable"
+          }
+        },
+        "env": {}
+      }
+    ],
+    "vulnerable": "labs/python/jwt-disabled-user/vulnerable/main.py",
+    "fixed": "labs/python/jwt-disabled-user/fixed/main.py"
+  },
+  {
+    "id": "python/csv-formula-injection",
+    "language": "python",
+    "cwe": [
+      "CWE-1236"
+    ],
+    "owasp": [
+      "A05:2025"
+    ],
+    "description": "Untrusted descriptions are exported as CSV cells without neutralizing formula-leading characters. Inspired by EDB-49805 (Kimai CSV injection). The fixture writes and verifies real CSV bytes; it does not execute a spreadsheet or assert code execution.",
+    "remediation": "Use the CSV writer for field boundaries and prefix dangerous values with the literal TEXT: marker. This deliberately changes cell contents for human-review exports; original values are preserved after that prefix. Formula starters, their full-width variants, leading whitespace and control prefixes are covered. Tests establish the exported-cell contract only, not universal behavior of every spreadsheet or later transformation.",
+    "scope": "executable",
+    "references": [
+      {
+        "title": "EDB-49805 — Kimai 1.14 CSV Injection — Mohammed Aloraimi",
+        "url": "https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/php/webapps/49805.txt"
+      },
+      {
+        "title": "OWASP — CSV Injection and spreadsheet-specific limitations",
+        "url": "https://owasp.org/www-community/attacks/CSV_Injection"
+      }
+    ],
+    "tests": [
+      {
+        "name": "plain cells",
+        "kind": "benign",
+        "input": [
+          [
+            "Meeting",
+            "Alice"
+          ]
+        ],
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "csv": "\"description\",\"owner\"\r\n\"Meeting\",\"Alice\"\r\n"
+          },
+          "files": [
+            {
+              "path": "export.csv",
+              "content": "\"description\",\"owner\"\r\n\"Meeting\",\"Alice\"\r\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "csv": "\"description\",\"owner\"\r\n\"Meeting\",\"Alice\"\r\n"
+          },
+          "files": [
+            {
+              "path": "export.csv",
+              "content": "\"description\",\"owner\"\r\n\"Meeting\",\"Alice\"\r\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "quote and separator",
+        "kind": "benign",
+        "input": [
+          [
+            "Review, \"phase 2\"",
+            "Zoé"
+          ]
+        ],
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "csv": "\"description\",\"owner\"\r\n\"Review, \"\"phase 2\"\"\",\"Zoé\"\r\n"
+          },
+          "files": [
+            {
+              "path": "export.csv",
+              "content": "\"description\",\"owner\"\r\n\"Review, \"\"phase 2\"\"\",\"Zoé\"\r\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "csv": "\"description\",\"owner\"\r\n\"Review, \"\"phase 2\"\"\",\"Zoé\"\r\n"
+          },
+          "files": [
+            {
+              "path": "export.csv",
+              "content": "\"description\",\"owner\"\r\n\"Review, \"\"phase 2\"\"\",\"Zoé\"\r\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "multiple rows",
+        "kind": "benign",
+        "input": [
+          [
+            "One",
+            "Alice"
+          ],
+          [
+            "Two",
+            "Bob"
+          ]
+        ],
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "csv": "\"description\",\"owner\"\r\n\"One\",\"Alice\"\r\n\"Two\",\"Bob\"\r\n"
+          },
+          "files": [
+            {
+              "path": "export.csv",
+              "content": "\"description\",\"owner\"\r\n\"One\",\"Alice\"\r\n\"Two\",\"Bob\"\r\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "csv": "\"description\",\"owner\"\r\n\"One\",\"Alice\"\r\n\"Two\",\"Bob\"\r\n"
+          },
+          "files": [
+            {
+              "path": "export.csv",
+              "content": "\"description\",\"owner\"\r\n\"One\",\"Alice\"\r\n\"Two\",\"Bob\"\r\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "embedded newline",
+        "kind": "benign",
+        "input": [
+          [
+            "First\nSecond",
+            "Alice"
+          ]
+        ],
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "csv": "\"description\",\"owner\"\r\n\"First\nSecond\",\"Alice\"\r\n"
+          },
+          "files": [
+            {
+              "path": "export.csv",
+              "content": "\"description\",\"owner\"\r\n\"First\nSecond\",\"Alice\"\r\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "csv": "\"description\",\"owner\"\r\n\"First\nSecond\",\"Alice\"\r\n"
+          },
+          "files": [
+            {
+              "path": "export.csv",
+              "content": "\"description\",\"owner\"\r\n\"First\nSecond\",\"Alice\"\r\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "empty cells",
+        "kind": "benign",
+        "input": [
+          [
+            "",
+            ""
+          ]
+        ],
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "csv": "\"description\",\"owner\"\r\n\"\",\"\"\r\n"
+          },
+          "files": [
+            {
+              "path": "export.csv",
+              "content": "\"description\",\"owner\"\r\n\"\",\"\"\r\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "csv": "\"description\",\"owner\"\r\n\"\",\"\"\r\n"
+          },
+          "files": [
+            {
+              "path": "export.csv",
+              "content": "\"description\",\"owner\"\r\n\"\",\"\"\r\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "equals",
+        "kind": "attack",
+        "input": [
+          [
+            "=1+1",
+            "Alice"
+          ]
+        ],
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "csv": "\"description\",\"owner\"\r\n\"=1+1\",\"Alice\"\r\n"
+          },
+          "files": [
+            {
+              "path": "export.csv",
+              "content": "\"description\",\"owner\"\r\n\"=1+1\",\"Alice\"\r\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "csv": "\"description\",\"owner\"\r\n\"TEXT: =1+1\",\"Alice\"\r\n"
+          },
+          "files": [
+            {
+              "path": "export.csv",
+              "content": "\"description\",\"owner\"\r\n\"TEXT: =1+1\",\"Alice\"\r\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "plus",
+        "kind": "attack",
+        "input": [
+          [
+            "+1+1",
+            "Alice"
+          ]
+        ],
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "csv": "\"description\",\"owner\"\r\n\"+1+1\",\"Alice\"\r\n"
+          },
+          "files": [
+            {
+              "path": "export.csv",
+              "content": "\"description\",\"owner\"\r\n\"+1+1\",\"Alice\"\r\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "csv": "\"description\",\"owner\"\r\n\"TEXT: +1+1\",\"Alice\"\r\n"
+          },
+          "files": [
+            {
+              "path": "export.csv",
+              "content": "\"description\",\"owner\"\r\n\"TEXT: +1+1\",\"Alice\"\r\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "minus",
+        "kind": "attack",
+        "input": [
+          [
+            "-1+1",
+            "Alice"
+          ]
+        ],
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "csv": "\"description\",\"owner\"\r\n\"-1+1\",\"Alice\"\r\n"
+          },
+          "files": [
+            {
+              "path": "export.csv",
+              "content": "\"description\",\"owner\"\r\n\"-1+1\",\"Alice\"\r\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "csv": "\"description\",\"owner\"\r\n\"TEXT: -1+1\",\"Alice\"\r\n"
+          },
+          "files": [
+            {
+              "path": "export.csv",
+              "content": "\"description\",\"owner\"\r\n\"TEXT: -1+1\",\"Alice\"\r\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "at",
+        "kind": "attack",
+        "input": [
+          [
+            "@SUM(1,2)",
+            "Alice"
+          ]
+        ],
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "csv": "\"description\",\"owner\"\r\n\"@SUM(1,2)\",\"Alice\"\r\n"
+          },
+          "files": [
+            {
+              "path": "export.csv",
+              "content": "\"description\",\"owner\"\r\n\"@SUM(1,2)\",\"Alice\"\r\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "csv": "\"description\",\"owner\"\r\n\"TEXT: @SUM(1,2)\",\"Alice\"\r\n"
+          },
+          "files": [
+            {
+              "path": "export.csv",
+              "content": "\"description\",\"owner\"\r\n\"TEXT: @SUM(1,2)\",\"Alice\"\r\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "leading spaces",
+        "kind": "attack",
+        "input": [
+          [
+            "  =1+1",
+            "Alice"
+          ]
+        ],
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "csv": "\"description\",\"owner\"\r\n\"  =1+1\",\"Alice\"\r\n"
+          },
+          "files": [
+            {
+              "path": "export.csv",
+              "content": "\"description\",\"owner\"\r\n\"  =1+1\",\"Alice\"\r\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "csv": "\"description\",\"owner\"\r\n\"TEXT:   =1+1\",\"Alice\"\r\n"
+          },
+          "files": [
+            {
+              "path": "export.csv",
+              "content": "\"description\",\"owner\"\r\n\"TEXT:   =1+1\",\"Alice\"\r\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "leading tab",
+        "kind": "attack",
+        "input": [
+          [
+            "\t=1+1",
+            "Alice"
+          ]
+        ],
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "csv": "\"description\",\"owner\"\r\n\"\t=1+1\",\"Alice\"\r\n"
+          },
+          "files": [
+            {
+              "path": "export.csv",
+              "content": "\"description\",\"owner\"\r\n\"\t=1+1\",\"Alice\"\r\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "csv": "\"description\",\"owner\"\r\n\"TEXT: \t=1+1\",\"Alice\"\r\n"
+          },
+          "files": [
+            {
+              "path": "export.csv",
+              "content": "\"description\",\"owner\"\r\n\"TEXT: \t=1+1\",\"Alice\"\r\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "leading carriage return",
+        "kind": "attack",
+        "input": [
+          [
+            "\r=1+1",
+            "Alice"
+          ]
+        ],
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "csv": "\"description\",\"owner\"\r\n\"\r=1+1\",\"Alice\"\r\n"
+          },
+          "files": [
+            {
+              "path": "export.csv",
+              "content": "\"description\",\"owner\"\r\n\"\r=1+1\",\"Alice\"\r\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "csv": "\"description\",\"owner\"\r\n\"TEXT: \r=1+1\",\"Alice\"\r\n"
+          },
+          "files": [
+            {
+              "path": "export.csv",
+              "content": "\"description\",\"owner\"\r\n\"TEXT: \r=1+1\",\"Alice\"\r\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "leading newline",
+        "kind": "attack",
+        "input": [
+          [
+            "\n=1+1",
+            "Alice"
+          ]
+        ],
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "csv": "\"description\",\"owner\"\r\n\"\n=1+1\",\"Alice\"\r\n"
+          },
+          "files": [
+            {
+              "path": "export.csv",
+              "content": "\"description\",\"owner\"\r\n\"\n=1+1\",\"Alice\"\r\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "csv": "\"description\",\"owner\"\r\n\"TEXT: \n=1+1\",\"Alice\"\r\n"
+          },
+          "files": [
+            {
+              "path": "export.csv",
+              "content": "\"description\",\"owner\"\r\n\"TEXT: \n=1+1\",\"Alice\"\r\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "full-width equals",
+        "kind": "attack",
+        "input": [
+          [
+            "＝1+1",
+            "Alice"
+          ]
+        ],
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "csv": "\"description\",\"owner\"\r\n\"＝1+1\",\"Alice\"\r\n"
+          },
+          "files": [
+            {
+              "path": "export.csv",
+              "content": "\"description\",\"owner\"\r\n\"＝1+1\",\"Alice\"\r\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "csv": "\"description\",\"owner\"\r\n\"TEXT: ＝1+1\",\"Alice\"\r\n"
+          },
+          "files": [
+            {
+              "path": "export.csv",
+              "content": "\"description\",\"owner\"\r\n\"TEXT: ＝1+1\",\"Alice\"\r\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "full-width at",
+        "kind": "attack",
+        "input": [
+          [
+            "＠SUM(1,2)",
+            "Alice"
+          ]
+        ],
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "csv": "\"description\",\"owner\"\r\n\"＠SUM(1,2)\",\"Alice\"\r\n"
+          },
+          "files": [
+            {
+              "path": "export.csv",
+              "content": "\"description\",\"owner\"\r\n\"＠SUM(1,2)\",\"Alice\"\r\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "csv": "\"description\",\"owner\"\r\n\"TEXT: ＠SUM(1,2)\",\"Alice\"\r\n"
+          },
+          "files": [
+            {
+              "path": "export.csv",
+              "content": "\"description\",\"owner\"\r\n\"TEXT: ＠SUM(1,2)\",\"Alice\"\r\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "quoted separator",
+        "kind": "attack",
+        "input": [
+          [
+            "=1+1\";=2+2",
+            "Alice"
+          ]
+        ],
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "csv": "\"description\",\"owner\"\r\n\"=1+1\"\";=2+2\",\"Alice\"\r\n"
+          },
+          "files": [
+            {
+              "path": "export.csv",
+              "content": "\"description\",\"owner\"\r\n\"=1+1\"\";=2+2\",\"Alice\"\r\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "csv": "\"description\",\"owner\"\r\n\"TEXT: =1+1\"\";=2+2\",\"Alice\"\r\n"
+          },
+          "files": [
+            {
+              "path": "export.csv",
+              "content": "\"description\",\"owner\"\r\n\"TEXT: =1+1\"\";=2+2\",\"Alice\"\r\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "second column is also untrusted",
+        "kind": "attack",
+        "input": [
+          [
+            "Meeting",
+            "=1+1"
+          ]
+        ],
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "csv": "\"description\",\"owner\"\r\n\"Meeting\",\"=1+1\"\r\n"
+          },
+          "files": [
+            {
+              "path": "export.csv",
+              "content": "\"description\",\"owner\"\r\n\"Meeting\",\"=1+1\"\r\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "csv": "\"description\",\"owner\"\r\n\"Meeting\",\"TEXT: =1+1\"\r\n"
+          },
+          "files": [
+            {
+              "path": "export.csv",
+              "content": "\"description\",\"owner\"\r\n\"Meeting\",\"TEXT: =1+1\"\r\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "empty batch",
+        "kind": "robustness",
+        "input": [],
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid rows"
+          },
+          "files": [
+            {
+              "path": "export.csv",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid rows"
+          },
+          "files": [
+            {
+              "path": "export.csv",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "non-list input",
+        "kind": "robustness",
+        "input": {},
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid rows"
+          },
+          "files": [
+            {
+              "path": "export.csv",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid rows"
+          },
+          "files": [
+            {
+              "path": "export.csv",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "wrong column count",
+        "kind": "robustness",
+        "input": [
+          [
+            "one"
+          ]
+        ],
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid rows"
+          },
+          "files": [
+            {
+              "path": "export.csv",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid rows"
+          },
+          "files": [
+            {
+              "path": "export.csv",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "non-string cell",
+        "kind": "robustness",
+        "input": [
+          [
+            42,
+            "Alice"
+          ]
+        ],
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid rows"
+          },
+          "files": [
+            {
+              "path": "export.csv",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid rows"
+          },
+          "files": [
+            {
+              "path": "export.csv",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "NUL cell",
+        "kind": "robustness",
+        "input": [
+          [
+            "x\u0000y",
+            "Alice"
+          ]
+        ],
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid rows"
+          },
+          "files": [
+            {
+              "path": "export.csv",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid rows"
+          },
+          "files": [
+            {
+              "path": "export.csv",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "oversized cell",
+        "kind": "robustness",
+        "input": [
+          [
+            "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "Alice"
+          ]
+        ],
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid rows"
+          },
+          "files": [
+            {
+              "path": "export.csv",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid rows"
+          },
+          "files": [
+            {
+              "path": "export.csv",
+              "type": "absent"
+            }
+          ]
+        }
+      }
+    ],
+    "vulnerable": "labs/python/csv-formula-injection/vulnerable/main.py",
+    "fixed": "labs/python/csv-formula-injection/fixed/main.py"
   }
 ]

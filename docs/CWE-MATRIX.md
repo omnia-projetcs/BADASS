@@ -2,7 +2,7 @@
 
 Source: MITRE CWE **4.20**. All **1450** entries from the imported snapshot are included.
 
-**55 implemented weaknesses**, **914 gaps**, **481 category/view entries**.
+**57 implemented weaknesses**, **912 gaps**, **481 category/view entries**.
 
 `implemented` means source pairs and vectors exist, not that a scanner detected them or a runtime was available.
 Test results are tracked separately. `gap` is an unimplemented weakness. `taxonomy-only` is a category or view.
@@ -332,7 +332,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-318 | Cleartext Storage of Sensitive Information in Executable | weakness | Draft | gap |  |
 | CWE-319 | Cleartext Transmission of Sensitive Information | weakness | Draft | gap |  |
 | CWE-320 | Key Management Errors | category | Obsolete | taxonomy-only |  |
-| CWE-321 | Use of Hard-coded Cryptographic Key | weakness | Draft | gap |  |
+| CWE-321 | Use of Hard-coded Cryptographic Key | weakness | Draft | implemented | [python/jwt-default-key](../labs/python/jwt-default-key/README.md) |
 | CWE-322 | Key Exchange without Entity Authentication | weakness | Draft | gap |  |
 | CWE-323 | Reusing a Nonce, Key Pair in Encryption | weakness | Incomplete | gap |  |
 | CWE-324 | Use of a Key Past its Expiration Date | weakness | Draft | gap |  |
@@ -874,7 +874,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-860 | The CERT Oracle Secure Coding Standard for Java (2011) Chapter 17 - Runtime Environment (ENV) | category | Obsolete | taxonomy-only |  |
 | CWE-861 | The CERT Oracle Secure Coding Standard for Java (2011) Chapter 18 - Miscellaneous (MSC) | category | Obsolete | taxonomy-only |  |
 | CWE-862 | Missing Authorization | weakness | Incomplete | implemented | [rest-api/function-authorization](../labs/rest-api/function-authorization/README.md), [ai/excessive-agency](../labs/ai/excessive-agency/README.md), [python/missing-authorization](../labs/python/missing-authorization/README.md), [cgi/missing-authorization](../labs/cgi/missing-authorization/README.md), [c/missing-authorization](../labs/c/missing-authorization/README.md), [cpp/missing-authorization](../labs/cpp/missing-authorization/README.md), [node/missing-authorization](../labs/node/missing-authorization/README.md), [typescript/missing-authorization](../labs/typescript/missing-authorization/README.md), [php/missing-authorization](../labs/php/missing-authorization/README.md), [ruby/missing-authorization](../labs/ruby/missing-authorization/README.md), [go/missing-authorization](../labs/go/missing-authorization/README.md), [java/missing-authorization](../labs/java/missing-authorization/README.md), [dotnet/missing-authorization](../labs/dotnet/missing-authorization/README.md), [rust/missing-authorization](../labs/rust/missing-authorization/README.md) |
-| CWE-863 | Incorrect Authorization | weakness | Incomplete | implemented | [ai/cross-tenant-retrieval](../labs/ai/cross-tenant-retrieval/README.md), [rest-api/multi-tenant-authorization](../labs/rest-api/multi-tenant-authorization/README.md), [ai/tool-argument-scope](../labs/ai/tool-argument-scope/README.md) |
+| CWE-863 | Incorrect Authorization | weakness | Incomplete | implemented | [ai/cross-tenant-retrieval](../labs/ai/cross-tenant-retrieval/README.md), [rest-api/multi-tenant-authorization](../labs/rest-api/multi-tenant-authorization/README.md), [ai/tool-argument-scope](../labs/ai/tool-argument-scope/README.md), [python/jwt-disabled-user](../labs/python/jwt-disabled-user/README.md) |
 | CWE-864 | 2011 Top 25 - Insecure Interaction Between Components | category | Obsolete | taxonomy-only |  |
 | CWE-865 | 2011 Top 25 - Risky Resource Management | category | Obsolete | taxonomy-only |  |
 | CWE-866 | 2011 Top 25 - Porous Defenses | category | Obsolete | taxonomy-only |  |
@@ -1247,7 +1247,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-1233 | Security-Sensitive Hardware Controls with Missing Lock Bit Protection | weakness | Stable | gap |  |
 | CWE-1234 | Hardware Internal or Debug Modes Allow Override of Locks | weakness | Incomplete | gap |  |
 | CWE-1235 | Incorrect Use of Autoboxing and Unboxing for Performance Critical Operations | weakness | Incomplete | gap |  |
-| CWE-1236 | Improper Neutralization of Formula Elements in a CSV File | weakness | Incomplete | gap |  |
+| CWE-1236 | Improper Neutralization of Formula Elements in a CSV File | weakness | Incomplete | implemented | [python/csv-formula-injection](../labs/python/csv-formula-injection/README.md) |
 | CWE-1237 | SFP Primary Cluster: Faulty Resource Release | category | Incomplete | taxonomy-only |  |
 | CWE-1238 | SFP Primary Cluster: Failure to Release Memory | category | Incomplete | taxonomy-only |  |
 | CWE-1239 | Improper Zeroization of Hardware Register | weakness | Draft | gap |  |

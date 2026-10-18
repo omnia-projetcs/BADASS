@@ -1,5 +1,6 @@
 import copy
 import json
+import os
 from pathlib import Path
 from subprocess import CompletedProcess
 import sys
@@ -13,6 +14,13 @@ from runner import file_matches, matches, process, run_cases
 
 
 class RunnerContractTests(unittest.TestCase):
+    def test_jwt_fixture_key_comes_only_from_vector_environment(self):
+        command = [sys.executable, "-c", "import os; print(os.getenv('BADASS_JWT_KEY', 'ABSENT'))"]
+        with tempfile.TemporaryDirectory() as directory, patch.dict(os.environ, {"BADASS_JWT_KEY": "HOST_FIXTURE_VALUE"}):
+            self.assertEqual(process(command, directory).stdout.strip(), "ABSENT")
+            self.assertEqual(process(command, directory, env_overrides={"BADASS_JWT_KEY": "VECTOR_FIXTURE_VALUE"}).stdout.strip(),
+                             "VECTOR_FIXTURE_VALUE")
+
     def test_empty_run_is_a_failure(self):
         self.assertEqual(run_cases([]), ([], True))
 

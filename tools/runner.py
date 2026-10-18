@@ -33,6 +33,7 @@ def process(command, cwd, timeout=30, env_overrides=None):
                ASAN_OPTIONS="detect_leaks=0:abort_on_error=0")
     # Host configuration must not silently change a fixture's trusted policy.
     env.pop("BADASS_ADMIN_PASSWORD", None)
+    env.pop("BADASS_JWT_KEY", None)
     env.update(env_overrides or {})
     return subprocess.run(command, cwd=cwd, env=env, capture_output=True, text=True,
                           timeout=timeout, check=False)

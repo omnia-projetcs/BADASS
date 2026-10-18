@@ -21,6 +21,15 @@ inspired by these public reports:
 - RedTeam Pentesting, Ladon Framework for Python 0.9.40 XML External Entity
   Expansion, EDB-43113 (`python/xxe`):
   https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/xml/webapps/43113.txt
+- nu11secur1ty, ever gauzy v0.281.9 JWT weak HMAC secret, EDB-51354
+  (`python/jwt-default-key`):
+  https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/typescript/webapps/51354.txt
+- Dhrumil Mistry, djangorestframework-simplejwt inactive-user scenario,
+  EDB-51992 (`python/jwt-disabled-user`):
+  https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/python/webapps/51992.py
+- Mohammed Aloraimi, Kimai 1.14 CSV Injection, EDB-49805
+  (`python/csv-formula-injection`):
+  https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/php/webapps/49805.txt
 
 No Exploit-DB source code or affected application is vendored. These simplified
 Python models do not claim to reproduce or validate the original products or CVE.
