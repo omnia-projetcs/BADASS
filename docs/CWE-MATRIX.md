@@ -2,7 +2,7 @@
 
 Source: MITRE CWE **4.20**. All **1450** entries from the imported snapshot are included.
 
-**60 implemented weaknesses**, **909 gaps**, **481 category/view entries**.
+**63 implemented weaknesses**, **906 gaps**, **481 category/view entries**.
 
 `implemented` means source pairs and vectors exist, not that a scanner detected them or a runtime was available.
 Test results are tracked separately. `gap` is an unimplemented weakness. `taxonomy-only` is a category or view.
@@ -191,7 +191,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-177 | Improper Handling of URL Encoding (Hex Encoding) | weakness | Draft | gap |  |
 | CWE-178 | Improper Handling of Case Sensitivity | weakness | Incomplete | gap |  |
 | CWE-179 | Incorrect Behavior Order: Early Validation | weakness | Incomplete | gap |  |
-| CWE-180 | Incorrect Behavior Order: Validate Before Canonicalize | weakness | Draft | gap |  |
+| CWE-180 | Incorrect Behavior Order: Validate Before Canonicalize | weakness | Draft | implemented | [python/unicode-path-validation](../labs/python/unicode-path-validation/README.md) |
 | CWE-181 | Incorrect Behavior Order: Validate Before Filter | weakness | Draft | gap |  |
 | CWE-182 | Collapse of Data into Unsafe Value | weakness | Draft | gap |  |
 | CWE-183 | Permissive List of Allowed Inputs | weakness | Draft | gap |  |
@@ -447,7 +447,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-433 | Unparsed Raw Web Content Delivery | weakness | Incomplete | gap |  |
 | CWE-434 | Unrestricted Upload of File with Dangerous Type | weakness | Draft | implemented | [python/unrestricted-upload](../labs/python/unrestricted-upload/README.md) |
 | CWE-435 | Improper Interaction Between Multiple Correctly-Behaving Entities | weakness | Draft | gap |  |
-| CWE-436 | Interpretation Conflict | weakness | Incomplete | gap |  |
+| CWE-436 | Interpretation Conflict | weakness | Incomplete | implemented | [python/json-parser-conflict](../labs/python/json-parser-conflict/README.md) |
 | CWE-437 | Incomplete Model of Endpoint Features | weakness | Incomplete | gap |  |
 | CWE-438 | Behavioral Problems | category | Draft | taxonomy-only |  |
 | CWE-439 | Behavioral Change in New Version or Environment | weakness | Draft | gap |  |
@@ -651,7 +651,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-637 | Unnecessary Complexity in Protection Mechanism (Not Using 'Economy of Mechanism') | weakness | Draft | gap |  |
 | CWE-638 | Not Using Complete Mediation | weakness | Draft | gap |  |
 | CWE-639 | Authorization Bypass Through User-Controlled Key | weakness | Incomplete | implemented | [python/idor](../labs/python/idor/README.md), [rest-api/bola](../labs/rest-api/bola/README.md), [cgi/idor](../labs/cgi/idor/README.md), [ai/idor](../labs/ai/idor/README.md), [c/idor](../labs/c/idor/README.md), [cpp/idor](../labs/cpp/idor/README.md), [node/idor](../labs/node/idor/README.md), [typescript/idor](../labs/typescript/idor/README.md), [php/idor](../labs/php/idor/README.md), [ruby/idor](../labs/ruby/idor/README.md), [go/idor](../labs/go/idor/README.md), [java/idor](../labs/java/idor/README.md), [dotnet/idor](../labs/dotnet/idor/README.md), [rust/idor](../labs/rust/idor/README.md) |
-| CWE-640 | Weak Password Recovery Mechanism for Forgotten Password | weakness | Incomplete | gap |  |
+| CWE-640 | Weak Password Recovery Mechanism for Forgotten Password | weakness | Incomplete | implemented | [python/password-reset-replay](../labs/python/password-reset-replay/README.md) |
 | CWE-641 | Improper Restriction of Names for Files and Other Resources | weakness | Incomplete | gap |  |
 | CWE-642 | External Control of Critical State Data | weakness | Draft | gap |  |
 | CWE-643 | Improper Neutralization of Data within XPath Expressions ('XPath Injection') | weakness | Incomplete | gap |  |

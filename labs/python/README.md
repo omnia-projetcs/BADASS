@@ -52,3 +52,6 @@ Run commands from the repository root. Cases are independent and use synthetic f
 | [Argument injection](argument-injection/README.md) | CWE-88 | A05:2025 | executable |
 | [Format string disclosure](format-string-disclosure/README.md) | CWE-134 | A05:2025 | executable |
 | [File create race](file-create-race/README.md) | CWE-367 | A06:2025 | executable |
+| [Json parser conflict](json-parser-conflict/README.md) | CWE-436 | A06:2025 | executable |
+| [Unicode path validation](unicode-path-validation/README.md) | CWE-180 | A05:2025 | executable |
+| [Password reset replay](password-reset-replay/README.md) | CWE-640 | A07:2025 | executable |

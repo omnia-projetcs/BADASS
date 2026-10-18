@@ -28320,5 +28320,1315 @@
     ],
     "vulnerable": "labs/python/file-create-race/vulnerable/main.py",
     "fixed": "labs/python/file-create-race/fixed/main.py"
+  },
+  {
+    "id": "python/json-parser-conflict",
+    "language": "python",
+    "cwe": [
+      "CWE-436"
+    ],
+    "owasp": [
+      "A06:2025"
+    ],
+    "description": "A gateway validates the first occurrence of each JSON key, but its worker reparses the original text with last-key-wins semantics. A duplicate amount bypasses the per-payment cap and causes a larger committed SQLite debit.",
+    "remediation": "Reject duplicate decoded keys, including Unicode-escaped equivalents, and pass the already validated object to the worker. Validate exact schema and integer limits before committing wallet and ledger changes together. This models JSON parser disagreement, not HTTP request smuggling or a network payment service.",
+    "scope": "executable",
+    "references": [
+      {
+        "title": "MITRE CWE-436 — Interpretation Conflict",
+        "url": "https://cwe.mitre.org/data/definitions/436.html"
+      },
+      {
+        "title": "Python JSON — Repeated Names Within an Object",
+        "url": "https://docs.python.org/3/library/json.html#repeated-names-within-an-object"
+      }
+    ],
+    "tests": [
+      {
+        "name": "minimum amount",
+        "kind": "benign",
+        "input": "{\"amount\":1,\"recipient\":\"vendor\"}",
+        "vulnerable": {
+          "equals": {
+            "status": 201,
+            "amount": 1
+          },
+          "files": [
+            {
+              "path": "payments-state.json",
+              "content": "{\"balance\": 4999, \"payments\": [[1, \"vendor\"]]}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 201,
+            "amount": 1
+          },
+          "files": [
+            {
+              "path": "payments-state.json",
+              "content": "{\"balance\": 4999, \"payments\": [[1, \"vendor\"]]}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "maximum allowed amount",
+        "kind": "benign",
+        "input": "{\"amount\":100,\"recipient\":\"vendor\"}",
+        "vulnerable": {
+          "equals": {
+            "status": 201,
+            "amount": 100
+          },
+          "files": [
+            {
+              "path": "payments-state.json",
+              "content": "{\"balance\": 4900, \"payments\": [[100, \"vendor\"]]}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 201,
+            "amount": 100
+          },
+          "files": [
+            {
+              "path": "payments-state.json",
+              "content": "{\"balance\": 4900, \"payments\": [[100, \"vendor\"]]}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "field order and whitespace",
+        "kind": "benign",
+        "input": " { \"recipient\": \"vendor\", \"amount\": 39 } ",
+        "vulnerable": {
+          "equals": {
+            "status": 201,
+            "amount": 39
+          },
+          "files": [
+            {
+              "path": "payments-state.json",
+              "content": "{\"balance\": 4961, \"payments\": [[39, \"vendor\"]]}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 201,
+            "amount": 39
+          },
+          "files": [
+            {
+              "path": "payments-state.json",
+              "content": "{\"balance\": 4961, \"payments\": [[39, \"vendor\"]]}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "last duplicate changes debit",
+        "kind": "attack",
+        "input": "{\"amount\":1,\"amount\":1000,\"recipient\":\"vendor\"}",
+        "vulnerable": {
+          "equals": {
+            "status": 201,
+            "amount": 1000
+          },
+          "files": [
+            {
+              "path": "payments-state.json",
+              "content": "{\"balance\": 4000, \"payments\": [[1000, \"vendor\"]]}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "payments-state.json",
+              "content": "{\"balance\": 5000, \"payments\": []}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "escaped duplicate key",
+        "kind": "attack",
+        "input": "{\"amount\":7,\"\\u0061mount\":713,\"recipient\":\"vendor\"}",
+        "vulnerable": {
+          "equals": {
+            "status": 201,
+            "amount": 713
+          },
+          "files": [
+            {
+              "path": "payments-state.json",
+              "content": "{\"balance\": 4287, \"payments\": [[713, \"vendor\"]]}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "payments-state.json",
+              "content": "{\"balance\": 5000, \"payments\": []}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "three conflicting values",
+        "kind": "attack",
+        "input": "{\"amount\":10,\"amount\":20,\"amount\":900,\"recipient\":\"vendor\"}",
+        "vulnerable": {
+          "equals": {
+            "status": 201,
+            "amount": 900
+          },
+          "files": [
+            {
+              "path": "payments-state.json",
+              "content": "{\"balance\": 4100, \"payments\": [[900, \"vendor\"]]}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "payments-state.json",
+              "content": "{\"balance\": 5000, \"payments\": []}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "identical duplicates still ambiguous",
+        "kind": "functional",
+        "input": "{\"amount\":10,\"amount\":10,\"recipient\":\"vendor\"}",
+        "vulnerable": {
+          "equals": {
+            "status": 201,
+            "amount": 10
+          },
+          "files": [
+            {
+              "path": "payments-state.json",
+              "content": "{\"balance\": 4990, \"payments\": [[10, \"vendor\"]]}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "payments-state.json",
+              "content": "{\"balance\": 5000, \"payments\": []}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "unambiguous excessive amount",
+        "kind": "robustness",
+        "input": "{\"amount\":101,\"recipient\":\"vendor\"}",
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "payments-state.json",
+              "content": "{\"balance\": 5000, \"payments\": []}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "payments-state.json",
+              "content": "{\"balance\": 5000, \"payments\": []}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "boolean amount",
+        "kind": "robustness",
+        "input": "{\"amount\":true,\"recipient\":\"vendor\"}",
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "payments-state.json",
+              "content": "{\"balance\": 5000, \"payments\": []}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "payments-state.json",
+              "content": "{\"balance\": 5000, \"payments\": []}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "fractional amount",
+        "kind": "robustness",
+        "input": "{\"amount\":1.5,\"recipient\":\"vendor\"}",
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "payments-state.json",
+              "content": "{\"balance\": 5000, \"payments\": []}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "payments-state.json",
+              "content": "{\"balance\": 5000, \"payments\": []}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "negative amount",
+        "kind": "robustness",
+        "input": "{\"amount\":-1,\"recipient\":\"vendor\"}",
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "payments-state.json",
+              "content": "{\"balance\": 5000, \"payments\": []}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "payments-state.json",
+              "content": "{\"balance\": 5000, \"payments\": []}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "nonfinite amount",
+        "kind": "robustness",
+        "input": "{\"amount\":NaN,\"recipient\":\"vendor\"}",
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "payments-state.json",
+              "content": "{\"balance\": 5000, \"payments\": []}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "payments-state.json",
+              "content": "{\"balance\": 5000, \"payments\": []}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "invalid recipient",
+        "kind": "robustness",
+        "input": "{\"amount\":1,\"recipient\":\"other\"}",
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "payments-state.json",
+              "content": "{\"balance\": 5000, \"payments\": []}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "payments-state.json",
+              "content": "{\"balance\": 5000, \"payments\": []}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "malformed JSON",
+        "kind": "robustness",
+        "input": "{",
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "payments-state.json",
+              "content": "{\"balance\": 5000, \"payments\": []}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "payments-state.json",
+              "content": "{\"balance\": 5000, \"payments\": []}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "array root",
+        "kind": "robustness",
+        "input": "[]",
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "payments-state.json",
+              "content": "{\"balance\": 5000, \"payments\": []}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "payments-state.json",
+              "content": "{\"balance\": 5000, \"payments\": []}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "non-string input",
+        "kind": "robustness",
+        "input": {},
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "payments-state.json",
+              "content": "{\"balance\": 5000, \"payments\": []}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "payments-state.json",
+              "content": "{\"balance\": 5000, \"payments\": []}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "oversized input",
+        "kind": "robustness",
+        "input": "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 ",
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "payments-state.json",
+              "content": "{\"balance\": 5000, \"payments\": []}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "payments-state.json",
+              "content": "{\"balance\": 5000, \"payments\": []}\n"
+            }
+          ]
+        }
+      }
+    ],
+    "vulnerable": "labs/python/json-parser-conflict/vulnerable/main.py",
+    "fixed": "labs/python/json-parser-conflict/fixed/main.py",
+    "database": "sqlite"
+  },
+  {
+    "id": "python/unicode-path-validation",
+    "language": "python",
+    "cwe": [
+      "CWE-180"
+    ],
+    "owasp": [
+      "A05:2025"
+    ],
+    "description": "A public-file reader validates the raw filename before applying Unicode NFKC normalization. Compatibility characters become traversal syntax after the check, so the actual file read escapes the public directory.",
+    "remediation": "Normalize once before validation, enforce a single-component filename policy, resolve the destination and verify containment, then read exactly that checked path. Preserve ordinary and compatible public names. Parent directories are fixture-owned and stable; concurrent filesystem mutation is outside this case.",
+    "scope": "executable",
+    "references": [
+      {
+        "title": "MITRE CWE-180 — Validate Before Canonicalize",
+        "url": "https://cwe.mitre.org/data/definitions/180.html"
+      },
+      {
+        "title": "Python Unicode normalization",
+        "url": "https://docs.python.org/3/library/unicodedata.html#unicodedata.normalize"
+      }
+    ],
+    "tests": [
+      {
+        "name": "ordinary public file",
+        "kind": "benign",
+        "input": "welcome.txt",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "text": "WELCOME"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "text": "WELCOME"
+          }
+        }
+      },
+      {
+        "name": "compatible fullwidth filename",
+        "kind": "benign",
+        "input": "ｗｅｌｃｏｍｅ．ｔｘｔ",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "text": "WELCOME"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "text": "WELCOME"
+          }
+        }
+      },
+      {
+        "name": "missing file",
+        "kind": "benign",
+        "input": "missing.txt",
+        "vulnerable": {
+          "equals": {
+            "status": 404
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 404
+          }
+        }
+      },
+      {
+        "name": "ordinary Unicode filename",
+        "kind": "benign",
+        "input": "café.txt",
+        "vulnerable": {
+          "equals": {
+            "status": 404
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 404
+          }
+        }
+      },
+      {
+        "name": "fullwidth traversal",
+        "kind": "attack",
+        "input": "．．／secret.txt",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "text": "LAB_SECRET"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          }
+        }
+      },
+      {
+        "name": "small full stops",
+        "kind": "attack",
+        "input": "﹒﹒／secret.txt",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "text": "LAB_SECRET"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          }
+        }
+      },
+      {
+        "name": "alternate private target",
+        "kind": "attack",
+        "input": "．．／private.txt",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "text": "LAB_SECRET"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          }
+        }
+      },
+      {
+        "name": "literal traversal",
+        "kind": "robustness",
+        "input": "../secret.txt",
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          }
+        }
+      },
+      {
+        "name": "empty name",
+        "kind": "robustness",
+        "input": "",
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          }
+        }
+      },
+      {
+        "name": "non-string name",
+        "kind": "robustness",
+        "input": [],
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          }
+        }
+      },
+      {
+        "name": "NUL byte",
+        "kind": "robustness",
+        "input": "welcome\u0000.txt",
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          }
+        }
+      },
+      {
+        "name": "current directory",
+        "kind": "robustness",
+        "input": ".",
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          }
+        }
+      },
+      {
+        "name": "backslash path",
+        "kind": "robustness",
+        "input": "..\\secret.txt",
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          }
+        }
+      },
+      {
+        "name": "oversized name",
+        "kind": "robustness",
+        "input": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          }
+        }
+      }
+    ],
+    "vulnerable": "labs/python/unicode-path-validation/vulnerable/main.py",
+    "fixed": "labs/python/unicode-path-validation/fixed/main.py"
+  },
+  {
+    "id": "python/password-reset-replay",
+    "language": "python",
+    "cwe": [
+      "CWE-640"
+    ],
+    "owasp": [
+      "A07:2025"
+    ],
+    "description": "An unpredictable expiring password-reset token remains usable after a successful password change. Replaying it replaces the account password again. The fixture stores token hashes and salted PBKDF2 password hashes in SQLite and observes actual password verification.",
+    "remediation": "Consume the token in the same database transaction as the password update, under a write lock, and reject unknown, expired or consumed tokens. Roll back both changes if the account write fails. Synthetic times and token selectors belong to the test harness; token delivery, session revocation and production password policy are outside scope.",
+    "scope": "executable",
+    "references": [
+      {
+        "title": "MITRE CWE-640 — Weak Password Recovery Mechanism",
+        "url": "https://cwe.mitre.org/data/definitions/640.html"
+      },
+      {
+        "title": "OWASP Forgot Password Cheat Sheet",
+        "url": "https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html"
+      }
+    ],
+    "tests": [
+      {
+        "name": "first use",
+        "kind": "benign",
+        "input": {
+          "attempts": [
+            {
+              "token": "issued",
+              "password": "Owner-new-password",
+              "at": 1000
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "statuses": [
+              200
+            ],
+            "password_matches": [
+              true
+            ],
+            "initial_password_works": false
+          }
+        },
+        "fixed": {
+          "equals": {
+            "statuses": [
+              200
+            ],
+            "password_matches": [
+              true
+            ],
+            "initial_password_works": false
+          }
+        }
+      },
+      {
+        "name": "last valid instant",
+        "kind": "benign",
+        "input": {
+          "attempts": [
+            {
+              "token": "issued",
+              "password": "Owner-new-password",
+              "at": 1099
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "statuses": [
+              200
+            ],
+            "password_matches": [
+              true
+            ],
+            "initial_password_works": false
+          }
+        },
+        "fixed": {
+          "equals": {
+            "statuses": [
+              200
+            ],
+            "password_matches": [
+              true
+            ],
+            "initial_password_works": false
+          }
+        }
+      },
+      {
+        "name": "replay changes password",
+        "kind": "attack",
+        "input": {
+          "attempts": [
+            {
+              "token": "issued",
+              "password": "Owner-new-password",
+              "at": 1000
+            },
+            {
+              "token": "issued",
+              "password": "Replay-password",
+              "at": 1001
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "statuses": [
+              200,
+              200
+            ],
+            "password_matches": [
+              false,
+              true
+            ],
+            "initial_password_works": false
+          }
+        },
+        "fixed": {
+          "equals": {
+            "statuses": [
+              200,
+              403
+            ],
+            "password_matches": [
+              true,
+              false
+            ],
+            "initial_password_works": false
+          }
+        }
+      },
+      {
+        "name": "identical password still consumes token",
+        "kind": "attack",
+        "input": {
+          "attempts": [
+            {
+              "token": "issued",
+              "password": "Owner-new-password",
+              "at": 1000
+            },
+            {
+              "token": "issued",
+              "password": "Owner-new-password",
+              "at": 1001
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "statuses": [
+              200,
+              200
+            ],
+            "password_matches": [
+              true,
+              true
+            ],
+            "initial_password_works": false
+          }
+        },
+        "fixed": {
+          "equals": {
+            "statuses": [
+              200,
+              403
+            ],
+            "password_matches": [
+              true,
+              true
+            ],
+            "initial_password_works": false
+          }
+        }
+      },
+      {
+        "name": "multiple replays",
+        "kind": "attack",
+        "input": {
+          "attempts": [
+            {
+              "token": "issued",
+              "password": "Owner-new-password",
+              "at": 1000
+            },
+            {
+              "token": "issued",
+              "password": "Second-password",
+              "at": 1001
+            },
+            {
+              "token": "issued",
+              "password": "Third-password",
+              "at": 1002
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "statuses": [
+              200,
+              200,
+              200
+            ],
+            "password_matches": [
+              false,
+              false,
+              true
+            ],
+            "initial_password_works": false
+          }
+        },
+        "fixed": {
+          "equals": {
+            "statuses": [
+              200,
+              403,
+              403
+            ],
+            "password_matches": [
+              true,
+              false,
+              false
+            ],
+            "initial_password_works": false
+          }
+        }
+      },
+      {
+        "name": "unknown token then valid token",
+        "kind": "benign",
+        "input": {
+          "attempts": [
+            {
+              "token": "unknown",
+              "password": "Wrong-token-password",
+              "at": 1000
+            },
+            {
+              "token": "issued",
+              "password": "Owner-new-password",
+              "at": 1001
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "statuses": [
+              403,
+              200
+            ],
+            "password_matches": [
+              false,
+              true
+            ],
+            "initial_password_works": false
+          }
+        },
+        "fixed": {
+          "equals": {
+            "statuses": [
+              403,
+              200
+            ],
+            "password_matches": [
+              false,
+              true
+            ],
+            "initial_password_works": false
+          }
+        }
+      },
+      {
+        "name": "expired token",
+        "kind": "benign",
+        "input": {
+          "attempts": [
+            {
+              "token": "issued",
+              "password": "Owner-new-password",
+              "at": 1101
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "statuses": [
+              403
+            ],
+            "password_matches": [
+              false
+            ],
+            "initial_password_works": true
+          }
+        },
+        "fixed": {
+          "equals": {
+            "statuses": [
+              403
+            ],
+            "password_matches": [
+              false
+            ],
+            "initial_password_works": true
+          }
+        }
+      },
+      {
+        "name": "expiry boundary",
+        "kind": "benign",
+        "input": {
+          "attempts": [
+            {
+              "token": "issued",
+              "password": "Owner-new-password",
+              "at": 1100
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "statuses": [
+              403
+            ],
+            "password_matches": [
+              false
+            ],
+            "initial_password_works": true
+          }
+        },
+        "fixed": {
+          "equals": {
+            "statuses": [
+              403
+            ],
+            "password_matches": [
+              false
+            ],
+            "initial_password_works": true
+          }
+        }
+      },
+      {
+        "name": "unknown token",
+        "kind": "benign",
+        "input": {
+          "attempts": [
+            {
+              "token": "unknown",
+              "password": "Owner-new-password",
+              "at": 1000
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "statuses": [
+              403
+            ],
+            "password_matches": [
+              false
+            ],
+            "initial_password_works": true
+          }
+        },
+        "fixed": {
+          "equals": {
+            "statuses": [
+              403
+            ],
+            "password_matches": [
+              false
+            ],
+            "initial_password_works": true
+          }
+        }
+      },
+      {
+        "name": "empty attempt list",
+        "kind": "robustness",
+        "input": {
+          "attempts": []
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "recovery.sqlite",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "recovery.sqlite",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "malformed request",
+        "kind": "robustness",
+        "input": [],
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "recovery.sqlite",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "recovery.sqlite",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "short password",
+        "kind": "robustness",
+        "input": {
+          "attempts": [
+            {
+              "token": "issued",
+              "password": "short",
+              "at": 1000
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "recovery.sqlite",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "recovery.sqlite",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "boolean clock",
+        "kind": "robustness",
+        "input": {
+          "attempts": [
+            {
+              "token": "issued",
+              "password": "Owner-new-password",
+              "at": true
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "recovery.sqlite",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "recovery.sqlite",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "too many attempts",
+        "kind": "robustness",
+        "input": {
+          "attempts": [
+            {
+              "token": "issued",
+              "password": "Owner-new-password",
+              "at": 1000
+            },
+            {
+              "token": "issued",
+              "password": "Owner-new-password",
+              "at": 1000
+            },
+            {
+              "token": "issued",
+              "password": "Owner-new-password",
+              "at": 1000
+            },
+            {
+              "token": "issued",
+              "password": "Owner-new-password",
+              "at": 1000
+            },
+            {
+              "token": "issued",
+              "password": "Owner-new-password",
+              "at": 1000
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "recovery.sqlite",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "recovery.sqlite",
+              "type": "absent"
+            }
+          ]
+        }
+      }
+    ],
+    "vulnerable": "labs/python/password-reset-replay/vulnerable/main.py",
+    "fixed": "labs/python/password-reset-replay/fixed/main.py",
+    "database": "sqlite"
   }
 ]
