@@ -42,7 +42,20 @@ def render():
     plan = read_plan()
     core = next(g for g in plan['groups'] if g['id'] == 'common-core')
     core_ids = set(core['cwe'])
+    badges = [
+        '[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)',
+        '[![Python 3.11+](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)',
+        '[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg?logo=docker&logoColor=white)](Dockerfile)',
+        f'[![Benchmark Cases](https://img.shields.io/badge/Cases-{len(cases)}%20pairs-brightgreen.svg)](catalog/cases.json)',
+        f'[![Technologies](https://img.shields.io/badge/Technologies-{len(LABELS)}%20stacks-informational.svg)](docs/TECHNOLOGY-MATRIX.md)',
+        f'[![CWE Weaknesses](https://img.shields.io/badge/CWE-{covered}%20weaknesses-orange.svg)](docs/CWE-MATRIX.md)',
+        '[![OWASP Coverage](https://img.shields.io/badge/OWASP-30%20categories-red.svg)](docs/OWASP-MATRIX.md)',
+        '[![Benchmark Methodology](https://img.shields.io/badge/Benchmark-Methodology-blueviolet.svg)](docs/BENCHMARK.md)',
+    ]
+    topics_line = '> **GitHub Topics & Tags:** `security-benchmark` · `vulnerability-detection` · `sast` · `dast` · `cwe` · `owasp` · `appsec` · `security-scanner` · `code-auditing` · `static-analysis` · `security-testing` · `docker`'
     lines = ['# BADASS', '', '**Broken Application Designed for Auditing Security Scanners**', '',
+             *badges, '',
+             topics_line, '',
              'An executable security benchmark for validating vulnerability detection and remediation across languages,',
              'REST APIs, CGI handlers and AI-assisted audit workflows. Each case includes deliberately vulnerable',
              'code, a corrected counterpart, benign inputs, attack inputs and machine-readable expectations.',
