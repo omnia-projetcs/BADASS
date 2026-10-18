@@ -20,7 +20,9 @@ NAMES = {'xss': 'Cross-site scripting (XSS)', 'sql-injection': 'SQL injection', 
          'header-injection': 'HTTP response header injection', 'missing-audit': 'Missing security audit events',
          'business-logic': 'Invalid purchase quantity', 'sql-order-by': 'SQL injection in an ORDER BY identifier',
          'sql-second-order': 'Second-order SQL injection', 'xss-attribute': 'XSS in an HTML attribute',
-         'ssrf-redirect': 'SSRF through an HTTP redirect', 'order-concurrency': 'Concurrent duplicate shipment'}
+         'ssrf-redirect': 'SSRF through an HTTP redirect', 'order-concurrency': 'Concurrent duplicate shipment',
+         'partial-signature': 'Partial HMAC comparison', 'client-price': 'Client-controlled price',
+         'regex-origin': 'Permissive origin regex', 'signed-action-replay': 'Signed action replay'}
 
 
 def title(case):
@@ -42,6 +44,7 @@ def render():
     plan = read_plan()
     core = next(g for g in plan['groups'] if g['id'] == 'common-core')
     core_ids = set(core['cwe'])
+    vector_count = sum(len(case['tests']) for case in cases)
     badges = [
         '[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)',
         '[![Python 3.11+](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)',
@@ -63,6 +66,16 @@ def render():
              f'**{len(cases)} case pairs · {len(LABELS)} technology sections · {covered} distinct CWE weaknesses · 30 OWASP categories represented**', '',
              'This is a local laboratory containing intentional vulnerabilities. Use synthetic data and the isolated',
              'container workflow. No service is exposed publicly, and no real credentials or external model calls are required.', '',
+             '## Catalog statistics', '',
+             '| Metric | Count |', '|---|---:|',
+             f'| Case pairs | {len(cases)} |',
+             f'| Vulnerable and corrected variants | {2 * len(cases)} |',
+             f'| Distinct CWE weaknesses | {covered} |',
+             f'| Technology sections | {len(LABELS)} |',
+             f'| Regression vectors | {vector_count} |',
+             f'| Declared variant/vector checks | {2 * vector_count} |', '',
+             'Each vector has expectations for both variants. These are catalog counts, not passed-test totals;',
+             'execution evidence is recorded separately in regression reports.', '',
              '## Quick start', '', '```sh', '# Validate metadata and run the Python section with the installed runtime.',
              'python3 tools/lab.py validate', 'python3 tools/lab.py test --language python --strict', '',
              '# Run the mandatory nonempty smoke gate.', 'make smoke', '',
@@ -104,9 +117,9 @@ def render():
              'These are teaching models, not reproductions of the affected products. Source references',
              'and scope limits appear in each case README.', '',
              '## General security boundaries', '',
-             'These Python examples include vulnerable and corrected implementations, executable vectors',
+             'These Python and Node.js examples include vulnerable and corrected implementations, executable vectors',
              'and tests that inspect actual process results, file contents or committed database state.',
-             'They use the standard library and synthetic local data.', '',
+             'They use standard libraries and synthetic local data.', '',
              '| Case | CWE | Observable effect |',
              '|---|---|---|',
              '| [Argument injection](labs/python/argument-injection/README.md) | CWE-88 | User data becomes a child-process option. |',
@@ -117,14 +130,18 @@ def render():
              '| [Password-reset replay](labs/python/password-reset-replay/README.md) | CWE-640 | A used token changes the password again. |',
              '| [Webhook signature](labs/python/webhook-signature/README.md) | CWE-347 | An unauthenticated event marks an invoice as paid. |',
              '| [Decompression amplification](labs/python/decompression-amplification/README.md) | CWE-409 | Small compressed input exceeds the expanded-data budget. |',
-             '| [Session expiration](labs/python/session-expiration/README.md) | CWE-613 | Expired or revoked sessions still retrieve private data. |', '',
-             'Run the latest three cases and their behavioral tests:', '',
+             '| [Session expiration](labs/python/session-expiration/README.md) | CWE-613 | Expired or revoked sessions still retrieve private data. |',
+             '| Partial HMAC comparison ([Python](labs/python/partial-signature/README.md), [Node.js](labs/node/partial-signature/README.md)) | CWE-187 | Empty or truncated tags authenticate a message. |',
+             '| Client-controlled price ([Python](labs/python/client-price/README.md), [Node.js](labs/node/client-price/README.md)) | CWE-602 | A modified client price creates an underpriced receipt. |',
+             '| Permissive origin regex ([Python](labs/python/regex-origin/README.md), [Node.js](labs/node/regex-origin/README.md)) | CWE-625 | Unescaped dots admit unrelated origins to credentialed responses. |',
+             '| Signed action replay ([Python](labs/python/signed-action-replay/README.md), [Node.js](labs/node/signed-action-replay/README.md)) | CWE-294 | A captured signed action applies the same debit repeatedly. |', '',
+             'Run the two newest families in both languages and their behavioral tests:', '',
              '```sh',
-             'python3 tools/lab.py test --case python/webhook-signature --strict',
-             'python3 tools/lab.py test --case python/decompression-amplification --strict',
-             'python3 tools/lab.py test --case python/session-expiration --strict',
-             'python3 -m unittest discover -s tests -p test_delivery_session_boundaries.py -v',
+             'python3 tools/lab.py test --cwe CWE-625 --strict',
+             'python3 tools/lab.py test --cwe CWE-294 --strict',
+             'python3 -m unittest discover -s tests -p test_origin_replay_boundaries.py -v',
              '```', '',
+             'These commands require Python 3.11+ and Node.js; the new Node.js cases need no npm packages.', '',
              'See [general boundary cases, evidence and scope limits](docs/GENERAL-BOUNDARIES.md).', '',
              '## Tenant isolation', '',
              'Seven REST API handler cases exercise cross-tenant cache leaks, tenant-scoped roles,',
@@ -137,12 +154,16 @@ def render():
              'C and C++ also have explicit native memory, format-string and integer-arithmetic targets.',
              'Counts below come from exact CWE mappings. They describe source pairs and regression vectors;',
              'execution results remain in the regression reports.', '',
-             '| Technology | Case pairs | Distinct CWE | Shared baseline | Planned targets |',
-             '|---|---:|---:|---:|---:|']
+             'Both technology tables are generated from [the case catalog](catalog/cases.json).',
+             'Regenerate them with `python3 tools/render_docs.py` and check freshness with `--check`.', '',
+             '| Technology | Case pairs | Distinct CWE | Vectors | Declared checks | Shared baseline | Planned targets |',
+             '|---|---:|---:|---:|---:|---:|---:|']
     for language in ORDER:
         s = matrix['summary'][language]
         implemented = {w for c in cases if c['language'] == language for w in c['cwe']}
+        vectors = sum(len(c['tests']) for c in cases if c['language'] == language)
         lines.append(f"| [{LABELS[language]}](labs/{language}/README.md) | {s['cases']} | {s['implemented']} | "
+                     f"{vectors} | {2 * vectors} | "
                      f"{len(core_ids & implemented)}/{len(core_ids)} | {s['targets_implemented']}/{s['targets']} |")
     lines += ['', 'See the [baseline and native targets](docs/CORE-MATRIX.md) and the',
               '[complete CWE × technology matrix](docs/TECHNOLOGY-MATRIX.md).',
@@ -201,12 +222,19 @@ def render():
               'python3 tools/ai_evaluate.py observations.json --output reports/ai-evaluation.json', '```', '',
               'No real-model resilience result is claimed. Missing observations remain untested. Application boundary',
               'tests do not prove that an LLM resists prompt injection or jailbreaks.', '',
+              '## Training corpus', '',
+              'The [JSONL training corpus](enrichissement/vulnerabilities.jsonl) includes English detection and repair examples',
+              'for every catalog case, complete repository source documents and unannotated project pairs.',
+              'The [deduplicated training file](enrichissement/vulnerabilities.training.jsonl) contains only `messages` records.',
+              'In the complete corpus, select `record_type: training_example` and `trainable: true` to exclude exact duplicates.',
+              'Training labels come from fixture contracts; inclusion does not certify runtime execution.', '',
               '## Repository layout', '', '```text',
               'catalog/       Case contracts, CWE snapshot, OWASP references and AI attack manifest',
               'labs/          One section per technology; vulnerable/ and fixed/ source pairs',
               'tools/         Regression runner, scorer, CWE importer and documentation renderer',
               'tests/         Regression tests for the benchmark tooling itself',
               'docs/          Complete CWE matrix, OWASP mappings and evaluation protocols',
+              'enrichissement/ English training dataset (JSONL)',
               'reports/       Generated execution and scoring reports (ignored by Git)', '```', '',
               '## Add a case or update the catalog', '',
               '1. Add a focused source pair under `labs/<technology>/<case>/{vulnerable,fixed}/`.',

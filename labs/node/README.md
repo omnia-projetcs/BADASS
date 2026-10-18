@@ -33,3 +33,7 @@ See [dependency setup and SCA evaluation](../../docs/DEPENDENCIES.md).
 | [Symlink following](symlink-following/README.md) | CWE-59 | A01:2025 | executable |
 | [Vulnerable dependency](vulnerable-dependency/README.md) | CWE-1395 | A03:2025 | executable |
 | [Vulnerable transitive dependency](vulnerable-transitive-dependency/README.md) | CWE-1395 | A03:2025 | executable |
+| [Partial HMAC comparison](partial-signature/README.md) | CWE-187 | A07:2025 | executable |
+| [Client-controlled price](client-price/README.md) | CWE-602 | A06:2025 | executable |
+| [Permissive origin regex](regex-origin/README.md) | CWE-625 | A01:2025 | executable |
+| [Signed action replay](signed-action-replay/README.md) | CWE-294 | A07:2025 | executable |

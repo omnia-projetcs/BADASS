@@ -58,3 +58,7 @@ Run commands from the repository root. Cases are independent and use synthetic f
 | [Webhook signature](webhook-signature/README.md) | CWE-347 | A04:2025 | executable |
 | [Decompression amplification](decompression-amplification/README.md) | CWE-409 | A06:2025 | executable |
 | [Session expiration](session-expiration/README.md) | CWE-613 | A07:2025 | executable |
+| [Partial HMAC comparison](partial-signature/README.md) | CWE-187 | A07:2025 | executable |
+| [Client-controlled price](client-price/README.md) | CWE-602 | A06:2025 | executable |
+| [Permissive origin regex](regex-origin/README.md) | CWE-625 | A01:2025 | executable |
+| [Signed action replay](signed-action-replay/README.md) | CWE-294 | A07:2025 | executable |

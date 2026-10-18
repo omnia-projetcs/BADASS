@@ -1,11 +1,12 @@
 # General execution and data boundaries
 
-These nine Python cases cover command-option parsing, format-string disclosure,
+These seventeen source pairs (thirteen in Python and four in Node.js) cover command-option parsing, format-string disclosure,
 filesystem races, JSON parser disagreement, Unicode normalization and password
-recovery replay, webhook signatures, decompression amplification and session expiry.
+recovery replay, webhook signatures, decompression amplification, session expiry,
+partial HMAC comparison, client-controlled prices, permissive origin regexes and signed action replay.
 Each has an executable
 vulnerable counterpart, a correction and catalog vectors. They require only the
-Python standard library on the project's Linux environment.
+standard libraries of their respective runtimes on the project's Linux environment.
 
 | Case | Observed defect | Correction |
 |---|---|---|
@@ -18,6 +19,10 @@ Python standard library on the project's Linux environment.
 | [Webhook signature](../labs/python/webhook-signature/README.md) — CWE-347 | The HMAC comparison result is ignored, allowing an unauthenticated invoice update. | Require a matching signature over the raw body before parsing and writing. |
 | [Decompression amplification](../labs/python/decompression-amplification/README.md) — CWE-409 | Bounded compressed input expands beyond the output budget. | Bound the decoder output and publish only complete, accepted data. |
 | [Session expiration](../labs/python/session-expiration/README.md) — CWE-613 | Stored expiry and revocation flags are ignored when reading private data. | Enforce both checks for every authenticated operation. |
+| Partial HMAC comparison ([Python](../labs/python/partial-signature/README.md), [Node.js](../labs/node/partial-signature/README.md)) — CWE-187 | The caller chooses the length of the expected tag to compare. | Require and compare the entire protocol-sized tag. |
+| Client-controlled price ([Python](../labs/python/client-price/README.md), [Node.js](../labs/node/client-price/README.md)) — CWE-602 | Checkout trusts a price supplied by the client. | Recompute the charge from the server catalog. |
+| Permissive origin regex ([Python](../labs/python/regex-origin/README.md), [Node.js](../labs/node/regex-origin/README.md)) — CWE-625 | Regex wildcards replace literal DNS separators and admit unrelated origins. | Match literal separators and the complete approved-origin grammar. |
+| Signed action replay ([Python](../labs/python/signed-action-replay/README.md), [Node.js](../labs/node/signed-action-replay/README.md)) — CWE-294 | A valid captured action causes multiple debits. | Reject consumed signed identifiers before another debit. |
 
 ## Run
 
@@ -33,9 +38,15 @@ python3 tools/lab.py test --case python/password-reset-replay --strict
 python3 tools/lab.py test --case python/webhook-signature --strict
 python3 tools/lab.py test --case python/decompression-amplification --strict
 python3 tools/lab.py test --case python/session-expiration --strict
+python3 tools/lab.py test --cwe CWE-187 --strict
+python3 tools/lab.py test --cwe CWE-602 --strict
+python3 tools/lab.py test --cwe CWE-625 --strict
+python3 tools/lab.py test --cwe CWE-294 --strict
 python3 -m unittest discover -s tests -p test_general_boundaries.py -v
 python3 -m unittest discover -s tests -p test_parser_recovery_boundaries.py -v
 python3 -m unittest discover -s tests -p test_delivery_session_boundaries.py -v
+python3 -m unittest discover -s tests -p test_cross_language_boundaries.py -v
+python3 -m unittest discover -s tests -p test_origin_replay_boundaries.py -v
 ```
 
 ## Evidence and limits
@@ -102,6 +113,39 @@ at the exact expiry boundary before querying that report. Clock values belong
 to the harness, not the caller of a real service. Concurrent in-flight requests,
 cookie transport, idle timeouts and session renewal are outside scope.
 
+The partial-comparison cases use real HMAC-SHA256 in Python and Node.js. Both
+vulnerable versions call a constant-time comparison but truncate the expected
+value to the supplied tag length. An empty tag therefore permits arbitrary
+message publication. Tests also enumerate the 256 one-byte tags locally and
+observe one accepted prefix before repair and none after repair. Valid full
+tags preserve empty and Unicode messages. The fixed verifier rejects malformed,
+extended and newline-suffixed tags without throwing. Harness signature selectors
+are local controls; no signing service or external endpoint is present.
+
+The pricing cases write an order receipt with the computed amount and remaining
+synthetic balance. Both runtimes share catalog vectors and file expectations.
+Tests modify the trusted product catalog to verify that the fixed charge follows
+server state, preserve legitimate purchases and reject invalid or unaffordable
+orders without publishing a receipt. The client price remains informational in
+the corrected implementation. No payment provider, browser UI or persistent
+multi-order wallet is implemented.
+
+The origin cases use actual regex engines to evaluate the narrow policy
+`https://<alphabetic-label>.example.test`. In the vulnerable pattern, unescaped
+dots accept unrelated hostnames. Tests inspect the reflected origin, credentials
+header and private body, plus the actual JSON response artifact. Fixed variants
+preserve approved origins while rejecting controls, suffixes and userinfo tricks.
+This demonstrates handler output; no browser, preflight or network server runs.
+
+The replay cases authenticate the complete raw message with HMAC-SHA256 and check
+its signed expiry in both variants. Tests resend the identical captured bytes
+and signature, inspect the resulting balance and accepted-action log, and read
+the ledger snapshot from disk. Fixed variants reject already consumed signed
+identifiers; authentication, validation and funding failures do not consume an ID.
+Replay state is scoped to one sequential processor instance. Restart, concurrency
+and multi-worker guarantees require durable storage and an atomic unique-ID/debit
+transaction, which this local handler model does not implement.
+
 The argument pattern is inspired by
 [EDB-44993](https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/php/remote/44993.rb).
 The symlink-write pattern is inspired by
@@ -120,3 +164,10 @@ The additional delivery and session examples reference
 [zlib output limits](https://docs.python.org/3/library/zlib.html#decompression-objects)
 and [CWE-613](https://cwe.mitre.org/data/definitions/613.html).
 They are also original general fixtures without a specific Exploit-DB attribution.
+
+The cross-language pairs are original examples of
+[CWE-187](https://cwe.mitre.org/data/definitions/187.html) and
+[CWE-602](https://cwe.mitre.org/data/definitions/602.html).
+The origin and replay additions similarly reference
+[CWE-625](https://cwe.mitre.org/data/definitions/625.html) and
+[CWE-294](https://cwe.mitre.org/data/definitions/294.html).

@@ -31260,5 +31260,3928 @@
     "vulnerable": "labs/python/session-expiration/vulnerable/main.py",
     "fixed": "labs/python/session-expiration/fixed/main.py",
     "database": "sqlite"
+  },
+  {
+    "id": "python/partial-signature",
+    "language": "python",
+    "cwe": [
+      "CWE-187"
+    ],
+    "owasp": [
+      "A07:2025"
+    ],
+    "scope": "executable",
+    "description": "An HMAC verifier compares only the prefix whose length is chosen by the supplied tag. Empty and truncated tags can authenticate a message, which is then written to a real file. The fixture computes real HMAC-SHA256 values with a fresh synthetic key.",
+    "remediation": "Require exactly 64 lowercase hexadecimal characters and compare the complete tag with the complete expected HMAC. Constant-time comparison alone does not fix truncation. The signature selectors belong to a local test harness, not a signing API. Delivery replay and transport authentication are outside scope.",
+    "references": [
+      {
+        "title": "MITRE CWE-187 — Partial String Comparison",
+        "url": "https://cwe.mitre.org/data/definitions/187.html"
+      },
+      {
+        "title": "Python HMAC comparison",
+        "url": "https://docs.python.org/3/library/hmac.html#hmac.compare_digest"
+      }
+    ],
+    "tests": [
+      {
+        "name": "ordinary signed message",
+        "kind": "benign",
+        "input": {
+          "body": "PUBLIC_REPORT",
+          "signature": "valid"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 201,
+            "bytes": 13
+          },
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "content": "PUBLIC_REPORT"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 201,
+            "bytes": 13
+          },
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "content": "PUBLIC_REPORT"
+            }
+          ]
+        }
+      },
+      {
+        "name": "signed Unicode message",
+        "kind": "benign",
+        "input": {
+          "body": "Résumé\n",
+          "signature": "valid"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 201,
+            "bytes": 9
+          },
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "content": "Résumé\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 201,
+            "bytes": 9
+          },
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "content": "Résumé\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "signed empty message",
+        "kind": "benign",
+        "input": {
+          "body": "",
+          "signature": "valid"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 201,
+            "bytes": 0
+          },
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "content": ""
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 201,
+            "bytes": 0
+          },
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "content": ""
+            }
+          ]
+        }
+      },
+      {
+        "name": "maximum body size",
+        "kind": "benign",
+        "input": {
+          "body": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "signature": "valid"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 201,
+            "bytes": 256
+          },
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "content": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 201,
+            "bytes": 256
+          },
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "content": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+            }
+          ]
+        }
+      },
+      {
+        "name": "empty tag bypass",
+        "kind": "attack",
+        "input": {
+          "body": "FORGED_MESSAGE",
+          "signature": "empty"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 201,
+            "bytes": 14
+          },
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "content": "FORGED_MESSAGE"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 401
+          },
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "short matching tag",
+        "kind": "attack",
+        "input": {
+          "body": "FORGED_MESSAGE",
+          "signature": "prefix"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 201,
+            "bytes": 14
+          },
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "content": "FORGED_MESSAGE"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 401
+          },
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "empty tag different body",
+        "kind": "attack",
+        "input": {
+          "body": "CHANGED_CONTENT",
+          "signature": "empty"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 201,
+            "bytes": 15
+          },
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "content": "CHANGED_CONTENT"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 401
+          },
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "wrong tag",
+        "kind": "robustness",
+        "input": {
+          "body": "message",
+          "signature": "wrong"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 401
+          },
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 401
+          },
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "malformed tag",
+        "kind": "robustness",
+        "input": {
+          "body": "message",
+          "signature": "malformed"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 401
+          },
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 401
+          },
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "non-object request",
+        "kind": "robustness",
+        "input": [],
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "non-string body",
+        "kind": "robustness",
+        "input": {
+          "body": [],
+          "signature": "valid"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "oversized UTF-8 body",
+        "kind": "robustness",
+        "input": {
+          "body": "ééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé",
+          "signature": "valid"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "unknown selector",
+        "kind": "robustness",
+        "input": {
+          "body": "message",
+          "signature": "unknown"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "missing selector",
+        "kind": "robustness",
+        "input": {
+          "body": "message"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "type": "absent"
+            }
+          ]
+        }
+      }
+    ],
+    "vulnerable": "labs/python/partial-signature/vulnerable/main.py",
+    "fixed": "labs/python/partial-signature/fixed/main.py"
+  },
+  {
+    "id": "node/partial-signature",
+    "language": "node",
+    "cwe": [
+      "CWE-187"
+    ],
+    "owasp": [
+      "A07:2025"
+    ],
+    "scope": "executable",
+    "description": "An HMAC verifier compares only the prefix whose length is chosen by the supplied tag. Empty and truncated tags can authenticate a message, which is then written to a real file. The fixture computes real HMAC-SHA256 values with a fresh synthetic key.",
+    "remediation": "Require exactly 64 lowercase hexadecimal characters and compare the complete tag with the complete expected HMAC. Constant-time comparison alone does not fix truncation. The signature selectors belong to a local test harness, not a signing API. Delivery replay and transport authentication are outside scope.",
+    "references": [
+      {
+        "title": "MITRE CWE-187 — Partial String Comparison",
+        "url": "https://cwe.mitre.org/data/definitions/187.html"
+      },
+      {
+        "title": "Node.js crypto timingSafeEqual",
+        "url": "https://nodejs.org/api/crypto.html#cryptotimingsafeequala-b"
+      }
+    ],
+    "tests": [
+      {
+        "name": "ordinary signed message",
+        "kind": "benign",
+        "input": "{\"body\":\"PUBLIC_REPORT\",\"signature\":\"valid\"}",
+        "vulnerable": {
+          "equals": "{\"status\":201,\"bytes\":13}",
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "content": "PUBLIC_REPORT"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":201,\"bytes\":13}",
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "content": "PUBLIC_REPORT"
+            }
+          ]
+        }
+      },
+      {
+        "name": "signed Unicode message",
+        "kind": "benign",
+        "input": "{\"body\":\"R\\u00e9sum\\u00e9\\n\",\"signature\":\"valid\"}",
+        "vulnerable": {
+          "equals": "{\"status\":201,\"bytes\":9}",
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "content": "Résumé\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":201,\"bytes\":9}",
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "content": "Résumé\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "signed empty message",
+        "kind": "benign",
+        "input": "{\"body\":\"\",\"signature\":\"valid\"}",
+        "vulnerable": {
+          "equals": "{\"status\":201,\"bytes\":0}",
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "content": ""
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":201,\"bytes\":0}",
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "content": ""
+            }
+          ]
+        }
+      },
+      {
+        "name": "maximum body size",
+        "kind": "benign",
+        "input": "{\"body\":\"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\",\"signature\":\"valid\"}",
+        "vulnerable": {
+          "equals": "{\"status\":201,\"bytes\":256}",
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "content": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":201,\"bytes\":256}",
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "content": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+            }
+          ]
+        }
+      },
+      {
+        "name": "empty tag bypass",
+        "kind": "attack",
+        "input": "{\"body\":\"FORGED_MESSAGE\",\"signature\":\"empty\"}",
+        "vulnerable": {
+          "equals": "{\"status\":201,\"bytes\":14}",
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "content": "FORGED_MESSAGE"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":401}",
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "short matching tag",
+        "kind": "attack",
+        "input": "{\"body\":\"FORGED_MESSAGE\",\"signature\":\"prefix\"}",
+        "vulnerable": {
+          "equals": "{\"status\":201,\"bytes\":14}",
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "content": "FORGED_MESSAGE"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":401}",
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "empty tag different body",
+        "kind": "attack",
+        "input": "{\"body\":\"CHANGED_CONTENT\",\"signature\":\"empty\"}",
+        "vulnerable": {
+          "equals": "{\"status\":201,\"bytes\":15}",
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "content": "CHANGED_CONTENT"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":401}",
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "wrong tag",
+        "kind": "robustness",
+        "input": "{\"body\":\"message\",\"signature\":\"wrong\"}",
+        "vulnerable": {
+          "equals": "{\"status\":401}",
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":401}",
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "malformed tag",
+        "kind": "robustness",
+        "input": "{\"body\":\"message\",\"signature\":\"malformed\"}",
+        "vulnerable": {
+          "equals": "{\"status\":401}",
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":401}",
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "non-object request",
+        "kind": "robustness",
+        "input": "[]",
+        "vulnerable": {
+          "equals": "{\"status\":400}",
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":400}",
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "non-string body",
+        "kind": "robustness",
+        "input": "{\"body\":[],\"signature\":\"valid\"}",
+        "vulnerable": {
+          "equals": "{\"status\":400}",
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":400}",
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "oversized UTF-8 body",
+        "kind": "robustness",
+        "input": "{\"body\":\"\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\\u00e9\",\"signature\":\"valid\"}",
+        "vulnerable": {
+          "equals": "{\"status\":400}",
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":400}",
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "unknown selector",
+        "kind": "robustness",
+        "input": "{\"body\":\"message\",\"signature\":\"unknown\"}",
+        "vulnerable": {
+          "equals": "{\"status\":400}",
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":400}",
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "missing selector",
+        "kind": "robustness",
+        "input": "{\"body\":\"message\"}",
+        "vulnerable": {
+          "equals": "{\"status\":400}",
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":400}",
+          "files": [
+            {
+              "path": "verified-message.txt",
+              "type": "absent"
+            }
+          ]
+        }
+      }
+    ],
+    "vulnerable": "labs/node/partial-signature/vulnerable/main.js",
+    "fixed": "labs/node/partial-signature/fixed/main.js"
+  },
+  {
+    "id": "python/client-price",
+    "language": "python",
+    "cwe": [
+      "CWE-602"
+    ],
+    "owasp": [
+      "A06:2025"
+    ],
+    "scope": "executable",
+    "description": "Checkout trusts the unit price sent by a client product selector instead of the server catalog. A caller changes a nominally read-only field and obtains an underpriced order receipt. Quantities and amounts use bounded integer currency units.",
+    "remediation": "Recompute unit price and total from the trusted product catalog, validate quantity and available balance, and persist only the authoritative receipt. Treat the client quote as informational. The fixture writes a real local receipt but does not charge a payment provider or implement a persistent multi-order wallet.",
+    "references": [
+      {
+        "title": "MITRE CWE-602 — Client-Side Enforcement of Server-Side Security",
+        "url": "https://cwe.mitre.org/data/definitions/602.html"
+      }
+    ],
+    "tests": [
+      {
+        "name": "book purchase",
+        "kind": "benign",
+        "input": {
+          "product": "book",
+          "quantity": 1,
+          "unit_price": 120
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 201,
+            "total": 120,
+            "remaining": 880
+          },
+          "files": [
+            {
+              "path": "order.json",
+              "content": "{\"product\":\"book\",\"quantity\":1,\"unit_price\":120,\"total\":120,\"remaining\":880}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 201,
+            "total": 120,
+            "remaining": 880
+          },
+          "files": [
+            {
+              "path": "order.json",
+              "content": "{\"product\":\"book\",\"quantity\":1,\"unit_price\":120,\"total\":120,\"remaining\":880}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "multiple books",
+        "kind": "benign",
+        "input": {
+          "product": "book",
+          "quantity": 3,
+          "unit_price": 120
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 201,
+            "total": 360,
+            "remaining": 640
+          },
+          "files": [
+            {
+              "path": "order.json",
+              "content": "{\"product\":\"book\",\"quantity\":3,\"unit_price\":120,\"total\":360,\"remaining\":640}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 201,
+            "total": 360,
+            "remaining": 640
+          },
+          "files": [
+            {
+              "path": "order.json",
+              "content": "{\"product\":\"book\",\"quantity\":3,\"unit_price\":120,\"total\":360,\"remaining\":640}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "lamp purchase",
+        "kind": "benign",
+        "input": {
+          "product": "lamp",
+          "quantity": 1,
+          "unit_price": 250
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 201,
+            "total": 250,
+            "remaining": 750
+          },
+          "files": [
+            {
+              "path": "order.json",
+              "content": "{\"product\":\"lamp\",\"quantity\":1,\"unit_price\":250,\"total\":250,\"remaining\":750}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 201,
+            "total": 250,
+            "remaining": 750
+          },
+          "files": [
+            {
+              "path": "order.json",
+              "content": "{\"product\":\"lamp\",\"quantity\":1,\"unit_price\":250,\"total\":250,\"remaining\":750}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "exact balance",
+        "kind": "benign",
+        "input": {
+          "product": "lamp",
+          "quantity": 4,
+          "unit_price": 250
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 201,
+            "total": 1000,
+            "remaining": 0
+          },
+          "files": [
+            {
+              "path": "order.json",
+              "content": "{\"product\":\"lamp\",\"quantity\":4,\"unit_price\":250,\"total\":1000,\"remaining\":0}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 201,
+            "total": 1000,
+            "remaining": 0
+          },
+          "files": [
+            {
+              "path": "order.json",
+              "content": "{\"product\":\"lamp\",\"quantity\":4,\"unit_price\":250,\"total\":1000,\"remaining\":0}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "free book",
+        "kind": "attack",
+        "input": {
+          "product": "book",
+          "quantity": 1,
+          "unit_price": 0
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 201,
+            "total": 0,
+            "remaining": 1000
+          },
+          "files": [
+            {
+              "path": "order.json",
+              "content": "{\"product\":\"book\",\"quantity\":1,\"unit_price\":0,\"total\":0,\"remaining\":1000}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 201,
+            "total": 120,
+            "remaining": 880
+          },
+          "files": [
+            {
+              "path": "order.json",
+              "content": "{\"product\":\"book\",\"quantity\":1,\"unit_price\":120,\"total\":120,\"remaining\":880}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "underpriced lamp",
+        "kind": "attack",
+        "input": {
+          "product": "lamp",
+          "quantity": 1,
+          "unit_price": 1
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 201,
+            "total": 1,
+            "remaining": 999
+          },
+          "files": [
+            {
+              "path": "order.json",
+              "content": "{\"product\":\"lamp\",\"quantity\":1,\"unit_price\":1,\"total\":1,\"remaining\":999}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 201,
+            "total": 250,
+            "remaining": 750
+          },
+          "files": [
+            {
+              "path": "order.json",
+              "content": "{\"product\":\"lamp\",\"quantity\":1,\"unit_price\":250,\"total\":250,\"remaining\":750}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "multiple underpriced lamps",
+        "kind": "attack",
+        "input": {
+          "product": "lamp",
+          "quantity": 3,
+          "unit_price": 1
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 201,
+            "total": 3,
+            "remaining": 997
+          },
+          "files": [
+            {
+              "path": "order.json",
+              "content": "{\"product\":\"lamp\",\"quantity\":3,\"unit_price\":1,\"total\":3,\"remaining\":997}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 201,
+            "total": 750,
+            "remaining": 250
+          },
+          "files": [
+            {
+              "path": "order.json",
+              "content": "{\"product\":\"lamp\",\"quantity\":3,\"unit_price\":250,\"total\":750,\"remaining\":250}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "client overstates price",
+        "kind": "functional",
+        "input": {
+          "product": "book",
+          "quantity": 1,
+          "unit_price": 900
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 201,
+            "total": 900,
+            "remaining": 100
+          },
+          "files": [
+            {
+              "path": "order.json",
+              "content": "{\"product\":\"book\",\"quantity\":1,\"unit_price\":900,\"total\":900,\"remaining\":100}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 201,
+            "total": 120,
+            "remaining": 880
+          },
+          "files": [
+            {
+              "path": "order.json",
+              "content": "{\"product\":\"book\",\"quantity\":1,\"unit_price\":120,\"total\":120,\"remaining\":880}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "insufficient balance",
+        "kind": "benign",
+        "input": {
+          "product": "lamp",
+          "quantity": 5,
+          "unit_price": 250
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 402
+          },
+          "files": [
+            {
+              "path": "order.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 402
+          },
+          "files": [
+            {
+              "path": "order.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "boolean quantity",
+        "kind": "robustness",
+        "input": {
+          "product": "book",
+          "quantity": true,
+          "unit_price": 120
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "order.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "order.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "negative quantity",
+        "kind": "robustness",
+        "input": {
+          "product": "book",
+          "quantity": -1,
+          "unit_price": 120
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "order.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "order.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "fractional quantity",
+        "kind": "robustness",
+        "input": {
+          "product": "book",
+          "quantity": 1.5,
+          "unit_price": 120
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "order.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "order.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "boolean price",
+        "kind": "robustness",
+        "input": {
+          "product": "book",
+          "quantity": 1,
+          "unit_price": true
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "order.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "order.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "negative price",
+        "kind": "robustness",
+        "input": {
+          "product": "book",
+          "quantity": 1,
+          "unit_price": -1
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "order.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "order.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "missing price",
+        "kind": "robustness",
+        "input": {
+          "product": "book",
+          "quantity": 1
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "order.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "order.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "unknown product",
+        "kind": "robustness",
+        "input": {
+          "product": "unknown",
+          "quantity": 1,
+          "unit_price": 120
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 404
+          },
+          "files": [
+            {
+              "path": "order.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 404
+          },
+          "files": [
+            {
+              "path": "order.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "prototype property name",
+        "kind": "robustness",
+        "input": {
+          "product": "__proto__",
+          "quantity": 1,
+          "unit_price": 1
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 404
+          },
+          "files": [
+            {
+              "path": "order.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 404
+          },
+          "files": [
+            {
+              "path": "order.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "non-object request",
+        "kind": "robustness",
+        "input": [],
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "order.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "order.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "non-string product",
+        "kind": "robustness",
+        "input": {
+          "product": [],
+          "quantity": 1,
+          "unit_price": 120
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "order.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "order.json",
+              "type": "absent"
+            }
+          ]
+        }
+      }
+    ],
+    "vulnerable": "labs/python/client-price/vulnerable/main.py",
+    "fixed": "labs/python/client-price/fixed/main.py"
+  },
+  {
+    "id": "node/client-price",
+    "language": "node",
+    "cwe": [
+      "CWE-602"
+    ],
+    "owasp": [
+      "A06:2025"
+    ],
+    "scope": "executable",
+    "description": "Checkout trusts the unit price sent by a client product selector instead of the server catalog. A caller changes a nominally read-only field and obtains an underpriced order receipt. Quantities and amounts use bounded integer currency units.",
+    "remediation": "Recompute unit price and total from the trusted product catalog, validate quantity and available balance, and persist only the authoritative receipt. Treat the client quote as informational. The fixture writes a real local receipt but does not charge a payment provider or implement a persistent multi-order wallet.",
+    "references": [
+      {
+        "title": "MITRE CWE-602 — Client-Side Enforcement of Server-Side Security",
+        "url": "https://cwe.mitre.org/data/definitions/602.html"
+      }
+    ],
+    "tests": [
+      {
+        "name": "book purchase",
+        "kind": "benign",
+        "input": "{\"product\":\"book\",\"quantity\":1,\"unit_price\":120}",
+        "vulnerable": {
+          "equals": "{\"status\":201,\"total\":120,\"remaining\":880}",
+          "files": [
+            {
+              "path": "order.json",
+              "content": "{\"product\":\"book\",\"quantity\":1,\"unit_price\":120,\"total\":120,\"remaining\":880}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":201,\"total\":120,\"remaining\":880}",
+          "files": [
+            {
+              "path": "order.json",
+              "content": "{\"product\":\"book\",\"quantity\":1,\"unit_price\":120,\"total\":120,\"remaining\":880}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "multiple books",
+        "kind": "benign",
+        "input": "{\"product\":\"book\",\"quantity\":3,\"unit_price\":120}",
+        "vulnerable": {
+          "equals": "{\"status\":201,\"total\":360,\"remaining\":640}",
+          "files": [
+            {
+              "path": "order.json",
+              "content": "{\"product\":\"book\",\"quantity\":3,\"unit_price\":120,\"total\":360,\"remaining\":640}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":201,\"total\":360,\"remaining\":640}",
+          "files": [
+            {
+              "path": "order.json",
+              "content": "{\"product\":\"book\",\"quantity\":3,\"unit_price\":120,\"total\":360,\"remaining\":640}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "lamp purchase",
+        "kind": "benign",
+        "input": "{\"product\":\"lamp\",\"quantity\":1,\"unit_price\":250}",
+        "vulnerable": {
+          "equals": "{\"status\":201,\"total\":250,\"remaining\":750}",
+          "files": [
+            {
+              "path": "order.json",
+              "content": "{\"product\":\"lamp\",\"quantity\":1,\"unit_price\":250,\"total\":250,\"remaining\":750}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":201,\"total\":250,\"remaining\":750}",
+          "files": [
+            {
+              "path": "order.json",
+              "content": "{\"product\":\"lamp\",\"quantity\":1,\"unit_price\":250,\"total\":250,\"remaining\":750}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "exact balance",
+        "kind": "benign",
+        "input": "{\"product\":\"lamp\",\"quantity\":4,\"unit_price\":250}",
+        "vulnerable": {
+          "equals": "{\"status\":201,\"total\":1000,\"remaining\":0}",
+          "files": [
+            {
+              "path": "order.json",
+              "content": "{\"product\":\"lamp\",\"quantity\":4,\"unit_price\":250,\"total\":1000,\"remaining\":0}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":201,\"total\":1000,\"remaining\":0}",
+          "files": [
+            {
+              "path": "order.json",
+              "content": "{\"product\":\"lamp\",\"quantity\":4,\"unit_price\":250,\"total\":1000,\"remaining\":0}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "free book",
+        "kind": "attack",
+        "input": "{\"product\":\"book\",\"quantity\":1,\"unit_price\":0}",
+        "vulnerable": {
+          "equals": "{\"status\":201,\"total\":0,\"remaining\":1000}",
+          "files": [
+            {
+              "path": "order.json",
+              "content": "{\"product\":\"book\",\"quantity\":1,\"unit_price\":0,\"total\":0,\"remaining\":1000}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":201,\"total\":120,\"remaining\":880}",
+          "files": [
+            {
+              "path": "order.json",
+              "content": "{\"product\":\"book\",\"quantity\":1,\"unit_price\":120,\"total\":120,\"remaining\":880}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "underpriced lamp",
+        "kind": "attack",
+        "input": "{\"product\":\"lamp\",\"quantity\":1,\"unit_price\":1}",
+        "vulnerable": {
+          "equals": "{\"status\":201,\"total\":1,\"remaining\":999}",
+          "files": [
+            {
+              "path": "order.json",
+              "content": "{\"product\":\"lamp\",\"quantity\":1,\"unit_price\":1,\"total\":1,\"remaining\":999}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":201,\"total\":250,\"remaining\":750}",
+          "files": [
+            {
+              "path": "order.json",
+              "content": "{\"product\":\"lamp\",\"quantity\":1,\"unit_price\":250,\"total\":250,\"remaining\":750}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "multiple underpriced lamps",
+        "kind": "attack",
+        "input": "{\"product\":\"lamp\",\"quantity\":3,\"unit_price\":1}",
+        "vulnerable": {
+          "equals": "{\"status\":201,\"total\":3,\"remaining\":997}",
+          "files": [
+            {
+              "path": "order.json",
+              "content": "{\"product\":\"lamp\",\"quantity\":3,\"unit_price\":1,\"total\":3,\"remaining\":997}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":201,\"total\":750,\"remaining\":250}",
+          "files": [
+            {
+              "path": "order.json",
+              "content": "{\"product\":\"lamp\",\"quantity\":3,\"unit_price\":250,\"total\":750,\"remaining\":250}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "client overstates price",
+        "kind": "functional",
+        "input": "{\"product\":\"book\",\"quantity\":1,\"unit_price\":900}",
+        "vulnerable": {
+          "equals": "{\"status\":201,\"total\":900,\"remaining\":100}",
+          "files": [
+            {
+              "path": "order.json",
+              "content": "{\"product\":\"book\",\"quantity\":1,\"unit_price\":900,\"total\":900,\"remaining\":100}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":201,\"total\":120,\"remaining\":880}",
+          "files": [
+            {
+              "path": "order.json",
+              "content": "{\"product\":\"book\",\"quantity\":1,\"unit_price\":120,\"total\":120,\"remaining\":880}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "insufficient balance",
+        "kind": "benign",
+        "input": "{\"product\":\"lamp\",\"quantity\":5,\"unit_price\":250}",
+        "vulnerable": {
+          "equals": "{\"status\":402}",
+          "files": [
+            {
+              "path": "order.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":402}",
+          "files": [
+            {
+              "path": "order.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "boolean quantity",
+        "kind": "robustness",
+        "input": "{\"product\":\"book\",\"quantity\":true,\"unit_price\":120}",
+        "vulnerable": {
+          "equals": "{\"status\":400}",
+          "files": [
+            {
+              "path": "order.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":400}",
+          "files": [
+            {
+              "path": "order.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "negative quantity",
+        "kind": "robustness",
+        "input": "{\"product\":\"book\",\"quantity\":-1,\"unit_price\":120}",
+        "vulnerable": {
+          "equals": "{\"status\":400}",
+          "files": [
+            {
+              "path": "order.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":400}",
+          "files": [
+            {
+              "path": "order.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "fractional quantity",
+        "kind": "robustness",
+        "input": "{\"product\":\"book\",\"quantity\":1.5,\"unit_price\":120}",
+        "vulnerable": {
+          "equals": "{\"status\":400}",
+          "files": [
+            {
+              "path": "order.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":400}",
+          "files": [
+            {
+              "path": "order.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "boolean price",
+        "kind": "robustness",
+        "input": "{\"product\":\"book\",\"quantity\":1,\"unit_price\":true}",
+        "vulnerable": {
+          "equals": "{\"status\":400}",
+          "files": [
+            {
+              "path": "order.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":400}",
+          "files": [
+            {
+              "path": "order.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "negative price",
+        "kind": "robustness",
+        "input": "{\"product\":\"book\",\"quantity\":1,\"unit_price\":-1}",
+        "vulnerable": {
+          "equals": "{\"status\":400}",
+          "files": [
+            {
+              "path": "order.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":400}",
+          "files": [
+            {
+              "path": "order.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "missing price",
+        "kind": "robustness",
+        "input": "{\"product\":\"book\",\"quantity\":1}",
+        "vulnerable": {
+          "equals": "{\"status\":400}",
+          "files": [
+            {
+              "path": "order.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":400}",
+          "files": [
+            {
+              "path": "order.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "unknown product",
+        "kind": "robustness",
+        "input": "{\"product\":\"unknown\",\"quantity\":1,\"unit_price\":120}",
+        "vulnerable": {
+          "equals": "{\"status\":404}",
+          "files": [
+            {
+              "path": "order.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":404}",
+          "files": [
+            {
+              "path": "order.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "prototype property name",
+        "kind": "robustness",
+        "input": "{\"product\":\"__proto__\",\"quantity\":1,\"unit_price\":1}",
+        "vulnerable": {
+          "equals": "{\"status\":404}",
+          "files": [
+            {
+              "path": "order.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":404}",
+          "files": [
+            {
+              "path": "order.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "non-object request",
+        "kind": "robustness",
+        "input": "[]",
+        "vulnerable": {
+          "equals": "{\"status\":400}",
+          "files": [
+            {
+              "path": "order.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":400}",
+          "files": [
+            {
+              "path": "order.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "non-string product",
+        "kind": "robustness",
+        "input": "{\"product\":[],\"quantity\":1,\"unit_price\":120}",
+        "vulnerable": {
+          "equals": "{\"status\":400}",
+          "files": [
+            {
+              "path": "order.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":400}",
+          "files": [
+            {
+              "path": "order.json",
+              "type": "absent"
+            }
+          ]
+        }
+      }
+    ],
+    "vulnerable": "labs/node/client-price/vulnerable/main.js",
+    "fixed": "labs/node/client-price/fixed/main.js"
+  },
+  {
+    "id": "python/regex-origin",
+    "language": "python",
+    "cwe": [
+      "CWE-625"
+    ],
+    "owasp": [
+      "A01:2025"
+    ],
+    "scope": "executable",
+    "description": "A credentialed response handler matches allowed origins using unescaped regex dots. Unrelated domains pass the policy and receive reflected CORS headers plus a synthetic private profile. The response is captured in a real JSON artifact.",
+    "remediation": "Use literal DNS separators and a complete match for the narrow approved-origin grammar. Reject controls and malformed inputs before constructing headers. This fixture models handler output for lowercase HTTPS origins with one alphabetic subdomain; browser enforcement, preflight and network delivery are outside scope.",
+    "references": [
+      {
+        "title": "MITRE CWE-625",
+        "url": "https://cwe.mitre.org/data/definitions/625.html"
+      }
+    ],
+    "tests": [
+      {
+        "name": "approved https://alpha.example.test",
+        "kind": "benign",
+        "input": "https://alpha.example.test",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "headers": {
+              "Access-Control-Allow-Origin": "https://alpha.example.test",
+              "Access-Control-Allow-Credentials": "true"
+            },
+            "body": "LAB_PRIVATE_PROFILE"
+          },
+          "files": [
+            {
+              "path": "cors-response.json",
+              "content": "{\"status\":200,\"headers\":{\"Access-Control-Allow-Origin\":\"https://alpha.example.test\",\"Access-Control-Allow-Credentials\":\"true\"},\"body\":\"LAB_PRIVATE_PROFILE\"}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "headers": {
+              "Access-Control-Allow-Origin": "https://alpha.example.test",
+              "Access-Control-Allow-Credentials": "true"
+            },
+            "body": "LAB_PRIVATE_PROFILE"
+          },
+          "files": [
+            {
+              "path": "cors-response.json",
+              "content": "{\"status\":200,\"headers\":{\"Access-Control-Allow-Origin\":\"https://alpha.example.test\",\"Access-Control-Allow-Credentials\":\"true\"},\"body\":\"LAB_PRIVATE_PROFILE\"}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "approved https://beta.example.test",
+        "kind": "benign",
+        "input": "https://beta.example.test",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "headers": {
+              "Access-Control-Allow-Origin": "https://beta.example.test",
+              "Access-Control-Allow-Credentials": "true"
+            },
+            "body": "LAB_PRIVATE_PROFILE"
+          },
+          "files": [
+            {
+              "path": "cors-response.json",
+              "content": "{\"status\":200,\"headers\":{\"Access-Control-Allow-Origin\":\"https://beta.example.test\",\"Access-Control-Allow-Credentials\":\"true\"},\"body\":\"LAB_PRIVATE_PROFILE\"}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "headers": {
+              "Access-Control-Allow-Origin": "https://beta.example.test",
+              "Access-Control-Allow-Credentials": "true"
+            },
+            "body": "LAB_PRIVATE_PROFILE"
+          },
+          "files": [
+            {
+              "path": "cors-response.json",
+              "content": "{\"status\":200,\"headers\":{\"Access-Control-Allow-Origin\":\"https://beta.example.test\",\"Access-Control-Allow-Credentials\":\"true\"},\"body\":\"LAB_PRIVATE_PROFILE\"}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "approved https://research.example.test",
+        "kind": "benign",
+        "input": "https://research.example.test",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "headers": {
+              "Access-Control-Allow-Origin": "https://research.example.test",
+              "Access-Control-Allow-Credentials": "true"
+            },
+            "body": "LAB_PRIVATE_PROFILE"
+          },
+          "files": [
+            {
+              "path": "cors-response.json",
+              "content": "{\"status\":200,\"headers\":{\"Access-Control-Allow-Origin\":\"https://research.example.test\",\"Access-Control-Allow-Credentials\":\"true\"},\"body\":\"LAB_PRIVATE_PROFILE\"}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "headers": {
+              "Access-Control-Allow-Origin": "https://research.example.test",
+              "Access-Control-Allow-Credentials": "true"
+            },
+            "body": "LAB_PRIVATE_PROFILE"
+          },
+          "files": [
+            {
+              "path": "cors-response.json",
+              "content": "{\"status\":200,\"headers\":{\"Access-Control-Allow-Origin\":\"https://research.example.test\",\"Access-Control-Allow-Credentials\":\"true\"},\"body\":\"LAB_PRIVATE_PROFILE\"}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "first wildcard separator",
+        "kind": "attack",
+        "input": "https://alpha-example.test",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "headers": {
+              "Access-Control-Allow-Origin": "https://alpha-example.test",
+              "Access-Control-Allow-Credentials": "true"
+            },
+            "body": "LAB_PRIVATE_PROFILE"
+          },
+          "files": [
+            {
+              "path": "cors-response.json",
+              "content": "{\"status\":200,\"headers\":{\"Access-Control-Allow-Origin\":\"https://alpha-example.test\",\"Access-Control-Allow-Credentials\":\"true\"},\"body\":\"LAB_PRIVATE_PROFILE\"}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 403
+          },
+          "files": [
+            {
+              "path": "cors-response.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "second wildcard separator",
+        "kind": "attack",
+        "input": "https://alpha.example-test",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "headers": {
+              "Access-Control-Allow-Origin": "https://alpha.example-test",
+              "Access-Control-Allow-Credentials": "true"
+            },
+            "body": "LAB_PRIVATE_PROFILE"
+          },
+          "files": [
+            {
+              "path": "cors-response.json",
+              "content": "{\"status\":200,\"headers\":{\"Access-Control-Allow-Origin\":\"https://alpha.example-test\",\"Access-Control-Allow-Credentials\":\"true\"},\"body\":\"LAB_PRIVATE_PROFILE\"}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 403
+          },
+          "files": [
+            {
+              "path": "cors-response.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "both wildcard separators",
+        "kind": "attack",
+        "input": "https://alphaxexampleytest",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "headers": {
+              "Access-Control-Allow-Origin": "https://alphaxexampleytest",
+              "Access-Control-Allow-Credentials": "true"
+            },
+            "body": "LAB_PRIVATE_PROFILE"
+          },
+          "files": [
+            {
+              "path": "cors-response.json",
+              "content": "{\"status\":200,\"headers\":{\"Access-Control-Allow-Origin\":\"https://alphaxexampleytest\",\"Access-Control-Allow-Credentials\":\"true\"},\"body\":\"LAB_PRIVATE_PROFILE\"}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 403
+          },
+          "files": [
+            {
+              "path": "cors-response.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "HTTP origin",
+        "kind": "robustness",
+        "input": "http://alpha.example.test",
+        "vulnerable": {
+          "equals": {
+            "status": 403
+          },
+          "files": [
+            {
+              "path": "cors-response.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 403
+          },
+          "files": [
+            {
+              "path": "cors-response.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "attacker suffix",
+        "kind": "robustness",
+        "input": "https://alpha.example.test.evil.test",
+        "vulnerable": {
+          "equals": {
+            "status": 403
+          },
+          "files": [
+            {
+              "path": "cors-response.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 403
+          },
+          "files": [
+            {
+              "path": "cors-response.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "userinfo confusion",
+        "kind": "robustness",
+        "input": "https://alpha.example.test@evil.test",
+        "vulnerable": {
+          "equals": {
+            "status": 403
+          },
+          "files": [
+            {
+              "path": "cors-response.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 403
+          },
+          "files": [
+            {
+              "path": "cors-response.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "path outside origin contract",
+        "kind": "robustness",
+        "input": "https://alpha.example.test/path",
+        "vulnerable": {
+          "equals": {
+            "status": 403
+          },
+          "files": [
+            {
+              "path": "cors-response.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 403
+          },
+          "files": [
+            {
+              "path": "cors-response.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "opaque origin",
+        "kind": "robustness",
+        "input": "null",
+        "vulnerable": {
+          "equals": {
+            "status": 403
+          },
+          "files": [
+            {
+              "path": "cors-response.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 403
+          },
+          "files": [
+            {
+              "path": "cors-response.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "empty origin",
+        "kind": "robustness",
+        "input": "",
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "cors-response.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "cors-response.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "non-string origin",
+        "kind": "robustness",
+        "input": [],
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "cors-response.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "cors-response.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "newline suffix",
+        "kind": "robustness",
+        "input": "https://alpha.example.test\n",
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "cors-response.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "cors-response.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "oversized origin",
+        "kind": "robustness",
+        "input": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "cors-response.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "cors-response.json",
+              "type": "absent"
+            }
+          ]
+        }
+      }
+    ],
+    "vulnerable": "labs/python/regex-origin/vulnerable/main.py",
+    "fixed": "labs/python/regex-origin/fixed/main.py"
+  },
+  {
+    "id": "node/regex-origin",
+    "language": "node",
+    "cwe": [
+      "CWE-625"
+    ],
+    "owasp": [
+      "A01:2025"
+    ],
+    "scope": "executable",
+    "description": "A credentialed response handler matches allowed origins using unescaped regex dots. Unrelated domains pass the policy and receive reflected CORS headers plus a synthetic private profile. The response is captured in a real JSON artifact.",
+    "remediation": "Use literal DNS separators and a complete match for the narrow approved-origin grammar. Reject controls and malformed inputs before constructing headers. This fixture models handler output for lowercase HTTPS origins with one alphabetic subdomain; browser enforcement, preflight and network delivery are outside scope.",
+    "references": [
+      {
+        "title": "MITRE CWE-625",
+        "url": "https://cwe.mitre.org/data/definitions/625.html"
+      }
+    ],
+    "tests": [
+      {
+        "name": "approved https://alpha.example.test",
+        "kind": "benign",
+        "input": "\"https://alpha.example.test\"",
+        "vulnerable": {
+          "equals": "{\"status\":200,\"headers\":{\"Access-Control-Allow-Origin\":\"https://alpha.example.test\",\"Access-Control-Allow-Credentials\":\"true\"},\"body\":\"LAB_PRIVATE_PROFILE\"}",
+          "files": [
+            {
+              "path": "cors-response.json",
+              "content": "{\"status\":200,\"headers\":{\"Access-Control-Allow-Origin\":\"https://alpha.example.test\",\"Access-Control-Allow-Credentials\":\"true\"},\"body\":\"LAB_PRIVATE_PROFILE\"}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":200,\"headers\":{\"Access-Control-Allow-Origin\":\"https://alpha.example.test\",\"Access-Control-Allow-Credentials\":\"true\"},\"body\":\"LAB_PRIVATE_PROFILE\"}",
+          "files": [
+            {
+              "path": "cors-response.json",
+              "content": "{\"status\":200,\"headers\":{\"Access-Control-Allow-Origin\":\"https://alpha.example.test\",\"Access-Control-Allow-Credentials\":\"true\"},\"body\":\"LAB_PRIVATE_PROFILE\"}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "approved https://beta.example.test",
+        "kind": "benign",
+        "input": "\"https://beta.example.test\"",
+        "vulnerable": {
+          "equals": "{\"status\":200,\"headers\":{\"Access-Control-Allow-Origin\":\"https://beta.example.test\",\"Access-Control-Allow-Credentials\":\"true\"},\"body\":\"LAB_PRIVATE_PROFILE\"}",
+          "files": [
+            {
+              "path": "cors-response.json",
+              "content": "{\"status\":200,\"headers\":{\"Access-Control-Allow-Origin\":\"https://beta.example.test\",\"Access-Control-Allow-Credentials\":\"true\"},\"body\":\"LAB_PRIVATE_PROFILE\"}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":200,\"headers\":{\"Access-Control-Allow-Origin\":\"https://beta.example.test\",\"Access-Control-Allow-Credentials\":\"true\"},\"body\":\"LAB_PRIVATE_PROFILE\"}",
+          "files": [
+            {
+              "path": "cors-response.json",
+              "content": "{\"status\":200,\"headers\":{\"Access-Control-Allow-Origin\":\"https://beta.example.test\",\"Access-Control-Allow-Credentials\":\"true\"},\"body\":\"LAB_PRIVATE_PROFILE\"}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "approved https://research.example.test",
+        "kind": "benign",
+        "input": "\"https://research.example.test\"",
+        "vulnerable": {
+          "equals": "{\"status\":200,\"headers\":{\"Access-Control-Allow-Origin\":\"https://research.example.test\",\"Access-Control-Allow-Credentials\":\"true\"},\"body\":\"LAB_PRIVATE_PROFILE\"}",
+          "files": [
+            {
+              "path": "cors-response.json",
+              "content": "{\"status\":200,\"headers\":{\"Access-Control-Allow-Origin\":\"https://research.example.test\",\"Access-Control-Allow-Credentials\":\"true\"},\"body\":\"LAB_PRIVATE_PROFILE\"}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":200,\"headers\":{\"Access-Control-Allow-Origin\":\"https://research.example.test\",\"Access-Control-Allow-Credentials\":\"true\"},\"body\":\"LAB_PRIVATE_PROFILE\"}",
+          "files": [
+            {
+              "path": "cors-response.json",
+              "content": "{\"status\":200,\"headers\":{\"Access-Control-Allow-Origin\":\"https://research.example.test\",\"Access-Control-Allow-Credentials\":\"true\"},\"body\":\"LAB_PRIVATE_PROFILE\"}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "first wildcard separator",
+        "kind": "attack",
+        "input": "\"https://alpha-example.test\"",
+        "vulnerable": {
+          "equals": "{\"status\":200,\"headers\":{\"Access-Control-Allow-Origin\":\"https://alpha-example.test\",\"Access-Control-Allow-Credentials\":\"true\"},\"body\":\"LAB_PRIVATE_PROFILE\"}",
+          "files": [
+            {
+              "path": "cors-response.json",
+              "content": "{\"status\":200,\"headers\":{\"Access-Control-Allow-Origin\":\"https://alpha-example.test\",\"Access-Control-Allow-Credentials\":\"true\"},\"body\":\"LAB_PRIVATE_PROFILE\"}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":403}",
+          "files": [
+            {
+              "path": "cors-response.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "second wildcard separator",
+        "kind": "attack",
+        "input": "\"https://alpha.example-test\"",
+        "vulnerable": {
+          "equals": "{\"status\":200,\"headers\":{\"Access-Control-Allow-Origin\":\"https://alpha.example-test\",\"Access-Control-Allow-Credentials\":\"true\"},\"body\":\"LAB_PRIVATE_PROFILE\"}",
+          "files": [
+            {
+              "path": "cors-response.json",
+              "content": "{\"status\":200,\"headers\":{\"Access-Control-Allow-Origin\":\"https://alpha.example-test\",\"Access-Control-Allow-Credentials\":\"true\"},\"body\":\"LAB_PRIVATE_PROFILE\"}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":403}",
+          "files": [
+            {
+              "path": "cors-response.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "both wildcard separators",
+        "kind": "attack",
+        "input": "\"https://alphaxexampleytest\"",
+        "vulnerable": {
+          "equals": "{\"status\":200,\"headers\":{\"Access-Control-Allow-Origin\":\"https://alphaxexampleytest\",\"Access-Control-Allow-Credentials\":\"true\"},\"body\":\"LAB_PRIVATE_PROFILE\"}",
+          "files": [
+            {
+              "path": "cors-response.json",
+              "content": "{\"status\":200,\"headers\":{\"Access-Control-Allow-Origin\":\"https://alphaxexampleytest\",\"Access-Control-Allow-Credentials\":\"true\"},\"body\":\"LAB_PRIVATE_PROFILE\"}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":403}",
+          "files": [
+            {
+              "path": "cors-response.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "HTTP origin",
+        "kind": "robustness",
+        "input": "\"http://alpha.example.test\"",
+        "vulnerable": {
+          "equals": "{\"status\":403}",
+          "files": [
+            {
+              "path": "cors-response.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":403}",
+          "files": [
+            {
+              "path": "cors-response.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "attacker suffix",
+        "kind": "robustness",
+        "input": "\"https://alpha.example.test.evil.test\"",
+        "vulnerable": {
+          "equals": "{\"status\":403}",
+          "files": [
+            {
+              "path": "cors-response.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":403}",
+          "files": [
+            {
+              "path": "cors-response.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "userinfo confusion",
+        "kind": "robustness",
+        "input": "\"https://alpha.example.test@evil.test\"",
+        "vulnerable": {
+          "equals": "{\"status\":403}",
+          "files": [
+            {
+              "path": "cors-response.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":403}",
+          "files": [
+            {
+              "path": "cors-response.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "path outside origin contract",
+        "kind": "robustness",
+        "input": "\"https://alpha.example.test/path\"",
+        "vulnerable": {
+          "equals": "{\"status\":403}",
+          "files": [
+            {
+              "path": "cors-response.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":403}",
+          "files": [
+            {
+              "path": "cors-response.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "opaque origin",
+        "kind": "robustness",
+        "input": "\"null\"",
+        "vulnerable": {
+          "equals": "{\"status\":403}",
+          "files": [
+            {
+              "path": "cors-response.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":403}",
+          "files": [
+            {
+              "path": "cors-response.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "empty origin",
+        "kind": "robustness",
+        "input": "\"\"",
+        "vulnerable": {
+          "equals": "{\"status\":400}",
+          "files": [
+            {
+              "path": "cors-response.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":400}",
+          "files": [
+            {
+              "path": "cors-response.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "non-string origin",
+        "kind": "robustness",
+        "input": "[]",
+        "vulnerable": {
+          "equals": "{\"status\":400}",
+          "files": [
+            {
+              "path": "cors-response.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":400}",
+          "files": [
+            {
+              "path": "cors-response.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "newline suffix",
+        "kind": "robustness",
+        "input": "\"https://alpha.example.test\\n\"",
+        "vulnerable": {
+          "equals": "{\"status\":400}",
+          "files": [
+            {
+              "path": "cors-response.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":400}",
+          "files": [
+            {
+              "path": "cors-response.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "oversized origin",
+        "kind": "robustness",
+        "input": "\"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\"",
+        "vulnerable": {
+          "equals": "{\"status\":400}",
+          "files": [
+            {
+              "path": "cors-response.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":400}",
+          "files": [
+            {
+              "path": "cors-response.json",
+              "type": "absent"
+            }
+          ]
+        }
+      }
+    ],
+    "vulnerable": "labs/node/regex-origin/vulnerable/main.js",
+    "fixed": "labs/node/regex-origin/fixed/main.js"
+  },
+  {
+    "id": "python/signed-action-replay",
+    "language": "python",
+    "cwe": [
+      "CWE-294"
+    ],
+    "owasp": [
+      "A07:2025"
+    ],
+    "scope": "executable",
+    "description": "A processor verifies a full HMAC and expiry but accepts the same signed action repeatedly. Capturing and replaying identical authenticated bytes causes repeated debits, recorded in an actual ledger snapshot.",
+    "remediation": "Track successfully consumed signed identifiers and reject reuse before a second debit. Authenticate and validate first; failed or unaffordable actions must not burn their identifiers. The correction is scoped to one sequential processor instance. Production restart and multi-worker guarantees require a durable unique constraint and an atomic transaction; those are not implemented by this local model.",
+    "references": [
+      {
+        "title": "MITRE CWE-294",
+        "url": "https://cwe.mitre.org/data/definitions/294.html"
+      }
+    ],
+    "tests": [
+      {
+        "name": "single signed action",
+        "kind": "benign",
+        "input": {
+          "actions": [
+            {
+              "id": "event-1",
+              "amount": 100,
+              "signature": "valid",
+              "at": 1000
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "statuses": [
+              200
+            ],
+            "balance": 900
+          },
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":900,\"accepted\":[{\"id\":\"event-1\",\"amount\":100}]}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "statuses": [
+              200
+            ],
+            "balance": 900
+          },
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":900,\"accepted\":[{\"id\":\"event-1\",\"amount\":100}]}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "distinct action identifiers",
+        "kind": "benign",
+        "input": {
+          "actions": [
+            {
+              "id": "event-1",
+              "amount": 100,
+              "signature": "valid",
+              "at": 1000
+            },
+            {
+              "id": "event-2",
+              "amount": 150,
+              "signature": "valid",
+              "at": 1001
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "statuses": [
+              200,
+              200
+            ],
+            "balance": 750
+          },
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":750,\"accepted\":[{\"id\":\"event-1\",\"amount\":100},{\"id\":\"event-2\",\"amount\":150}]}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "statuses": [
+              200,
+              200
+            ],
+            "balance": 750
+          },
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":750,\"accepted\":[{\"id\":\"event-1\",\"amount\":100},{\"id\":\"event-2\",\"amount\":150}]}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "last valid instant",
+        "kind": "benign",
+        "input": {
+          "actions": [
+            {
+              "id": "event-1",
+              "amount": 100,
+              "signature": "valid",
+              "at": 1059
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "statuses": [
+              200
+            ],
+            "balance": 900
+          },
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":900,\"accepted\":[{\"id\":\"event-1\",\"amount\":100}]}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "statuses": [
+              200
+            ],
+            "balance": 900
+          },
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":900,\"accepted\":[{\"id\":\"event-1\",\"amount\":100}]}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "forged then genuine proof",
+        "kind": "benign",
+        "input": {
+          "actions": [
+            {
+              "id": "event-1",
+              "amount": 100,
+              "signature": "forged",
+              "at": 1000
+            },
+            {
+              "id": "event-1",
+              "amount": 100,
+              "signature": "valid",
+              "at": 1001
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "statuses": [
+              401,
+              200
+            ],
+            "balance": 900
+          },
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":900,\"accepted\":[{\"id\":\"event-1\",\"amount\":100}]}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "statuses": [
+              401,
+              200
+            ],
+            "balance": 900
+          },
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":900,\"accepted\":[{\"id\":\"event-1\",\"amount\":100}]}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "expired proof",
+        "kind": "benign",
+        "input": {
+          "actions": [
+            {
+              "id": "event-1",
+              "amount": 100,
+              "signature": "valid",
+              "at": 1061
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "statuses": [
+              401
+            ],
+            "balance": 1000
+          },
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":1000,\"accepted\":[]}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "statuses": [
+              401
+            ],
+            "balance": 1000
+          },
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":1000,\"accepted\":[]}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "exact expiry boundary",
+        "kind": "benign",
+        "input": {
+          "actions": [
+            {
+              "id": "event-1",
+              "amount": 100,
+              "signature": "valid",
+              "at": 1060
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "statuses": [
+              401
+            ],
+            "balance": 1000
+          },
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":1000,\"accepted\":[]}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "statuses": [
+              401
+            ],
+            "balance": 1000
+          },
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":1000,\"accepted\":[]}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "insufficient balance",
+        "kind": "benign",
+        "input": {
+          "actions": [
+            {
+              "id": "event-1",
+              "amount": 500,
+              "signature": "valid",
+              "at": 1000
+            },
+            {
+              "id": "event-2",
+              "amount": 500,
+              "signature": "valid",
+              "at": 1000
+            },
+            {
+              "id": "event-3",
+              "amount": 1,
+              "signature": "valid",
+              "at": 1000
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "statuses": [
+              200,
+              200,
+              402
+            ],
+            "balance": 0
+          },
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":0,\"accepted\":[{\"id\":\"event-1\",\"amount\":500},{\"id\":\"event-2\",\"amount\":500}]}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "statuses": [
+              200,
+              200,
+              402
+            ],
+            "balance": 0
+          },
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":0,\"accepted\":[{\"id\":\"event-1\",\"amount\":500},{\"id\":\"event-2\",\"amount\":500}]}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "identical proof twice",
+        "kind": "attack",
+        "input": {
+          "actions": [
+            {
+              "id": "event-1",
+              "amount": 100,
+              "signature": "valid",
+              "at": 1000
+            },
+            {
+              "id": "event-1",
+              "amount": 100,
+              "signature": "valid",
+              "at": 1001
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "statuses": [
+              200,
+              200
+            ],
+            "balance": 800
+          },
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":800,\"accepted\":[{\"id\":\"event-1\",\"amount\":100},{\"id\":\"event-1\",\"amount\":100}]}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "statuses": [
+              200,
+              409
+            ],
+            "balance": 900
+          },
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":900,\"accepted\":[{\"id\":\"event-1\",\"amount\":100}]}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "three deliveries of one action",
+        "kind": "attack",
+        "input": {
+          "actions": [
+            {
+              "id": "event-1",
+              "amount": 100,
+              "signature": "valid",
+              "at": 1000
+            },
+            {
+              "id": "event-1",
+              "amount": 100,
+              "signature": "valid",
+              "at": 1000
+            },
+            {
+              "id": "event-1",
+              "amount": 100,
+              "signature": "valid",
+              "at": 1000
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "statuses": [
+              200,
+              200,
+              200
+            ],
+            "balance": 700
+          },
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":700,\"accepted\":[{\"id\":\"event-1\",\"amount\":100},{\"id\":\"event-1\",\"amount\":100},{\"id\":\"event-1\",\"amount\":100}]}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "statuses": [
+              200,
+              409,
+              409
+            ],
+            "balance": 900
+          },
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":900,\"accepted\":[{\"id\":\"event-1\",\"amount\":100}]}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "reused signed identifier with changed amount",
+        "kind": "attack",
+        "input": {
+          "actions": [
+            {
+              "id": "event-1",
+              "amount": 100,
+              "signature": "valid",
+              "at": 1000
+            },
+            {
+              "id": "event-1",
+              "amount": 150,
+              "signature": "valid",
+              "at": 1001
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "statuses": [
+              200,
+              200
+            ],
+            "balance": 750
+          },
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":750,\"accepted\":[{\"id\":\"event-1\",\"amount\":100},{\"id\":\"event-1\",\"amount\":150}]}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "statuses": [
+              200,
+              409
+            ],
+            "balance": 900
+          },
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":900,\"accepted\":[{\"id\":\"event-1\",\"amount\":100}]}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "invalid signed identifier",
+        "kind": "robustness",
+        "input": {
+          "actions": [
+            {
+              "id": "BAD ID",
+              "amount": 100,
+              "signature": "valid",
+              "at": 1000
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "statuses": [
+              400
+            ],
+            "balance": 1000
+          },
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":1000,\"accepted\":[]}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "statuses": [
+              400
+            ],
+            "balance": 1000
+          },
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":1000,\"accepted\":[]}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "boolean signed amount",
+        "kind": "robustness",
+        "input": {
+          "actions": [
+            {
+              "id": "event-1",
+              "amount": true,
+              "signature": "valid",
+              "at": 1000
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "statuses": [
+              400
+            ],
+            "balance": 1000
+          },
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":1000,\"accepted\":[]}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "statuses": [
+              400
+            ],
+            "balance": 1000
+          },
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":1000,\"accepted\":[]}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "missing signed amount",
+        "kind": "robustness",
+        "input": {
+          "actions": [
+            {
+              "id": "event-1",
+              "signature": "valid",
+              "at": 1000
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "statuses": [
+              400
+            ],
+            "balance": 1000
+          },
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":1000,\"accepted\":[]}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "statuses": [
+              400
+            ],
+            "balance": 1000
+          },
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":1000,\"accepted\":[]}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "empty actions",
+        "kind": "robustness",
+        "input": {
+          "actions": []
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "ledger.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "ledger.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "non-object request",
+        "kind": "robustness",
+        "input": [],
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "ledger.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "ledger.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "unknown signature mode",
+        "kind": "robustness",
+        "input": {
+          "actions": [
+            {
+              "id": "event-1",
+              "amount": 100,
+              "signature": "unknown",
+              "at": 1000
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "ledger.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "ledger.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "backwards clock",
+        "kind": "robustness",
+        "input": {
+          "actions": [
+            {
+              "id": "event-1",
+              "amount": 100,
+              "signature": "valid",
+              "at": 1001
+            },
+            {
+              "id": "event-1",
+              "amount": 100,
+              "signature": "valid",
+              "at": 1000
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "ledger.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "ledger.json",
+              "type": "absent"
+            }
+          ]
+        }
+      }
+    ],
+    "vulnerable": "labs/python/signed-action-replay/vulnerable/main.py",
+    "fixed": "labs/python/signed-action-replay/fixed/main.py"
+  },
+  {
+    "id": "node/signed-action-replay",
+    "language": "node",
+    "cwe": [
+      "CWE-294"
+    ],
+    "owasp": [
+      "A07:2025"
+    ],
+    "scope": "executable",
+    "description": "A processor verifies a full HMAC and expiry but accepts the same signed action repeatedly. Capturing and replaying identical authenticated bytes causes repeated debits, recorded in an actual ledger snapshot.",
+    "remediation": "Track successfully consumed signed identifiers and reject reuse before a second debit. Authenticate and validate first; failed or unaffordable actions must not burn their identifiers. The correction is scoped to one sequential processor instance. Production restart and multi-worker guarantees require a durable unique constraint and an atomic transaction; those are not implemented by this local model.",
+    "references": [
+      {
+        "title": "MITRE CWE-294",
+        "url": "https://cwe.mitre.org/data/definitions/294.html"
+      }
+    ],
+    "tests": [
+      {
+        "name": "single signed action",
+        "kind": "benign",
+        "input": "{\"actions\":[{\"id\":\"event-1\",\"amount\":100,\"signature\":\"valid\",\"at\":1000}]}",
+        "vulnerable": {
+          "equals": "{\"statuses\":[200],\"balance\":900}",
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":900,\"accepted\":[{\"id\":\"event-1\",\"amount\":100}]}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"statuses\":[200],\"balance\":900}",
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":900,\"accepted\":[{\"id\":\"event-1\",\"amount\":100}]}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "distinct action identifiers",
+        "kind": "benign",
+        "input": "{\"actions\":[{\"id\":\"event-1\",\"amount\":100,\"signature\":\"valid\",\"at\":1000},{\"id\":\"event-2\",\"amount\":150,\"signature\":\"valid\",\"at\":1001}]}",
+        "vulnerable": {
+          "equals": "{\"statuses\":[200,200],\"balance\":750}",
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":750,\"accepted\":[{\"id\":\"event-1\",\"amount\":100},{\"id\":\"event-2\",\"amount\":150}]}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"statuses\":[200,200],\"balance\":750}",
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":750,\"accepted\":[{\"id\":\"event-1\",\"amount\":100},{\"id\":\"event-2\",\"amount\":150}]}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "last valid instant",
+        "kind": "benign",
+        "input": "{\"actions\":[{\"id\":\"event-1\",\"amount\":100,\"signature\":\"valid\",\"at\":1059}]}",
+        "vulnerable": {
+          "equals": "{\"statuses\":[200],\"balance\":900}",
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":900,\"accepted\":[{\"id\":\"event-1\",\"amount\":100}]}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"statuses\":[200],\"balance\":900}",
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":900,\"accepted\":[{\"id\":\"event-1\",\"amount\":100}]}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "forged then genuine proof",
+        "kind": "benign",
+        "input": "{\"actions\":[{\"id\":\"event-1\",\"amount\":100,\"signature\":\"forged\",\"at\":1000},{\"id\":\"event-1\",\"amount\":100,\"signature\":\"valid\",\"at\":1001}]}",
+        "vulnerable": {
+          "equals": "{\"statuses\":[401,200],\"balance\":900}",
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":900,\"accepted\":[{\"id\":\"event-1\",\"amount\":100}]}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"statuses\":[401,200],\"balance\":900}",
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":900,\"accepted\":[{\"id\":\"event-1\",\"amount\":100}]}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "expired proof",
+        "kind": "benign",
+        "input": "{\"actions\":[{\"id\":\"event-1\",\"amount\":100,\"signature\":\"valid\",\"at\":1061}]}",
+        "vulnerable": {
+          "equals": "{\"statuses\":[401],\"balance\":1000}",
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":1000,\"accepted\":[]}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"statuses\":[401],\"balance\":1000}",
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":1000,\"accepted\":[]}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "exact expiry boundary",
+        "kind": "benign",
+        "input": "{\"actions\":[{\"id\":\"event-1\",\"amount\":100,\"signature\":\"valid\",\"at\":1060}]}",
+        "vulnerable": {
+          "equals": "{\"statuses\":[401],\"balance\":1000}",
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":1000,\"accepted\":[]}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"statuses\":[401],\"balance\":1000}",
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":1000,\"accepted\":[]}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "insufficient balance",
+        "kind": "benign",
+        "input": "{\"actions\":[{\"id\":\"event-1\",\"amount\":500,\"signature\":\"valid\",\"at\":1000},{\"id\":\"event-2\",\"amount\":500,\"signature\":\"valid\",\"at\":1000},{\"id\":\"event-3\",\"amount\":1,\"signature\":\"valid\",\"at\":1000}]}",
+        "vulnerable": {
+          "equals": "{\"statuses\":[200,200,402],\"balance\":0}",
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":0,\"accepted\":[{\"id\":\"event-1\",\"amount\":500},{\"id\":\"event-2\",\"amount\":500}]}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"statuses\":[200,200,402],\"balance\":0}",
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":0,\"accepted\":[{\"id\":\"event-1\",\"amount\":500},{\"id\":\"event-2\",\"amount\":500}]}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "identical proof twice",
+        "kind": "attack",
+        "input": "{\"actions\":[{\"id\":\"event-1\",\"amount\":100,\"signature\":\"valid\",\"at\":1000},{\"id\":\"event-1\",\"amount\":100,\"signature\":\"valid\",\"at\":1001}]}",
+        "vulnerable": {
+          "equals": "{\"statuses\":[200,200],\"balance\":800}",
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":800,\"accepted\":[{\"id\":\"event-1\",\"amount\":100},{\"id\":\"event-1\",\"amount\":100}]}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"statuses\":[200,409],\"balance\":900}",
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":900,\"accepted\":[{\"id\":\"event-1\",\"amount\":100}]}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "three deliveries of one action",
+        "kind": "attack",
+        "input": "{\"actions\":[{\"id\":\"event-1\",\"amount\":100,\"signature\":\"valid\",\"at\":1000},{\"id\":\"event-1\",\"amount\":100,\"signature\":\"valid\",\"at\":1000},{\"id\":\"event-1\",\"amount\":100,\"signature\":\"valid\",\"at\":1000}]}",
+        "vulnerable": {
+          "equals": "{\"statuses\":[200,200,200],\"balance\":700}",
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":700,\"accepted\":[{\"id\":\"event-1\",\"amount\":100},{\"id\":\"event-1\",\"amount\":100},{\"id\":\"event-1\",\"amount\":100}]}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"statuses\":[200,409,409],\"balance\":900}",
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":900,\"accepted\":[{\"id\":\"event-1\",\"amount\":100}]}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "reused signed identifier with changed amount",
+        "kind": "attack",
+        "input": "{\"actions\":[{\"id\":\"event-1\",\"amount\":100,\"signature\":\"valid\",\"at\":1000},{\"id\":\"event-1\",\"amount\":150,\"signature\":\"valid\",\"at\":1001}]}",
+        "vulnerable": {
+          "equals": "{\"statuses\":[200,200],\"balance\":750}",
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":750,\"accepted\":[{\"id\":\"event-1\",\"amount\":100},{\"id\":\"event-1\",\"amount\":150}]}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"statuses\":[200,409],\"balance\":900}",
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":900,\"accepted\":[{\"id\":\"event-1\",\"amount\":100}]}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "invalid signed identifier",
+        "kind": "robustness",
+        "input": "{\"actions\":[{\"id\":\"BAD ID\",\"amount\":100,\"signature\":\"valid\",\"at\":1000}]}",
+        "vulnerable": {
+          "equals": "{\"statuses\":[400],\"balance\":1000}",
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":1000,\"accepted\":[]}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"statuses\":[400],\"balance\":1000}",
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":1000,\"accepted\":[]}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "boolean signed amount",
+        "kind": "robustness",
+        "input": "{\"actions\":[{\"id\":\"event-1\",\"amount\":true,\"signature\":\"valid\",\"at\":1000}]}",
+        "vulnerable": {
+          "equals": "{\"statuses\":[400],\"balance\":1000}",
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":1000,\"accepted\":[]}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"statuses\":[400],\"balance\":1000}",
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":1000,\"accepted\":[]}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "missing signed amount",
+        "kind": "robustness",
+        "input": "{\"actions\":[{\"id\":\"event-1\",\"signature\":\"valid\",\"at\":1000}]}",
+        "vulnerable": {
+          "equals": "{\"statuses\":[400],\"balance\":1000}",
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":1000,\"accepted\":[]}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"statuses\":[400],\"balance\":1000}",
+          "files": [
+            {
+              "path": "ledger.json",
+              "content": "{\"balance\":1000,\"accepted\":[]}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "empty actions",
+        "kind": "robustness",
+        "input": "{\"actions\":[]}",
+        "vulnerable": {
+          "equals": "{\"status\":400}",
+          "files": [
+            {
+              "path": "ledger.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":400}",
+          "files": [
+            {
+              "path": "ledger.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "non-object request",
+        "kind": "robustness",
+        "input": "[]",
+        "vulnerable": {
+          "equals": "{\"status\":400}",
+          "files": [
+            {
+              "path": "ledger.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":400}",
+          "files": [
+            {
+              "path": "ledger.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "unknown signature mode",
+        "kind": "robustness",
+        "input": "{\"actions\":[{\"id\":\"event-1\",\"amount\":100,\"signature\":\"unknown\",\"at\":1000}]}",
+        "vulnerable": {
+          "equals": "{\"status\":400}",
+          "files": [
+            {
+              "path": "ledger.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":400}",
+          "files": [
+            {
+              "path": "ledger.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "backwards clock",
+        "kind": "robustness",
+        "input": "{\"actions\":[{\"id\":\"event-1\",\"amount\":100,\"signature\":\"valid\",\"at\":1001},{\"id\":\"event-1\",\"amount\":100,\"signature\":\"valid\",\"at\":1000}]}",
+        "vulnerable": {
+          "equals": "{\"status\":400}",
+          "files": [
+            {
+              "path": "ledger.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": "{\"status\":400}",
+          "files": [
+            {
+              "path": "ledger.json",
+              "type": "absent"
+            }
+          ]
+        }
+      }
+    ],
+    "vulnerable": "labs/node/signed-action-replay/vulnerable/main.js",
+    "fixed": "labs/node/signed-action-replay/fixed/main.js"
   }
 ]

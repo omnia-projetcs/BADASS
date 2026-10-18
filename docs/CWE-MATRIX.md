@@ -2,7 +2,7 @@
 
 Source: MITRE CWE **4.20**. All **1450** entries from the imported snapshot are included.
 
-**66 implemented weaknesses**, **903 gaps**, **481 category/view entries**.
+**70 implemented weaknesses**, **899 gaps**, **481 category/view entries**.
 
 `implemented` means source pairs and vectors exist, not that a scanner detected them or a runtime was available.
 Test results are tracked separately. `gap` is an unimplemented weakness. `taxonomy-only` is a category or view.
@@ -198,7 +198,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-184 | Incomplete List of Disallowed Inputs | weakness | Draft | gap |  |
 | CWE-185 | Incorrect Regular Expression | weakness | Draft | gap |  |
 | CWE-186 | Overly Restrictive Regular Expression | weakness | Draft | gap |  |
-| CWE-187 | Partial String Comparison | weakness | Incomplete | gap |  |
+| CWE-187 | Partial String Comparison | weakness | Incomplete | implemented | [python/partial-signature](../labs/python/partial-signature/README.md), [node/partial-signature](../labs/node/partial-signature/README.md) |
 | CWE-188 | Reliance on Data/Memory Layout | weakness | Draft | gap |  |
 | CWE-189 | Numeric Errors | category | Draft | taxonomy-only |  |
 | CWE-190 | Integer Overflow or Wraparound | weakness | Stable | implemented | [rust/integer-overflow](../labs/rust/integer-overflow/README.md), [c/integer-overflow](../labs/c/integer-overflow/README.md), [cpp/integer-overflow](../labs/cpp/integer-overflow/README.md) |
@@ -305,7 +305,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-291 | Reliance on IP Address for Authentication | weakness | Incomplete | gap |  |
 | CWE-292 | DEPRECATED: Trusting Self-reported DNS Name | weakness | Deprecated | gap |  |
 | CWE-293 | Using Referer Field for Authentication | weakness | Draft | gap |  |
-| CWE-294 | Authentication Bypass by Capture-replay | weakness | Incomplete | gap |  |
+| CWE-294 | Authentication Bypass by Capture-replay | weakness | Incomplete | implemented | [python/signed-action-replay](../labs/python/signed-action-replay/README.md), [node/signed-action-replay](../labs/node/signed-action-replay/README.md) |
 | CWE-295 | Improper Certificate Validation | weakness | Draft | implemented | [python/tls-verification](../labs/python/tls-verification/README.md) |
 | CWE-296 | Improper Following of a Certificate's Chain of Trust | weakness | Draft | gap |  |
 | CWE-297 | Improper Validation of Certificate with Host Mismatch | weakness | Incomplete | gap |  |
@@ -613,7 +613,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-599 | Missing Validation of OpenSSL Certificate | weakness | Incomplete | gap |  |
 | CWE-600 | Uncaught Exception in Servlet | weakness | Draft | gap |  |
 | CWE-601 | URL Redirection to Untrusted Site ('Open Redirect') | weakness | Draft | implemented | [python/open-redirect](../labs/python/open-redirect/README.md), [cgi/open-redirect](../labs/cgi/open-redirect/README.md), [rest-api/open-redirect](../labs/rest-api/open-redirect/README.md), [ai/open-redirect](../labs/ai/open-redirect/README.md), [c/open-redirect](../labs/c/open-redirect/README.md), [cpp/open-redirect](../labs/cpp/open-redirect/README.md), [node/open-redirect](../labs/node/open-redirect/README.md), [typescript/open-redirect](../labs/typescript/open-redirect/README.md), [php/open-redirect](../labs/php/open-redirect/README.md), [ruby/open-redirect](../labs/ruby/open-redirect/README.md), [go/open-redirect](../labs/go/open-redirect/README.md), [java/open-redirect](../labs/java/open-redirect/README.md), [dotnet/open-redirect](../labs/dotnet/open-redirect/README.md), [rust/open-redirect](../labs/rust/open-redirect/README.md) |
-| CWE-602 | Client-Side Enforcement of Server-Side Security | weakness | Draft | gap |  |
+| CWE-602 | Client-Side Enforcement of Server-Side Security | weakness | Draft | implemented | [python/client-price](../labs/python/client-price/README.md), [node/client-price](../labs/node/client-price/README.md) |
 | CWE-603 | Use of Client-Side Authentication | weakness | Draft | gap |  |
 | CWE-604 | Deprecated Entries | view | Draft | taxonomy-only |  |
 | CWE-605 | Multiple Binds to the Same Port | weakness | Draft | gap |  |
@@ -636,7 +636,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-622 | Improper Validation of Function Hook Arguments | weakness | Draft | gap |  |
 | CWE-623 | Unsafe ActiveX Control Marked Safe For Scripting | weakness | Draft | gap |  |
 | CWE-624 | Executable Regular Expression Error | weakness | Incomplete | gap |  |
-| CWE-625 | Permissive Regular Expression | weakness | Draft | gap |  |
+| CWE-625 | Permissive Regular Expression | weakness | Draft | implemented | [python/regex-origin](../labs/python/regex-origin/README.md), [node/regex-origin](../labs/node/regex-origin/README.md) |
 | CWE-626 | Null Byte Interaction Error (Poison Null Byte) | weakness | Draft | gap |  |
 | CWE-627 | Dynamic Variable Evaluation | weakness | Incomplete | gap |  |
 | CWE-628 | Function Call with Incorrectly Specified Arguments | weakness | Draft | gap |  |

@@ -5,9 +5,9 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg?logo=docker&logoColor=white)](Dockerfile)
-[![Benchmark Cases](https://img.shields.io/badge/Cases-306%20pairs-brightgreen.svg)](catalog/cases.json)
+[![Benchmark Cases](https://img.shields.io/badge/Cases-314%20pairs-brightgreen.svg)](catalog/cases.json)
 [![Technologies](https://img.shields.io/badge/Technologies-14%20stacks-informational.svg)](docs/TECHNOLOGY-MATRIX.md)
-[![CWE Weaknesses](https://img.shields.io/badge/CWE-66%20weaknesses-orange.svg)](docs/CWE-MATRIX.md)
+[![CWE Weaknesses](https://img.shields.io/badge/CWE-70%20weaknesses-orange.svg)](docs/CWE-MATRIX.md)
 [![OWASP Coverage](https://img.shields.io/badge/OWASP-30%20categories-red.svg)](docs/OWASP-MATRIX.md)
 [![Benchmark Methodology](https://img.shields.io/badge/Benchmark-Methodology-blueviolet.svg)](docs/BENCHMARK.md)
 
@@ -18,10 +18,24 @@ REST APIs, CGI handlers and AI-assisted audit workflows. Each case includes deli
 code, a corrected counterpart, benign inputs, attack inputs and machine-readable expectations.
 Functional and robustness vectors also check useful operations and malformed input.
 
-**306 case pairs · 14 technology sections · 66 distinct CWE weaknesses · 30 OWASP categories represented**
+**314 case pairs · 14 technology sections · 70 distinct CWE weaknesses · 30 OWASP categories represented**
 
 This is a local laboratory containing intentional vulnerabilities. Use synthetic data and the isolated
 container workflow. No service is exposed publicly, and no real credentials or external model calls are required.
+
+## Catalog statistics
+
+| Metric | Count |
+|---|---:|
+| Case pairs | 314 |
+| Vulnerable and corrected variants | 628 |
+| Distinct CWE weaknesses | 70 |
+| Technology sections | 14 |
+| Regression vectors | 1573 |
+| Declared variant/vector checks | 3146 |
+
+Each vector has expectations for both variants. These are catalog counts, not passed-test totals;
+execution evidence is recorded separately in regression reports.
 
 ## Quick start
 
@@ -89,9 +103,9 @@ and scope limits appear in each case README.
 
 ## General security boundaries
 
-These Python examples include vulnerable and corrected implementations, executable vectors
+These Python and Node.js examples include vulnerable and corrected implementations, executable vectors
 and tests that inspect actual process results, file contents or committed database state.
-They use the standard library and synthetic local data.
+They use standard libraries and synthetic local data.
 
 | Case | CWE | Observable effect |
 |---|---|---|
@@ -104,15 +118,20 @@ They use the standard library and synthetic local data.
 | [Webhook signature](labs/python/webhook-signature/README.md) | CWE-347 | An unauthenticated event marks an invoice as paid. |
 | [Decompression amplification](labs/python/decompression-amplification/README.md) | CWE-409 | Small compressed input exceeds the expanded-data budget. |
 | [Session expiration](labs/python/session-expiration/README.md) | CWE-613 | Expired or revoked sessions still retrieve private data. |
+| Partial HMAC comparison ([Python](labs/python/partial-signature/README.md), [Node.js](labs/node/partial-signature/README.md)) | CWE-187 | Empty or truncated tags authenticate a message. |
+| Client-controlled price ([Python](labs/python/client-price/README.md), [Node.js](labs/node/client-price/README.md)) | CWE-602 | A modified client price creates an underpriced receipt. |
+| Permissive origin regex ([Python](labs/python/regex-origin/README.md), [Node.js](labs/node/regex-origin/README.md)) | CWE-625 | Unescaped dots admit unrelated origins to credentialed responses. |
+| Signed action replay ([Python](labs/python/signed-action-replay/README.md), [Node.js](labs/node/signed-action-replay/README.md)) | CWE-294 | A captured signed action applies the same debit repeatedly. |
 
-Run the latest three cases and their behavioral tests:
+Run the two newest families in both languages and their behavioral tests:
 
 ```sh
-python3 tools/lab.py test --case python/webhook-signature --strict
-python3 tools/lab.py test --case python/decompression-amplification --strict
-python3 tools/lab.py test --case python/session-expiration --strict
-python3 -m unittest discover -s tests -p test_delivery_session_boundaries.py -v
+python3 tools/lab.py test --cwe CWE-625 --strict
+python3 tools/lab.py test --cwe CWE-294 --strict
+python3 -m unittest discover -s tests -p test_origin_replay_boundaries.py -v
 ```
+
+These commands require Python 3.11+ and Node.js; the new Node.js cases need no npm packages.
 
 See [general boundary cases, evidence and scope limits](docs/GENERAL-BOUNDARIES.md).
 
@@ -131,22 +150,25 @@ C and C++ also have explicit native memory, format-string and integer-arithmetic
 Counts below come from exact CWE mappings. They describe source pairs and regression vectors;
 execution results remain in the regression reports.
 
-| Technology | Case pairs | Distinct CWE | Shared baseline | Planned targets |
-|---|---:|---:|---:|---:|
-| [C](labs/c/README.md) | 24 | 24 | 16/16 | 24/24 |
-| [C++](labs/cpp/README.md) | 24 | 24 | 16/16 | 24/24 |
-| [Go](labs/go/README.md) | 16 | 16 | 16/16 | 16/16 |
-| [PHP](labs/php/README.md) | 16 | 16 | 16/16 | 16/16 |
-| [REST API (Python handlers)](labs/rest-api/README.md) | 35 | 28 | 16/16 | 16/16 |
-| [Node.js](labs/node/README.md) | 19 | 18 | 16/16 | 16/16 |
-| [Python](labs/python/README.md) | 48 | 43 | 16/16 | 16/16 |
-| [CGI (Python)](labs/cgi/README.md) | 16 | 16 | 16/16 | 16/16 |
-| [.NET / C#](labs/dotnet/README.md) | 16 | 16 | 16/16 | 16/16 |
-| [TypeScript](labs/typescript/README.md) | 17 | 17 | 16/16 | 16/16 |
-| [Java](labs/java/README.md) | 17 | 17 | 16/16 | 16/16 |
-| [Ruby](labs/ruby/README.md) | 16 | 16 | 16/16 | 16/16 |
-| [Rust](labs/rust/README.md) | 17 | 17 | 16/16 | 16/16 |
-| [AI / LLM boundaries](labs/ai/README.md) | 25 | 23 | 16/16 | 16/16 |
+Both technology tables are generated from [the case catalog](catalog/cases.json).
+Regenerate them with `python3 tools/render_docs.py` and check freshness with `--check`.
+
+| Technology | Case pairs | Distinct CWE | Vectors | Declared checks | Shared baseline | Planned targets |
+|---|---:|---:|---:|---:|---:|---:|
+| [C](labs/c/README.md) | 24 | 24 | 122 | 244 | 16/16 | 24/24 |
+| [C++](labs/cpp/README.md) | 24 | 24 | 123 | 246 | 16/16 | 24/24 |
+| [Go](labs/go/README.md) | 16 | 16 | 56 | 112 | 16/16 | 16/16 |
+| [PHP](labs/php/README.md) | 16 | 16 | 53 | 106 | 16/16 | 16/16 |
+| [REST API (Python handlers)](labs/rest-api/README.md) | 35 | 28 | 212 | 424 | 16/16 | 16/16 |
+| [Node.js](labs/node/README.md) | 23 | 22 | 141 | 282 | 16/16 | 16/16 |
+| [Python](labs/python/README.md) | 52 | 47 | 440 | 880 | 16/16 | 16/16 |
+| [CGI (Python)](labs/cgi/README.md) | 16 | 16 | 54 | 108 | 16/16 | 16/16 |
+| [.NET / C#](labs/dotnet/README.md) | 16 | 16 | 56 | 112 | 16/16 | 16/16 |
+| [TypeScript](labs/typescript/README.md) | 17 | 17 | 64 | 128 | 16/16 | 16/16 |
+| [Java](labs/java/README.md) | 17 | 17 | 55 | 110 | 16/16 | 16/16 |
+| [Ruby](labs/ruby/README.md) | 16 | 16 | 53 | 106 | 16/16 | 16/16 |
+| [Rust](labs/rust/README.md) | 17 | 17 | 55 | 110 | 16/16 | 16/16 |
+| [AI / LLM boundaries](labs/ai/README.md) | 25 | 23 | 89 | 178 | 16/16 | 16/16 |
 
 See the [baseline and native targets](docs/CORE-MATRIX.md) and the
 [complete CWE × technology matrix](docs/TECHNOLOGY-MATRIX.md).
@@ -165,8 +187,8 @@ the vulnerable and corrected source files. A case in the table is not a claim of
 | [Go](labs/go/README.md) | 16 | [Cross-site scripting (XSS)](labs/go/xss/README.md) (CWE-79)<br>[Path traversal](labs/go/path-traversal/README.md) (CWE-22)<br>[Command injection](labs/go/command-injection/README.md) (CWE-78)<br>[SQL injection](labs/go/sql-injection/README.md) (CWE-89)<br>[Insecure direct object reference (IDOR)](labs/go/idor/README.md) (CWE-639)<br>[Missing authorization](labs/go/missing-authorization/README.md) (CWE-862)<br>[Hardcoded credentials](labs/go/hardcoded-credentials/README.md) (CWE-798)<br>[Log injection](labs/go/log-injection/README.md) (CWE-117)<br>[Error disclosure](labs/go/error-disclosure/README.md) (CWE-209)<br>[Fail open](labs/go/fail-open/README.md) (CWE-636)<br>[Open redirect](labs/go/open-redirect/README.md) (CWE-601)<br>[Unbounded work](labs/go/unbounded-work/README.md) (CWE-400)<br>[Invalid purchase quantity](labs/go/business-logic/README.md) (CWE-1284)<br>[World readable secret](labs/go/world-readable-secret/README.md) (CWE-732)<br>[HTTP response header injection](labs/go/header-injection/README.md) (CWE-113)<br>[Symlink following](labs/go/symlink-following/README.md) (CWE-59) |
 | [PHP](labs/php/README.md) | 16 | [Cross-site scripting (XSS)](labs/php/xss/README.md) (CWE-79)<br>[Path traversal](labs/php/path-traversal/README.md) (CWE-22)<br>[Command injection](labs/php/command-injection/README.md) (CWE-78)<br>[SQL injection](labs/php/sql-injection/README.md) (CWE-89)<br>[Insecure direct object reference (IDOR)](labs/php/idor/README.md) (CWE-639)<br>[Missing authorization](labs/php/missing-authorization/README.md) (CWE-862)<br>[Hardcoded credentials](labs/php/hardcoded-credentials/README.md) (CWE-798)<br>[Log injection](labs/php/log-injection/README.md) (CWE-117)<br>[Error disclosure](labs/php/error-disclosure/README.md) (CWE-209)<br>[Fail open](labs/php/fail-open/README.md) (CWE-636)<br>[Open redirect](labs/php/open-redirect/README.md) (CWE-601)<br>[Unbounded work](labs/php/unbounded-work/README.md) (CWE-400)<br>[Invalid purchase quantity](labs/php/business-logic/README.md) (CWE-1284)<br>[World readable secret](labs/php/world-readable-secret/README.md) (CWE-732)<br>[HTTP response header injection](labs/php/header-injection/README.md) (CWE-113)<br>[Symlink following](labs/php/symlink-following/README.md) (CWE-59) |
 | [REST API (Python handlers)](labs/rest-api/README.md) | 35 | [Broken object-level authorization (BOLA)](labs/rest-api/bola/README.md) (CWE-639)<br>[Broken authentication](labs/rest-api/broken-authentication/README.md) (CWE-287)<br>[Property authorization](labs/rest-api/property-authorization/README.md) (CWE-915)<br>[Resource consumption](labs/rest-api/resource-consumption/README.md) (CWE-770)<br>[Function authorization](labs/rest-api/function-authorization/README.md) (CWE-862)<br>[Business flow abuse](labs/rest-api/business-flow-abuse/README.md) (CWE-799)<br>[Server-side request forgery (SSRF)](labs/rest-api/ssrf/README.md) (CWE-918)<br>[Credentialed CORS misconfiguration](labs/rest-api/cors-misconfiguration/README.md) (CWE-942)<br>[Legacy endpoint](labs/rest-api/legacy-endpoint/README.md) (CWE-489)<br>[Unsafe upstream data](labs/rest-api/unsafe-upstream-data/README.md) (CWE-20)<br>[SQL injection](labs/rest-api/sql-injection/README.md) (CWE-89)<br>[Hardcoded credentials](labs/rest-api/hardcoded-credentials/README.md) (CWE-798)<br>[Log injection](labs/rest-api/log-injection/README.md) (CWE-117)<br>[Error disclosure](labs/rest-api/error-disclosure/README.md) (CWE-209)<br>[Fail open](labs/rest-api/fail-open/README.md) (CWE-636)<br>[Open redirect](labs/rest-api/open-redirect/README.md) (CWE-601)<br>[Unbounded work](labs/rest-api/unbounded-work/README.md) (CWE-400)<br>[Invalid purchase quantity](labs/rest-api/business-logic/README.md) (CWE-1284)<br>[World readable secret](labs/rest-api/world-readable-secret/README.md) (CWE-732)<br>[HTTP response header injection](labs/rest-api/header-injection/README.md) (CWE-113)<br>[Symlink following](labs/rest-api/symlink-following/README.md) (CWE-59)<br>[Cross-site scripting (XSS)](labs/rest-api/xss/README.md) (CWE-79)<br>[Path traversal](labs/rest-api/path-traversal/README.md) (CWE-22)<br>[Command injection](labs/rest-api/command-injection/README.md) (CWE-78)<br>[Multi tenant authorization](labs/rest-api/multi-tenant-authorization/README.md) (CWE-863)<br>[Order workflow](labs/rest-api/order-workflow/README.md) (CWE-841)<br>[SSRF through an HTTP redirect](labs/rest-api/ssrf-redirect/README.md) (CWE-918)<br>[Concurrent duplicate shipment](labs/rest-api/order-concurrency/README.md) (CWE-362)<br>[Tenant cache](labs/rest-api/tenant-cache/README.md) (CWE-488)<br>[Tenant admin scope](labs/rest-api/tenant-admin-scope/README.md) (CWE-863)<br>[Tenant export worker](labs/rest-api/tenant-export-worker/README.md) (CWE-863)<br>[Tenant bulk update](labs/rest-api/tenant-bulk-update/README.md) (CWE-863)<br>[Tenant signed download](labs/rest-api/tenant-signed-download/README.md) (CWE-863)<br>[Tenant session switch](labs/rest-api/tenant-session-switch/README.md) (CWE-863)<br>[Tenant storage prefix](labs/rest-api/tenant-storage-prefix/README.md) (CWE-22) |
-| [Node.js](labs/node/README.md) | 19 | [Cross-site scripting (XSS)](labs/node/xss/README.md) (CWE-79)<br>[Path traversal](labs/node/path-traversal/README.md) (CWE-22)<br>[Command injection](labs/node/command-injection/README.md) (CWE-78)<br>[Prototype pollution](labs/node/prototype-pollution/README.md) (CWE-1321)<br>[SQL injection](labs/node/sql-injection/README.md) (CWE-89)<br>[Insecure direct object reference (IDOR)](labs/node/idor/README.md) (CWE-639)<br>[Missing authorization](labs/node/missing-authorization/README.md) (CWE-862)<br>[Hardcoded credentials](labs/node/hardcoded-credentials/README.md) (CWE-798)<br>[Log injection](labs/node/log-injection/README.md) (CWE-117)<br>[Error disclosure](labs/node/error-disclosure/README.md) (CWE-209)<br>[Fail open](labs/node/fail-open/README.md) (CWE-636)<br>[Open redirect](labs/node/open-redirect/README.md) (CWE-601)<br>[Unbounded work](labs/node/unbounded-work/README.md) (CWE-400)<br>[Invalid purchase quantity](labs/node/business-logic/README.md) (CWE-1284)<br>[World readable secret](labs/node/world-readable-secret/README.md) (CWE-732)<br>[HTTP response header injection](labs/node/header-injection/README.md) (CWE-113)<br>[Symlink following](labs/node/symlink-following/README.md) (CWE-59)<br>[Vulnerable dependency](labs/node/vulnerable-dependency/README.md) (CWE-1395)<br>[Vulnerable transitive dependency](labs/node/vulnerable-transitive-dependency/README.md) (CWE-1395) |
-| [Python](labs/python/README.md) | 48 | [Cross-site scripting (XSS)](labs/python/xss/README.md) (CWE-79)<br>[Path traversal](labs/python/path-traversal/README.md) (CWE-22)<br>[Command injection](labs/python/command-injection/README.md) (CWE-78)<br>[SQL injection](labs/python/sql-injection/README.md) (CWE-89)<br>[Code injection](labs/python/code-injection/README.md) (CWE-95)<br>[Unsafe deserialization](labs/python/unsafe-deserialization/README.md) (CWE-502)<br>[Insecure direct object reference (IDOR)](labs/python/idor/README.md) (CWE-639)<br>[Mass assignment](labs/python/mass-assignment/README.md) (CWE-915)<br>[Cross-site request forgery (CSRF)](labs/python/csrf/README.md) (CWE-352)<br>[Session fixation](labs/python/session-fixation/README.md) (CWE-384)<br>[Weak password hash](labs/python/weak-password-hash/README.md) (CWE-916)<br>[Hardcoded credentials](labs/python/hardcoded-credentials/README.md) (CWE-798)<br>[Predictable token](labs/python/predictable-token/README.md) (CWE-330)<br>[Log injection](labs/python/log-injection/README.md) (CWE-117)<br>[Sensitive logging](labs/python/sensitive-logging/README.md) (CWE-532)<br>[Error disclosure](labs/python/error-disclosure/README.md) (CWE-209)<br>[Fail open](labs/python/fail-open/README.md) (CWE-636)<br>[Unverified update](labs/python/unverified-update/README.md) (CWE-494)<br>[Untrusted plugin](labs/python/untrusted-plugin/README.md) (CWE-829)<br>[Open redirect](labs/python/open-redirect/README.md) (CWE-601)<br>[Unbounded work](labs/python/unbounded-work/README.md) (CWE-400)<br>[Invalid purchase quantity](labs/python/business-logic/README.md) (CWE-1284)<br>[World readable secret](labs/python/world-readable-secret/README.md) (CWE-732)<br>[Disabled TLS verification](labs/python/tls-verification/README.md) (CWE-295)<br>[Missing security audit events](labs/python/missing-audit/README.md) (CWE-778)<br>[Missing authorization](labs/python/missing-authorization/README.md) (CWE-862)<br>[HTTP response header injection](labs/python/header-injection/README.md) (CWE-113)<br>[Symlink following](labs/python/symlink-following/README.md) (CWE-59)<br>[SQL injection in an ORDER BY identifier](labs/python/sql-order-by/README.md) (CWE-89)<br>[Second-order SQL injection](labs/python/sql-second-order/README.md) (CWE-89)<br>[XSS in an HTML attribute](labs/python/xss-attribute/README.md) (CWE-79)<br>[Sql login bypass](labs/python/sql-login-bypass/README.md) (CWE-89)<br>[Zip slip](labs/python/zip-slip/README.md) (CWE-22)<br>[Password reset host](labs/python/password-reset-host/README.md) (CWE-346)<br>[Unrestricted upload](labs/python/unrestricted-upload/README.md) (CWE-434)<br>[XML external entities (XXE)](labs/python/xxe/README.md) (CWE-611)<br>[Jwt default key](labs/python/jwt-default-key/README.md) (CWE-321)<br>[Jwt disabled user](labs/python/jwt-disabled-user/README.md) (CWE-863)<br>[Csv formula injection](labs/python/csv-formula-injection/README.md) (CWE-1236)<br>[Argument injection](labs/python/argument-injection/README.md) (CWE-88)<br>[Format string disclosure](labs/python/format-string-disclosure/README.md) (CWE-134)<br>[File create race](labs/python/file-create-race/README.md) (CWE-367)<br>[Json parser conflict](labs/python/json-parser-conflict/README.md) (CWE-436)<br>[Unicode path validation](labs/python/unicode-path-validation/README.md) (CWE-180)<br>[Password reset replay](labs/python/password-reset-replay/README.md) (CWE-640)<br>[Webhook signature](labs/python/webhook-signature/README.md) (CWE-347)<br>[Decompression amplification](labs/python/decompression-amplification/README.md) (CWE-409)<br>[Session expiration](labs/python/session-expiration/README.md) (CWE-613) |
+| [Node.js](labs/node/README.md) | 23 | [Cross-site scripting (XSS)](labs/node/xss/README.md) (CWE-79)<br>[Path traversal](labs/node/path-traversal/README.md) (CWE-22)<br>[Command injection](labs/node/command-injection/README.md) (CWE-78)<br>[Prototype pollution](labs/node/prototype-pollution/README.md) (CWE-1321)<br>[SQL injection](labs/node/sql-injection/README.md) (CWE-89)<br>[Insecure direct object reference (IDOR)](labs/node/idor/README.md) (CWE-639)<br>[Missing authorization](labs/node/missing-authorization/README.md) (CWE-862)<br>[Hardcoded credentials](labs/node/hardcoded-credentials/README.md) (CWE-798)<br>[Log injection](labs/node/log-injection/README.md) (CWE-117)<br>[Error disclosure](labs/node/error-disclosure/README.md) (CWE-209)<br>[Fail open](labs/node/fail-open/README.md) (CWE-636)<br>[Open redirect](labs/node/open-redirect/README.md) (CWE-601)<br>[Unbounded work](labs/node/unbounded-work/README.md) (CWE-400)<br>[Invalid purchase quantity](labs/node/business-logic/README.md) (CWE-1284)<br>[World readable secret](labs/node/world-readable-secret/README.md) (CWE-732)<br>[HTTP response header injection](labs/node/header-injection/README.md) (CWE-113)<br>[Symlink following](labs/node/symlink-following/README.md) (CWE-59)<br>[Vulnerable dependency](labs/node/vulnerable-dependency/README.md) (CWE-1395)<br>[Vulnerable transitive dependency](labs/node/vulnerable-transitive-dependency/README.md) (CWE-1395)<br>[Partial HMAC comparison](labs/node/partial-signature/README.md) (CWE-187)<br>[Client-controlled price](labs/node/client-price/README.md) (CWE-602)<br>[Permissive origin regex](labs/node/regex-origin/README.md) (CWE-625)<br>[Signed action replay](labs/node/signed-action-replay/README.md) (CWE-294) |
+| [Python](labs/python/README.md) | 52 | [Cross-site scripting (XSS)](labs/python/xss/README.md) (CWE-79)<br>[Path traversal](labs/python/path-traversal/README.md) (CWE-22)<br>[Command injection](labs/python/command-injection/README.md) (CWE-78)<br>[SQL injection](labs/python/sql-injection/README.md) (CWE-89)<br>[Code injection](labs/python/code-injection/README.md) (CWE-95)<br>[Unsafe deserialization](labs/python/unsafe-deserialization/README.md) (CWE-502)<br>[Insecure direct object reference (IDOR)](labs/python/idor/README.md) (CWE-639)<br>[Mass assignment](labs/python/mass-assignment/README.md) (CWE-915)<br>[Cross-site request forgery (CSRF)](labs/python/csrf/README.md) (CWE-352)<br>[Session fixation](labs/python/session-fixation/README.md) (CWE-384)<br>[Weak password hash](labs/python/weak-password-hash/README.md) (CWE-916)<br>[Hardcoded credentials](labs/python/hardcoded-credentials/README.md) (CWE-798)<br>[Predictable token](labs/python/predictable-token/README.md) (CWE-330)<br>[Log injection](labs/python/log-injection/README.md) (CWE-117)<br>[Sensitive logging](labs/python/sensitive-logging/README.md) (CWE-532)<br>[Error disclosure](labs/python/error-disclosure/README.md) (CWE-209)<br>[Fail open](labs/python/fail-open/README.md) (CWE-636)<br>[Unverified update](labs/python/unverified-update/README.md) (CWE-494)<br>[Untrusted plugin](labs/python/untrusted-plugin/README.md) (CWE-829)<br>[Open redirect](labs/python/open-redirect/README.md) (CWE-601)<br>[Unbounded work](labs/python/unbounded-work/README.md) (CWE-400)<br>[Invalid purchase quantity](labs/python/business-logic/README.md) (CWE-1284)<br>[World readable secret](labs/python/world-readable-secret/README.md) (CWE-732)<br>[Disabled TLS verification](labs/python/tls-verification/README.md) (CWE-295)<br>[Missing security audit events](labs/python/missing-audit/README.md) (CWE-778)<br>[Missing authorization](labs/python/missing-authorization/README.md) (CWE-862)<br>[HTTP response header injection](labs/python/header-injection/README.md) (CWE-113)<br>[Symlink following](labs/python/symlink-following/README.md) (CWE-59)<br>[SQL injection in an ORDER BY identifier](labs/python/sql-order-by/README.md) (CWE-89)<br>[Second-order SQL injection](labs/python/sql-second-order/README.md) (CWE-89)<br>[XSS in an HTML attribute](labs/python/xss-attribute/README.md) (CWE-79)<br>[Sql login bypass](labs/python/sql-login-bypass/README.md) (CWE-89)<br>[Zip slip](labs/python/zip-slip/README.md) (CWE-22)<br>[Password reset host](labs/python/password-reset-host/README.md) (CWE-346)<br>[Unrestricted upload](labs/python/unrestricted-upload/README.md) (CWE-434)<br>[XML external entities (XXE)](labs/python/xxe/README.md) (CWE-611)<br>[Jwt default key](labs/python/jwt-default-key/README.md) (CWE-321)<br>[Jwt disabled user](labs/python/jwt-disabled-user/README.md) (CWE-863)<br>[Csv formula injection](labs/python/csv-formula-injection/README.md) (CWE-1236)<br>[Argument injection](labs/python/argument-injection/README.md) (CWE-88)<br>[Format string disclosure](labs/python/format-string-disclosure/README.md) (CWE-134)<br>[File create race](labs/python/file-create-race/README.md) (CWE-367)<br>[Json parser conflict](labs/python/json-parser-conflict/README.md) (CWE-436)<br>[Unicode path validation](labs/python/unicode-path-validation/README.md) (CWE-180)<br>[Password reset replay](labs/python/password-reset-replay/README.md) (CWE-640)<br>[Webhook signature](labs/python/webhook-signature/README.md) (CWE-347)<br>[Decompression amplification](labs/python/decompression-amplification/README.md) (CWE-409)<br>[Session expiration](labs/python/session-expiration/README.md) (CWE-613)<br>[Partial HMAC comparison](labs/python/partial-signature/README.md) (CWE-187)<br>[Client-controlled price](labs/python/client-price/README.md) (CWE-602)<br>[Permissive origin regex](labs/python/regex-origin/README.md) (CWE-625)<br>[Signed action replay](labs/python/signed-action-replay/README.md) (CWE-294) |
 | [CGI (Python)](labs/cgi/README.md) | 16 | [Cross-site scripting (XSS)](labs/cgi/xss/README.md) (CWE-79)<br>[HTTP response header injection](labs/cgi/header-injection/README.md) (CWE-113)<br>[SQL injection](labs/cgi/sql-injection/README.md) (CWE-89)<br>[Insecure direct object reference (IDOR)](labs/cgi/idor/README.md) (CWE-639)<br>[Missing authorization](labs/cgi/missing-authorization/README.md) (CWE-862)<br>[Hardcoded credentials](labs/cgi/hardcoded-credentials/README.md) (CWE-798)<br>[Log injection](labs/cgi/log-injection/README.md) (CWE-117)<br>[Error disclosure](labs/cgi/error-disclosure/README.md) (CWE-209)<br>[Fail open](labs/cgi/fail-open/README.md) (CWE-636)<br>[Open redirect](labs/cgi/open-redirect/README.md) (CWE-601)<br>[Unbounded work](labs/cgi/unbounded-work/README.md) (CWE-400)<br>[Invalid purchase quantity](labs/cgi/business-logic/README.md) (CWE-1284)<br>[World readable secret](labs/cgi/world-readable-secret/README.md) (CWE-732)<br>[Symlink following](labs/cgi/symlink-following/README.md) (CWE-59)<br>[Path traversal](labs/cgi/path-traversal/README.md) (CWE-22)<br>[Command injection](labs/cgi/command-injection/README.md) (CWE-78) |
 | [.NET / C#](labs/dotnet/README.md) | 16 | [Cross-site scripting (XSS)](labs/dotnet/xss/README.md) (CWE-79)<br>[Path traversal](labs/dotnet/path-traversal/README.md) (CWE-22)<br>[Command injection](labs/dotnet/command-injection/README.md) (CWE-78)<br>[SQL injection](labs/dotnet/sql-injection/README.md) (CWE-89)<br>[Insecure direct object reference (IDOR)](labs/dotnet/idor/README.md) (CWE-639)<br>[Missing authorization](labs/dotnet/missing-authorization/README.md) (CWE-862)<br>[Hardcoded credentials](labs/dotnet/hardcoded-credentials/README.md) (CWE-798)<br>[Log injection](labs/dotnet/log-injection/README.md) (CWE-117)<br>[Error disclosure](labs/dotnet/error-disclosure/README.md) (CWE-209)<br>[Fail open](labs/dotnet/fail-open/README.md) (CWE-636)<br>[Open redirect](labs/dotnet/open-redirect/README.md) (CWE-601)<br>[Unbounded work](labs/dotnet/unbounded-work/README.md) (CWE-400)<br>[Invalid purchase quantity](labs/dotnet/business-logic/README.md) (CWE-1284)<br>[World readable secret](labs/dotnet/world-readable-secret/README.md) (CWE-732)<br>[HTTP response header injection](labs/dotnet/header-injection/README.md) (CWE-113)<br>[Symlink following](labs/dotnet/symlink-following/README.md) (CWE-59) |
 | [TypeScript](labs/typescript/README.md) | 17 | [Cross-site scripting (XSS)](labs/typescript/xss/README.md) (CWE-79)<br>[Path traversal](labs/typescript/path-traversal/README.md) (CWE-22)<br>[Command injection](labs/typescript/command-injection/README.md) (CWE-78)<br>[Prototype pollution](labs/typescript/prototype-pollution/README.md) (CWE-1321)<br>[SQL injection](labs/typescript/sql-injection/README.md) (CWE-89)<br>[Insecure direct object reference (IDOR)](labs/typescript/idor/README.md) (CWE-639)<br>[Missing authorization](labs/typescript/missing-authorization/README.md) (CWE-862)<br>[Hardcoded credentials](labs/typescript/hardcoded-credentials/README.md) (CWE-798)<br>[Log injection](labs/typescript/log-injection/README.md) (CWE-117)<br>[Error disclosure](labs/typescript/error-disclosure/README.md) (CWE-209)<br>[Fail open](labs/typescript/fail-open/README.md) (CWE-636)<br>[Open redirect](labs/typescript/open-redirect/README.md) (CWE-601)<br>[Unbounded work](labs/typescript/unbounded-work/README.md) (CWE-400)<br>[Invalid purchase quantity](labs/typescript/business-logic/README.md) (CWE-1284)<br>[World readable secret](labs/typescript/world-readable-secret/README.md) (CWE-732)<br>[HTTP response header injection](labs/typescript/header-injection/README.md) (CWE-113)<br>[Symlink following](labs/typescript/symlink-following/README.md) (CWE-59) |
@@ -178,8 +200,8 @@ the vulnerable and corrected source files. A case in the table is not a claim of
 ## What coverage means
 
 The [complete CWE matrix](docs/CWE-MATRIX.md) enumerates all **1450 entries** from MITRE CWE
-**4.20**: **969 weaknesses** plus categories and views. **66 weaknesses** currently
-have direct executable cases; **903 remain explicit gaps**. Categories and views are marked
+**4.20**: **969 weaknesses** plus categories and views. **70 weaknesses** currently
+have direct executable cases; **899 remain explicit gaps**. Categories and views are marked
 `taxonomy-only`. The matrix is exhaustive for this snapshot; the executable corpus is not.
 
 The [OWASP matrix](docs/OWASP-MATRIX.md) tracks all categories in **Web Top 10:2025**,
@@ -241,6 +263,14 @@ python3 tools/ai_evaluate.py observations.json --output reports/ai-evaluation.js
 No real-model resilience result is claimed. Missing observations remain untested. Application boundary
 tests do not prove that an LLM resists prompt injection or jailbreaks.
 
+## Training corpus
+
+The [JSONL training corpus](enrichissement/vulnerabilities.jsonl) includes English detection and repair examples
+for every catalog case, complete repository source documents and unannotated project pairs.
+The [deduplicated training file](enrichissement/vulnerabilities.training.jsonl) contains only `messages` records.
+In the complete corpus, select `record_type: training_example` and `trainable: true` to exclude exact duplicates.
+Training labels come from fixture contracts; inclusion does not certify runtime execution.
+
 ## Repository layout
 
 ```text
@@ -249,6 +279,7 @@ labs/          One section per technology; vulnerable/ and fixed/ source pairs
 tools/         Regression runner, scorer, CWE importer and documentation renderer
 tests/         Regression tests for the benchmark tooling itself
 docs/          Complete CWE matrix, OWASP mappings and evaluation protocols
+enrichissement/ English training dataset (JSONL)
 reports/       Generated execution and scoring reports (ignored by Git)
 ```
 
