@@ -2,6 +2,20 @@
 
 Original project code is covered by [LICENSE](LICENSE).
 
+## Exploit-DB references
+
+The `python/sql-login-bypass` and `python/zip-slip` cases are original educational
+implementations inspired by these public reports:
+
+- Dawid Morawski, Online Food Delivery 2.04 authentication bypass, EDB-41029:
+  https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/php/webapps/41029.txt
+- John Page (hyp3rlinx), eXtplorer 2.1.9 ZIP directory traversal, EDB-39816,
+  CVE-2016-4313:
+  https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/php/webapps/39816.php
+
+No Exploit-DB source code or affected application is vendored. These simplified
+Python models do not claim to reproduce or validate the original products or CVE.
+
 ## Dependency laboratory fixtures
 
 The dependency cases install `lodash.merge` 4.6.1 and 4.6.2 from npm using pinned

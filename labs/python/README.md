@@ -41,3 +41,5 @@ Run commands from the repository root. Cases are independent and use synthetic f
 | [SQL injection in an ORDER BY identifier](sql-order-by/README.md) | CWE-89 | A05:2025 | executable |
 | [Second-order SQL injection](sql-second-order/README.md) | CWE-89 | A05:2025 | executable |
 | [XSS in an HTML attribute](xss-attribute/README.md) | CWE-79 | A05:2025 | executable |
+| [Sql login bypass](sql-login-bypass/README.md) | CWE-89 | A05:2025 | executable |
+| [Zip slip](zip-slip/README.md) | CWE-22 | A01:2025 | executable |

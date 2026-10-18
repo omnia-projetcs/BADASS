@@ -20635,5 +20635,673 @@
         }
       }
     ]
+  },
+  {
+    "id": "python/sql-login-bypass",
+    "language": "python",
+    "cwe": [
+      "CWE-89"
+    ],
+    "owasp": [
+      "A05:2025"
+    ],
+    "database": "sqlite",
+    "description": "SQL concatenation lets a login name remove the password predicate and authenticate as a synthetic administrator. Inspired by EDB-41029; this is an original Python model, not the affected PHP product.",
+    "remediation": "Bind username and password key as SQLite parameters. The in-memory fixture uses known test accounts and a fixed PBKDF2 salt only for deterministic demonstration; it is not a production authentication system.",
+    "scope": "executable",
+    "references": [
+      {
+        "title": "EDB-41029 — Online Food Delivery 2.04 — Authentication Bypass (Dawid Morawski, 2017-01-12)",
+        "url": "https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/php/webapps/41029.txt"
+      }
+    ],
+    "tests": [
+      {
+        "name": "valid administrator",
+        "kind": "benign",
+        "input": {
+          "username": "admin",
+          "password": "LAB_ADMIN_PASSWORD"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "user": "admin",
+            "role": "admin"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "user": "admin",
+            "role": "admin"
+          }
+        }
+      },
+      {
+        "name": "valid reader",
+        "kind": "benign",
+        "input": {
+          "username": "alice",
+          "password": "LAB_ALICE_PASSWORD"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "user": "alice",
+            "role": "reader"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "user": "alice",
+            "role": "reader"
+          }
+        }
+      },
+      {
+        "name": "wrong password",
+        "kind": "benign",
+        "input": {
+          "username": "admin",
+          "password": "wrong"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        }
+      },
+      {
+        "name": "unknown username",
+        "kind": "benign",
+        "input": {
+          "username": "nobody",
+          "password": "wrong"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        }
+      },
+      {
+        "name": "comment removes password check",
+        "kind": "attack",
+        "input": {
+          "username": "admin' -- ",
+          "password": "wrong"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "user": "admin",
+            "role": "admin"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        }
+      },
+      {
+        "name": "tautology bypass",
+        "kind": "attack",
+        "input": {
+          "username": "1' OR 1=1 -- -",
+          "password": "wrong"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "user": "admin",
+            "role": "admin"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        }
+      },
+      {
+        "name": "union fabricates authenticated identity",
+        "kind": "attack",
+        "input": {
+          "username": "nobody' UNION SELECT 'forged', 'admin' -- ",
+          "password": "wrong"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "user": "forged",
+            "role": "admin"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        }
+      },
+      {
+        "name": "literal apostrophe account",
+        "kind": "functional",
+        "input": {
+          "username": "O'Reilly",
+          "password": "LAB_READER_PASSWORD"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid query"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "user": "O'Reilly",
+            "role": "reader"
+          }
+        }
+      },
+      {
+        "name": "missing credentials",
+        "kind": "robustness",
+        "input": {},
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid credentials"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid credentials"
+          }
+        }
+      },
+      {
+        "name": "wrong input type",
+        "kind": "robustness",
+        "input": [],
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid credentials"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid credentials"
+          }
+        }
+      },
+      {
+        "name": "non-string password",
+        "kind": "robustness",
+        "input": {
+          "username": "alice",
+          "password": 42
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid credentials"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid credentials"
+          }
+        }
+      },
+      {
+        "name": "NUL username",
+        "kind": "robustness",
+        "input": {
+          "username": "a\u0000b",
+          "password": "wrong"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid credentials"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid credentials"
+          }
+        }
+      },
+      {
+        "name": "oversized username",
+        "kind": "robustness",
+        "input": {
+          "username": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "password": "wrong"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid credentials"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid credentials"
+          }
+        }
+      }
+    ],
+    "vulnerable": "labs/python/sql-login-bypass/vulnerable/main.py",
+    "fixed": "labs/python/sql-login-bypass/fixed/main.py"
+  },
+  {
+    "id": "python/zip-slip",
+    "language": "python",
+    "cwe": [
+      "CWE-22"
+    ],
+    "owasp": [
+      "A01:2025"
+    ],
+    "description": "An archive member filename escapes the uploads directory during a real ZIP extraction and overwrites a synthetic sibling file. Inspired by EDB-39816 (CVE-2016-4313); original Python code models the extraction defect, not eXtplorer itself.",
+    "remediation": "Validate all member destinations before extraction: reject absolute paths, Windows drives, parent segments, duplicate destinations and resolved symlink escapes. Allow nested relative filenames only within uploads. The fixture builds bounded regular-file ZIP members from JSON and assumes an owned temporary directory without concurrent writers; it does not model arbitrary compressed uploads or extraction races.",
+    "scope": "executable",
+    "references": [
+      {
+        "title": "EDB-39816 — eXtplorer 2.1.9 — ZIP Directory Traversal (hyp3rlinx, 2016-05-16)",
+        "url": "https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/php/webapps/39816.php"
+      }
+    ],
+    "tests": [
+      {
+        "name": "regular file",
+        "kind": "benign",
+        "input": {
+          "members": [
+            {
+              "name": "hello.txt",
+              "content": "HELLO"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "extracted": 1
+          },
+          "files": [
+            {
+              "path": "uploads/hello.txt",
+              "content": "HELLO"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "extracted": 1
+          },
+          "files": [
+            {
+              "path": "uploads/hello.txt",
+              "content": "HELLO"
+            }
+          ]
+        }
+      },
+      {
+        "name": "nested regular file",
+        "kind": "benign",
+        "input": {
+          "members": [
+            {
+              "name": "docs/readme.txt",
+              "content": "GUIDE"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "extracted": 1
+          },
+          "files": [
+            {
+              "path": "uploads/docs/readme.txt",
+              "content": "GUIDE"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "extracted": 1
+          },
+          "files": [
+            {
+              "path": "uploads/docs/readme.txt",
+              "content": "GUIDE"
+            }
+          ]
+        }
+      },
+      {
+        "name": "parent overwrite",
+        "kind": "attack",
+        "input": {
+          "members": [
+            {
+              "name": "../secret.txt",
+              "content": "LAB_OVERWRITTEN"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "extracted": 1
+          },
+          "files": [
+            {
+              "path": "secret.txt",
+              "content": "LAB_OVERWRITTEN"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "unsafe archive path"
+          },
+          "files": [
+            {
+              "path": "secret.txt",
+              "content": "LAB_SECRET"
+            }
+          ]
+        }
+      },
+      {
+        "name": "Windows separator overwrite",
+        "kind": "attack",
+        "input": {
+          "members": [
+            {
+              "name": "..\\secret.txt",
+              "content": "LAB_OVERWRITTEN"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "extracted": 1
+          },
+          "files": [
+            {
+              "path": "secret.txt",
+              "content": "LAB_OVERWRITTEN"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "unsafe archive path"
+          },
+          "files": [
+            {
+              "path": "secret.txt",
+              "content": "LAB_SECRET"
+            }
+          ]
+        }
+      },
+      {
+        "name": "sibling prefix escape",
+        "kind": "attack",
+        "input": {
+          "members": [
+            {
+              "name": "../uploads-other/marker.txt",
+              "content": "MARKER"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "extracted": 1
+          },
+          "files": [
+            {
+              "path": "uploads-other/marker.txt",
+              "content": "MARKER"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "unsafe archive path"
+          },
+          "files": [
+            {
+              "path": "uploads-other/marker.txt",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "validate whole archive before writing",
+        "kind": "attack",
+        "input": {
+          "members": [
+            {
+              "name": "hello.txt",
+              "content": "HELLO"
+            },
+            {
+              "name": "../secret.txt",
+              "content": "LAB_OVERWRITTEN"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "extracted": 2
+          },
+          "files": [
+            {
+              "path": "uploads/hello.txt",
+              "content": "HELLO"
+            },
+            {
+              "path": "secret.txt",
+              "content": "LAB_OVERWRITTEN"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "unsafe archive path"
+          },
+          "files": [
+            {
+              "path": "uploads/hello.txt",
+              "type": "absent"
+            },
+            {
+              "path": "secret.txt",
+              "content": "LAB_SECRET"
+            }
+          ]
+        }
+      },
+      {
+        "name": "wrong input type",
+        "kind": "robustness",
+        "input": [],
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid archive"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid archive"
+          }
+        }
+      },
+      {
+        "name": "empty archive",
+        "kind": "robustness",
+        "input": {
+          "members": []
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid archive"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid archive"
+          }
+        }
+      },
+      {
+        "name": "missing member name",
+        "kind": "robustness",
+        "input": {
+          "members": [
+            {
+              "content": "x"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid archive"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid archive"
+          }
+        }
+      },
+      {
+        "name": "NUL member",
+        "kind": "robustness",
+        "input": {
+          "members": [
+            {
+              "name": "a\u0000b",
+              "content": "x"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid archive"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid archive"
+          }
+        }
+      },
+      {
+        "name": "oversized member",
+        "kind": "robustness",
+        "input": {
+          "members": [
+            {
+              "name": "large.txt",
+              "content": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid archive"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid archive"
+          }
+        }
+      },
+      {
+        "name": "non-string content",
+        "kind": "robustness",
+        "input": {
+          "members": [
+            {
+              "name": "x.txt",
+              "content": 2
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid archive"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid archive"
+          }
+        }
+      }
+    ],
+    "vulnerable": "labs/python/zip-slip/vulnerable/main.py",
+    "fixed": "labs/python/zip-slip/fixed/main.py"
   }
 ]

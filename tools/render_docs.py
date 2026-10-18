@@ -88,6 +88,13 @@ def render():
              '```', '',
              'Prepare these packages before running the Node.js section with the general runner.',
              'See [dependency fixtures, advisory and SCA evaluation](docs/DEPENDENCIES.md).', '',
+             '## Exploit-DB inspired cases', '',
+             'Two original Python fixtures model weaknesses documented in public Exploit-DB entries:',
+             '[SQL login bypass](labs/python/sql-login-bypass/README.md) (EDB-41029) and',
+             '[ZIP extraction traversal](labs/python/zip-slip/README.md) (EDB-39816).',
+             'Each includes a corrected counterpart, synthetic inputs and regression expectations.',
+             'These are teaching models, not reproductions of the affected products. Source references',
+             'and scope limits appear in each case README.', '',
              '## Coverage by technology', '',
              f'The shared baseline targets **{len(core_ids)} weakness families in all {len(LABELS)} sections**.',
              'C and C++ also have explicit native memory, format-string and integer-arithmetic targets.',
@@ -216,6 +223,11 @@ def render():
                     f"Trusted oracle: `{c['oracle']}`. Vector `context` is supplied by the harness outside candidate input.", '']
             for t in c['tests']:
                 detail.append('| ' + ' | '.join(table_cell(x) for x in [t['name'],t['kind'],json.dumps(t['vulnerable'],ensure_ascii=False),json.dumps(t['fixed'],ensure_ascii=False)])+' |')
+            if c.get('references'):
+                detail += ['', '## Inspiration and provenance', '',
+                           'Original benchmark implementation inspired by the documented weakness;',
+                           'no third-party exploit source is copied or executed.', '']
+                detail += [f"- [{ref['title']}]({ref['url']})" for ref in c['references']]
             detail+=['','This example demonstrates the declared weakness within the documented fixture assumptions.',
                      'It is not a production application or a proof that every related attack is prevented.', '',
                      '[Technology index](../README.md) · [Benchmark methodology](../../../docs/BENCHMARK.md)', '']
