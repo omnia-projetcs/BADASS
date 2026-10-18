@@ -43,3 +43,6 @@ Run commands from the repository root. Cases are independent and use synthetic f
 | [XSS in an HTML attribute](xss-attribute/README.md) | CWE-79 | A05:2025 | executable |
 | [Sql login bypass](sql-login-bypass/README.md) | CWE-89 | A05:2025 | executable |
 | [Zip slip](zip-slip/README.md) | CWE-22 | A01:2025 | executable |
+| [Password reset host](password-reset-host/README.md) | CWE-346 | A07:2025 | executable |
+| [Unrestricted upload](unrestricted-upload/README.md) | CWE-434 | A06:2025 | executable |
+| [XML external entities (XXE)](xxe/README.md) | CWE-611 | A02:2025 | executable |

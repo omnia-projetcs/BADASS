@@ -2,7 +2,7 @@
 
 Source: MITRE CWE **4.20**. All **1450** entries from the imported snapshot are included.
 
-**53 implemented weaknesses**, **916 gaps**, **481 category/view entries**.
+**55 implemented weaknesses**, **914 gaps**, **481 category/view entries**.
 
 `implemented` means source pairs and vectors exist, not that a scanner detected them or a runtime was available.
 Test results are tracked separately. `gap` is an unimplemented weakness. `taxonomy-only` is a category or view.
@@ -357,7 +357,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-343 | Predictable Value Range from Previous Values | weakness | Draft | gap |  |
 | CWE-344 | Use of Invariant Value in Dynamically Changing Context | weakness | Draft | gap |  |
 | CWE-345 | Insufficient Verification of Data Authenticity | weakness | Draft | implemented | [ai/unverified-security-claim](../labs/ai/unverified-security-claim/README.md) |
-| CWE-346 | Origin Validation Error | weakness | Draft | gap |  |
+| CWE-346 | Origin Validation Error | weakness | Draft | implemented | [python/password-reset-host](../labs/python/password-reset-host/README.md) |
 | CWE-347 | Improper Verification of Cryptographic Signature | weakness | Draft | gap |  |
 | CWE-348 | Use of Less Trusted Source | weakness | Draft | gap |  |
 | CWE-349 | Acceptance of Extraneous Untrusted Data With Trusted Data | weakness | Draft | gap |  |
@@ -445,7 +445,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-431 | Missing Handler | weakness | Draft | gap |  |
 | CWE-432 | Dangerous Signal Handler not Disabled During Sensitive Operations | weakness | Draft | gap |  |
 | CWE-433 | Unparsed Raw Web Content Delivery | weakness | Incomplete | gap |  |
-| CWE-434 | Unrestricted Upload of File with Dangerous Type | weakness | Draft | gap |  |
+| CWE-434 | Unrestricted Upload of File with Dangerous Type | weakness | Draft | implemented | [python/unrestricted-upload](../labs/python/unrestricted-upload/README.md) |
 | CWE-435 | Improper Interaction Between Multiple Correctly-Behaving Entities | weakness | Draft | gap |  |
 | CWE-436 | Interpretation Conflict | weakness | Incomplete | gap |  |
 | CWE-437 | Incomplete Model of Endpoint Features | weakness | Incomplete | gap |  |
@@ -622,7 +622,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-608 | Struts: Non-private Field in ActionForm Class | weakness | Draft | gap |  |
 | CWE-609 | Double-Checked Locking | weakness | Draft | gap |  |
 | CWE-610 | Externally Controlled Reference to a Resource in Another Sphere | weakness | Draft | gap |  |
-| CWE-611 | Improper Restriction of XML External Entity Reference | weakness | Draft | implemented | [java/xxe](../labs/java/xxe/README.md) |
+| CWE-611 | Improper Restriction of XML External Entity Reference | weakness | Draft | implemented | [java/xxe](../labs/java/xxe/README.md), [python/xxe](../labs/python/xxe/README.md) |
 | CWE-612 | Improper Authorization of Index Containing Sensitive Information | weakness | Draft | gap |  |
 | CWE-613 | Insufficient Session Expiration | weakness | Incomplete | gap |  |
 | CWE-614 | Sensitive Cookie in HTTPS Session Without 'Secure' Attribute | weakness | Draft | gap |  |

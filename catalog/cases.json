@@ -21303,5 +21303,1112 @@
     ],
     "vulnerable": "labs/python/zip-slip/vulnerable/main.py",
     "fixed": "labs/python/zip-slip/fixed/main.py"
+  },
+  {
+    "id": "python/password-reset-host",
+    "language": "python",
+    "cwe": [
+      "CWE-346"
+    ],
+    "owasp": [
+      "A07:2025"
+    ],
+    "description": "A syntactically valid but untrusted Host controls the origin of a password-reset URL. Inspired by EDB-52485 (CVE-2025-25198). The returned object captures a synthetic email artifact; no email is sent and no HTTP server runs.",
+    "remediation": "Build reset URLs from a deployment-owned HTTPS origin, independently of Host or forwarded headers. The constant LAB_RESET_TOKEN is only a deterministic observation marker. Token generation, delivery and redemption are outside this fixture; this is not a reproduction of mailcow.",
+    "scope": "executable",
+    "references": [
+      {
+        "title": "EDB-52485 — mailcow Host Header Password Reset Poisoning — Iam Alvarez",
+        "url": "https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/multiple/webapps/52485.txt"
+      }
+    ],
+    "tests": [
+      {
+        "name": "canonical origin",
+        "kind": "benign",
+        "input": {
+          "host": "accounts.example.test"
+        },
+        "vulnerable": {
+          "equals": {
+            "recipient": "alice@example.test",
+            "reset_url": "https://accounts.example.test/reset-password?token=LAB_RESET_TOKEN"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "recipient": "alice@example.test",
+            "reset_url": "https://accounts.example.test/reset-password?token=LAB_RESET_TOKEN"
+          }
+        }
+      },
+      {
+        "name": "forwarded host cannot override configured origin",
+        "kind": "benign",
+        "input": {
+          "host": "accounts.example.test",
+          "x_forwarded_host": "attacker.example.test"
+        },
+        "vulnerable": {
+          "equals": {
+            "recipient": "alice@example.test",
+            "reset_url": "https://accounts.example.test/reset-password?token=LAB_RESET_TOKEN"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "recipient": "alice@example.test",
+            "reset_url": "https://accounts.example.test/reset-password?token=LAB_RESET_TOKEN"
+          }
+        }
+      },
+      {
+        "name": "foreign host",
+        "kind": "attack",
+        "input": {
+          "host": "attacker.example.test"
+        },
+        "vulnerable": {
+          "equals": {
+            "recipient": "alice@example.test",
+            "reset_url": "https://attacker.example.test/reset-password?token=LAB_RESET_TOKEN"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "recipient": "alice@example.test",
+            "reset_url": "https://accounts.example.test/reset-password?token=LAB_RESET_TOKEN"
+          }
+        }
+      },
+      {
+        "name": "trusted prefix confusion",
+        "kind": "attack",
+        "input": {
+          "host": "accounts.example.test.attacker.test"
+        },
+        "vulnerable": {
+          "equals": {
+            "recipient": "alice@example.test",
+            "reset_url": "https://accounts.example.test.attacker.test/reset-password?token=LAB_RESET_TOKEN"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "recipient": "alice@example.test",
+            "reset_url": "https://accounts.example.test/reset-password?token=LAB_RESET_TOKEN"
+          }
+        }
+      },
+      {
+        "name": "alternate port",
+        "kind": "attack",
+        "input": {
+          "host": "accounts.example.test:8443"
+        },
+        "vulnerable": {
+          "equals": {
+            "recipient": "alice@example.test",
+            "reset_url": "https://accounts.example.test:8443/reset-password?token=LAB_RESET_TOKEN"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "recipient": "alice@example.test",
+            "reset_url": "https://accounts.example.test/reset-password?token=LAB_RESET_TOKEN"
+          }
+        }
+      },
+      {
+        "name": "loopback origin",
+        "kind": "attack",
+        "input": {
+          "host": "127.0.0.1:8080"
+        },
+        "vulnerable": {
+          "equals": {
+            "recipient": "alice@example.test",
+            "reset_url": "https://127.0.0.1:8080/reset-password?token=LAB_RESET_TOKEN"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "recipient": "alice@example.test",
+            "reset_url": "https://accounts.example.test/reset-password?token=LAB_RESET_TOKEN"
+          }
+        }
+      },
+      {
+        "name": "missing host",
+        "kind": "robustness",
+        "input": {},
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid host"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid host"
+          }
+        }
+      },
+      {
+        "name": "non-object request",
+        "kind": "robustness",
+        "input": [],
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid host"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid host"
+          }
+        }
+      },
+      {
+        "name": "non-string host",
+        "kind": "robustness",
+        "input": {
+          "host": 1
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid host"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid host"
+          }
+        }
+      },
+      {
+        "name": "newline host",
+        "kind": "robustness",
+        "input": {
+          "host": "x\r\nInjected: y"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid host"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid host"
+          }
+        }
+      },
+      {
+        "name": "userinfo host",
+        "kind": "robustness",
+        "input": {
+          "host": "trusted.test@attacker.test"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid host"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid host"
+          }
+        }
+      },
+      {
+        "name": "oversized host",
+        "kind": "robustness",
+        "input": {
+          "host": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid host"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid host"
+          }
+        }
+      }
+    ],
+    "vulnerable": "labs/python/password-reset-host/vulnerable/main.py",
+    "fixed": "labs/python/password-reset-host/fixed/main.py"
+  },
+  {
+    "id": "python/unrestricted-upload",
+    "language": "python",
+    "cwe": [
+      "CWE-434"
+    ],
+    "owasp": [
+      "A06:2025"
+    ],
+    "description": "An attachment handler trusts a client-supplied MIME type and writes files with prohibited extensions. Inspired by EDB-45169 (CVE-2017-15580). The file writes are real; executable payloads and downstream execution are not modeled.",
+    "remediation": "Enforce the service policy on the server: permit only .txt/text/plain and .csv/text/csv pairs, validate UTF-8 text and bounded filenames, and create files exclusively. Store attachments in an owned directory without executable handlers and serve them as downloads with fixed MIME types. Filename/MIME validation is not a general malware detector; binary document formats and a web delivery layer are outside this fixture.",
+    "scope": "executable",
+    "references": [
+      {
+        "title": "EDB-45169 — osTicket 1.10.1 Arbitrary File Upload — r3j10r (Rajwinder Singh)",
+        "url": "https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/windows/webapps/45169.txt"
+      }
+    ],
+    "tests": [
+      {
+        "name": "allowed notes.txt",
+        "kind": "benign",
+        "input": {
+          "filename": "notes.txt",
+          "content": "HELLO",
+          "content_type": "text/plain"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 201,
+            "path": "uploads/notes.txt"
+          },
+          "files": [
+            {
+              "path": "uploads/notes.txt",
+              "content": "HELLO"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 201,
+            "path": "uploads/notes.txt"
+          },
+          "files": [
+            {
+              "path": "uploads/notes.txt",
+              "content": "HELLO"
+            }
+          ]
+        }
+      },
+      {
+        "name": "allowed table.csv",
+        "kind": "benign",
+        "input": {
+          "filename": "table.csv",
+          "content": "name,count\nalice,2",
+          "content_type": "text/csv"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 201,
+            "path": "uploads/table.csv"
+          },
+          "files": [
+            {
+              "path": "uploads/table.csv",
+              "content": "name,count\nalice,2"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 201,
+            "path": "uploads/table.csv"
+          },
+          "files": [
+            {
+              "path": "uploads/table.csv",
+              "content": "name,count\nalice,2"
+            }
+          ]
+        }
+      },
+      {
+        "name": "allowed NOTES.TXT",
+        "kind": "benign",
+        "input": {
+          "filename": "NOTES.TXT",
+          "content": "café",
+          "content_type": "text/plain"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 201,
+            "path": "uploads/NOTES.TXT"
+          },
+          "files": [
+            {
+              "path": "uploads/NOTES.TXT",
+              "content": "café"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 201,
+            "path": "uploads/NOTES.TXT"
+          },
+          "files": [
+            {
+              "path": "uploads/NOTES.TXT",
+              "content": "café"
+            }
+          ]
+        }
+      },
+      {
+        "name": "allowed report.v2.txt",
+        "kind": "benign",
+        "input": {
+          "filename": "report.v2.txt",
+          "content": "version 2",
+          "content_type": "text/plain"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 201,
+            "path": "uploads/report.v2.txt"
+          },
+          "files": [
+            {
+              "path": "uploads/report.v2.txt",
+              "content": "version 2"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 201,
+            "path": "uploads/report.v2.txt"
+          },
+          "files": [
+            {
+              "path": "uploads/report.v2.txt",
+              "content": "version 2"
+            }
+          ]
+        }
+      },
+      {
+        "name": "spoofed MIME attachment.exe",
+        "kind": "attack",
+        "input": {
+          "filename": "attachment.exe",
+          "content": "LAB_MARKER",
+          "content_type": "text/plain"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 201,
+            "path": "uploads/attachment.exe"
+          },
+          "files": [
+            {
+              "path": "uploads/attachment.exe",
+              "content": "LAB_MARKER"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 415,
+            "error": "unsupported upload type"
+          },
+          "files": [
+            {
+              "path": "uploads/attachment.exe",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "spoofed MIME report.txt.php",
+        "kind": "attack",
+        "input": {
+          "filename": "report.txt.php",
+          "content": "LAB_MARKER",
+          "content_type": "text/plain"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 201,
+            "path": "uploads/report.txt.php"
+          },
+          "files": [
+            {
+              "path": "uploads/report.txt.php",
+              "content": "LAB_MARKER"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 415,
+            "error": "unsupported upload type"
+          },
+          "files": [
+            {
+              "path": "uploads/report.txt.php",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "spoofed MIME active.html",
+        "kind": "attack",
+        "input": {
+          "filename": "active.html",
+          "content": "LAB_MARKER",
+          "content_type": "text/plain"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 201,
+            "path": "uploads/active.html"
+          },
+          "files": [
+            {
+              "path": "uploads/active.html",
+              "content": "LAB_MARKER"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 415,
+            "error": "unsupported upload type"
+          },
+          "files": [
+            {
+              "path": "uploads/active.html",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "spoofed MIME script.PHP",
+        "kind": "attack",
+        "input": {
+          "filename": "script.PHP",
+          "content": "LAB_MARKER",
+          "content_type": "text/plain"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 201,
+            "path": "uploads/script.PHP"
+          },
+          "files": [
+            {
+              "path": "uploads/script.PHP",
+              "content": "LAB_MARKER"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 415,
+            "error": "unsupported upload type"
+          },
+          "files": [
+            {
+              "path": "uploads/script.PHP",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "mismatched text MIME",
+        "kind": "attack",
+        "input": {
+          "filename": "notes.txt",
+          "content": "LAB_MARKER",
+          "content_type": "text/csv"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 201,
+            "path": "uploads/notes.txt"
+          },
+          "files": [
+            {
+              "path": "uploads/notes.txt",
+              "content": "LAB_MARKER"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 415,
+            "error": "unsupported upload type"
+          },
+          "files": [
+            {
+              "path": "uploads/notes.txt",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "unsupported binary MIME",
+        "kind": "benign",
+        "input": {
+          "filename": "notes.txt",
+          "content": "LAB_MARKER",
+          "content_type": "application/octet-stream"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 415,
+            "error": "unsupported upload type"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 415,
+            "error": "unsupported upload type"
+          }
+        }
+      },
+      {
+        "name": "parent filename",
+        "kind": "robustness",
+        "input": {
+          "filename": "../outside.txt",
+          "content": "LAB_MARKER",
+          "content_type": "text/plain"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid upload"
+          },
+          "files": [
+            {
+              "path": "uploads/notes.txt",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid upload"
+          },
+          "files": [
+            {
+              "path": "uploads/notes.txt",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "Windows filename",
+        "kind": "robustness",
+        "input": {
+          "filename": "..\\outside.txt",
+          "content": "LAB_MARKER",
+          "content_type": "text/plain"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid upload"
+          },
+          "files": [
+            {
+              "path": "uploads/notes.txt",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid upload"
+          },
+          "files": [
+            {
+              "path": "uploads/notes.txt",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "missing fields",
+        "kind": "robustness",
+        "input": {},
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid upload"
+          },
+          "files": [
+            {
+              "path": "uploads/notes.txt",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid upload"
+          },
+          "files": [
+            {
+              "path": "uploads/notes.txt",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "non-object",
+        "kind": "robustness",
+        "input": [],
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid upload"
+          },
+          "files": [
+            {
+              "path": "uploads/notes.txt",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid upload"
+          },
+          "files": [
+            {
+              "path": "uploads/notes.txt",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "binary NUL content",
+        "kind": "robustness",
+        "input": {
+          "filename": "notes.txt",
+          "content": "a\u0000b",
+          "content_type": "text/plain"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid upload"
+          },
+          "files": [
+            {
+              "path": "uploads/notes.txt",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid upload"
+          },
+          "files": [
+            {
+              "path": "uploads/notes.txt",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "non-string content",
+        "kind": "robustness",
+        "input": {
+          "filename": "notes.txt",
+          "content": 42,
+          "content_type": "text/plain"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid upload"
+          },
+          "files": [
+            {
+              "path": "uploads/notes.txt",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid upload"
+          },
+          "files": [
+            {
+              "path": "uploads/notes.txt",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "oversized content",
+        "kind": "robustness",
+        "input": {
+          "filename": "notes.txt",
+          "content": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "content_type": "text/plain"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid upload"
+          },
+          "files": [
+            {
+              "path": "uploads/notes.txt",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid upload"
+          },
+          "files": [
+            {
+              "path": "uploads/notes.txt",
+              "type": "absent"
+            }
+          ]
+        }
+      }
+    ],
+    "vulnerable": "labs/python/unrestricted-upload/vulnerable/main.py",
+    "fixed": "labs/python/unrestricted-upload/fixed/main.py"
+  },
+  {
+    "id": "python/xxe",
+    "language": "python",
+    "cwe": [
+      "CWE-611"
+    ],
+    "owasp": [
+      "A02:2025"
+    ],
+    "description": "A SAX parser expands attacker-declared external entities and includes local file contents in parsed text. Inspired by EDB-43113, the Ladon advisory. This original Python parser fixture reads only synthetic files in regression tests; it is not a Ladon service.",
+    "remediation": "Disable external general entities and reject every DTD via the parser lexical handler before entity resolution. Preserve ordinary XML text, built-in entities and CDATA. A local-file-only resolver bounds the vulnerable demonstration; HTTP entities, SOAP dispatch and resource-exhaustion attacks are outside this fixture.",
+    "scope": "executable",
+    "references": [
+      {
+        "title": "EDB-43113 — Ladon Framework for Python 0.9.40 XML External Entity Expansion — RedTeam Pentesting",
+        "url": "https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/xml/webapps/43113.txt"
+      }
+    ],
+    "tests": [
+      {
+        "name": "plain text",
+        "kind": "benign",
+        "input": "<message>Hello</message>",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "text": "Hello"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "text": "Hello"
+          }
+        }
+      },
+      {
+        "name": "built-in entities",
+        "kind": "benign",
+        "input": "<message>A &amp; B &lt; C</message>",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "text": "A & B < C"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "text": "A & B < C"
+          }
+        }
+      },
+      {
+        "name": "CDATA",
+        "kind": "benign",
+        "input": "<message><![CDATA[<!DOCTYPE is literal text>]]></message>",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "text": "<!DOCTYPE is literal text>"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "text": "<!DOCTYPE is literal text>"
+          }
+        }
+      },
+      {
+        "name": "nested Unicode",
+        "kind": "benign",
+        "input": "<message>Salut <name>Zoé</name> !</message>",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "text": "Salut Zoé !"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "text": "Salut Zoé !"
+          }
+        }
+      },
+      {
+        "name": "XML comment",
+        "kind": "benign",
+        "input": "<message><!-- ignored -->Hello</message>",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "text": "Hello"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "text": "Hello"
+          }
+        }
+      },
+      {
+        "name": "local secret",
+        "kind": "attack",
+        "input": "<!DOCTYPE message [<!ENTITY local SYSTEM \"secret.txt\">]><message>&local;</message>",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "text": "LAB_SECRET"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid XML"
+          }
+        }
+      },
+      {
+        "name": "second local file",
+        "kind": "attack",
+        "input": "<!DOCTYPE message [<!ENTITY local SYSTEM \"private.txt\">]><message>&local;</message>",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "text": "LAB_SECRET"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid XML"
+          }
+        }
+      },
+      {
+        "name": "encoded local filename",
+        "kind": "attack",
+        "input": "<!DOCTYPE message [<!ENTITY local SYSTEM \"%73ecret.txt\">]><message>&local;</message>",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "text": "LAB_SECRET"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid XML"
+          }
+        }
+      },
+      {
+        "name": "internal DTD disallowed",
+        "kind": "functional",
+        "input": "<!DOCTYPE message [<!ENTITY label \"Hello\">]><message>&label;</message>",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "text": "Hello"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid XML"
+          }
+        }
+      },
+      {
+        "name": "non-string input",
+        "kind": "robustness",
+        "input": {},
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid XML"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid XML"
+          }
+        }
+      },
+      {
+        "name": "empty XML",
+        "kind": "robustness",
+        "input": "",
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid XML"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid XML"
+          }
+        }
+      },
+      {
+        "name": "malformed XML",
+        "kind": "robustness",
+        "input": "<message>",
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid XML"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid XML"
+          }
+        }
+      },
+      {
+        "name": "undefined entity",
+        "kind": "robustness",
+        "input": "<message>&unknown;</message>",
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid XML"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid XML"
+          }
+        }
+      },
+      {
+        "name": "oversized XML",
+        "kind": "robustness",
+        "input": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid XML"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid XML"
+          }
+        }
+      },
+      {
+        "name": "missing local file",
+        "kind": "robustness",
+        "input": "<!DOCTYPE message [<!ENTITY x SYSTEM \"missing.txt\">]><message>&x;</message>",
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid XML"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid XML"
+          }
+        }
+      },
+      {
+        "name": "network entity blocked",
+        "kind": "robustness",
+        "input": "<!DOCTYPE message [<!ENTITY x SYSTEM \"https://example.invalid/data\">]><message>&x;</message>",
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid XML"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid XML"
+          }
+        }
+      }
+    ],
+    "vulnerable": "labs/python/xxe/vulnerable/main.py",
+    "fixed": "labs/python/xxe/fixed/main.py"
   }
 ]

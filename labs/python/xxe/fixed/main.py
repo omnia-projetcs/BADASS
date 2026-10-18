@@ -1,7 +1,5 @@
 """Original SAX external-entity model inspired by EDB-43113."""
 from io import StringIO
-from pathlib import Path
-from urllib.parse import unquote, urlsplit
 import xml.sax
 from xml.sax.handler import ContentHandler, EntityResolver, LexicalHandler
 from xml.sax.handler import feature_external_ges, property_lexical_handler
@@ -20,13 +18,9 @@ class TextHandler(ContentHandler, LexicalHandler):
         self.parts.append(text)
 
 
-class LocalEntities(EntityResolver):
+class DenyEntities(EntityResolver):
     def resolveEntity(self, public_id, system_id):
-        uri = urlsplit(system_id)
-        # The teaching fixture deliberately models file disclosure only.
-        if uri.scheme not in {"", "file"} or uri.netloc or uri.query or uri.fragment:
-            raise xml.sax.SAXException("network entities are outside this fixture")
-        return str(Path(unquote(uri.path)).resolve())
+        raise xml.sax.SAXException("external entities are forbidden")
 
 
 def run(document):
@@ -38,7 +32,7 @@ def run(document):
     parser.setFeature(feature_external_ges, False)
     parser.setContentHandler(handler)
     parser.setProperty(property_lexical_handler, handler)
-    parser.setEntityResolver(LocalEntities())
+    parser.setEntityResolver(DenyEntities())
     try:
         parser.parse(StringIO(document))
     except (xml.sax.SAXException, OSError, ValueError, UnicodeError):
