@@ -38,3 +38,10 @@ Run commands from the repository root. Cases are independent and use synthetic f
 | [Order workflow](order-workflow/README.md) | CWE-841 | A06:2025, API6:2023 | state-machine-unit |
 | [SSRF through an HTTP redirect](ssrf-redirect/README.md) | CWE-918 | API7:2023 | loopback-integration |
 | [Concurrent duplicate shipment](order-concurrency/README.md) | CWE-362 | A06:2025, API6:2023 | transaction-concurrency-unit |
+| [Tenant cache](tenant-cache/README.md) | CWE-488 | A01:2025, API1:2023 | executable |
+| [Tenant admin scope](tenant-admin-scope/README.md) | CWE-863 | A01:2025, API5:2023 | executable |
+| [Tenant export worker](tenant-export-worker/README.md) | CWE-863 | A01:2025, API1:2023 | executable |
+| [Tenant bulk update](tenant-bulk-update/README.md) | CWE-863 | A01:2025, API1:2023 | executable |
+| [Tenant signed download](tenant-signed-download/README.md) | CWE-863 | A01:2025, API1:2023 | executable |
+| [Tenant session switch](tenant-session-switch/README.md) | CWE-863 | A01:2025, API5:2023 | executable |
+| [Tenant storage prefix](tenant-storage-prefix/README.md) | CWE-22 | A01:2025, API1:2023 | executable |

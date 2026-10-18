@@ -30,9 +30,23 @@ inspired by these public reports:
 - Mohammed Aloraimi, Kimai 1.14 CSV Injection, EDB-49805
   (`python/csv-formula-injection`):
   https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/php/webapps/49805.txt
+- Kacper Szurek / Shelby Pace, GitList 0.6.0 Argument Injection, EDB-44993
+  (`python/argument-injection`):
+  https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/php/remote/44993.rb
+- Gangstuck / Psirac, Cscope insecure temporary file creation, EDB-24749
+  (`python/file-create-race`):
+  https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/linux/local/24749.sh
 
 No Exploit-DB source code or affected application is vendored. These simplified
 Python models do not claim to reproduce or validate the original products or CVE.
+
+The REST API tenant-isolation extensions also reference Lawrence Amer's reports
+on ProjectSend r754 client export IDOR (EDB-41433) and Chamilo message deletion
+IDOR (EDB-39473). Only the general authorization failure patterns inform the
+original fixtures; the tenant, queue and batch implementations are new:
+
+- https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/php/webapps/41433.txt
+- https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/php/webapps/39473.txt
 
 ## Dependency laboratory fixtures
 

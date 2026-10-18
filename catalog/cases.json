@@ -24119,5 +24119,4206 @@
     ],
     "vulnerable": "labs/python/csv-formula-injection/vulnerable/main.py",
     "fixed": "labs/python/csv-formula-injection/fixed/main.py"
+  },
+  {
+    "id": "rest-api/tenant-cache",
+    "language": "rest-api",
+    "cwe": [
+      "CWE-488"
+    ],
+    "owasp": [
+      "A01:2025",
+      "API1:2023"
+    ],
+    "description": "A shared response cache uses a tenant-local document identifier as its entire key. Origin lookups are scoped correctly, but a cache hit can expose the previous tenant's document. A bounded sequence models authenticated requests sharing one live cache.",
+    "remediation": "Authenticate before cache access and include the server-owned tenant in the cache key. All users in one tenant share the same document policy in this fixture. A production cache must also represent any user, role, authorization version or representation dimension that changes visibility; TTL, revocation and distributed caching are not modeled.",
+    "scope": "executable",
+    "references": [
+      {
+        "title": "MITRE CWE-488 — Exposure of Data Element to Wrong Session",
+        "url": "https://cwe.mitre.org/data/definitions/488.html"
+      },
+      {
+        "title": "OWASP API1:2023 — Broken Object Level Authorization",
+        "url": "https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/"
+      }
+    ],
+    "tests": [
+      {
+        "name": "north miss",
+        "kind": "benign",
+        "input": {
+          "requests": [
+            {
+              "session": "LAB_NORTH_SESSION",
+              "document_id": "summary"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "responses": [
+              {
+                "status": 200,
+                "content": "LAB_NORTH_PRIVATE_SUMMARY"
+              }
+            ]
+          }
+        },
+        "fixed": {
+          "equals": {
+            "responses": [
+              {
+                "status": 200,
+                "content": "LAB_NORTH_PRIVATE_SUMMARY"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "name": "south miss",
+        "kind": "benign",
+        "input": {
+          "requests": [
+            {
+              "session": "LAB_SOUTH_SESSION",
+              "document_id": "summary"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "responses": [
+              {
+                "status": 200,
+                "content": "LAB_SOUTH_PRIVATE_SUMMARY"
+              }
+            ]
+          }
+        },
+        "fixed": {
+          "equals": {
+            "responses": [
+              {
+                "status": 200,
+                "content": "LAB_SOUTH_PRIVATE_SUMMARY"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "name": "same tenant cache hit",
+        "kind": "benign",
+        "input": {
+          "requests": [
+            {
+              "session": "LAB_NORTH_SESSION",
+              "document_id": "summary"
+            },
+            {
+              "session": "LAB_NORTH_SESSION",
+              "document_id": "summary"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "responses": [
+              {
+                "status": 200,
+                "content": "LAB_NORTH_PRIVATE_SUMMARY"
+              },
+              {
+                "status": 200,
+                "content": "LAB_NORTH_PRIVATE_SUMMARY"
+              }
+            ]
+          }
+        },
+        "fixed": {
+          "equals": {
+            "responses": [
+              {
+                "status": 200,
+                "content": "LAB_NORTH_PRIVATE_SUMMARY"
+              },
+              {
+                "status": 200,
+                "content": "LAB_NORTH_PRIVATE_SUMMARY"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "name": "distinct documents",
+        "kind": "benign",
+        "input": {
+          "requests": [
+            {
+              "session": "LAB_NORTH_SESSION",
+              "document_id": "summary"
+            },
+            {
+              "session": "LAB_NORTH_SESSION",
+              "document_id": "invoice"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "responses": [
+              {
+                "status": 200,
+                "content": "LAB_NORTH_PRIVATE_SUMMARY"
+              },
+              {
+                "status": 200,
+                "content": "LAB_NORTH_INVOICE"
+              }
+            ]
+          }
+        },
+        "fixed": {
+          "equals": {
+            "responses": [
+              {
+                "status": 200,
+                "content": "LAB_NORTH_PRIVATE_SUMMARY"
+              },
+              {
+                "status": 200,
+                "content": "LAB_NORTH_INVOICE"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "name": "authentication before hit",
+        "kind": "benign",
+        "input": {
+          "requests": [
+            {
+              "session": "LAB_NORTH_SESSION",
+              "document_id": "summary"
+            },
+            {
+              "session": "INVALID",
+              "document_id": "summary"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "responses": [
+              {
+                "status": 200,
+                "content": "LAB_NORTH_PRIVATE_SUMMARY"
+              },
+              {
+                "status": 401
+              }
+            ]
+          }
+        },
+        "fixed": {
+          "equals": {
+            "responses": [
+              {
+                "status": 200,
+                "content": "LAB_NORTH_PRIVATE_SUMMARY"
+              },
+              {
+                "status": 401
+              }
+            ]
+          }
+        }
+      },
+      {
+        "name": "unknown document",
+        "kind": "benign",
+        "input": {
+          "requests": [
+            {
+              "session": "LAB_NORTH_SESSION",
+              "document_id": "missing"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "responses": [
+              {
+                "status": 404
+              }
+            ]
+          }
+        },
+        "fixed": {
+          "equals": {
+            "responses": [
+              {
+                "status": 404
+              }
+            ]
+          }
+        }
+      },
+      {
+        "name": "north then south",
+        "kind": "attack",
+        "input": {
+          "requests": [
+            {
+              "session": "LAB_NORTH_SESSION",
+              "document_id": "summary"
+            },
+            {
+              "session": "LAB_SOUTH_SESSION",
+              "document_id": "summary"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "responses": [
+              {
+                "status": 200,
+                "content": "LAB_NORTH_PRIVATE_SUMMARY"
+              },
+              {
+                "status": 200,
+                "content": "LAB_NORTH_PRIVATE_SUMMARY"
+              }
+            ]
+          }
+        },
+        "fixed": {
+          "equals": {
+            "responses": [
+              {
+                "status": 200,
+                "content": "LAB_NORTH_PRIVATE_SUMMARY"
+              },
+              {
+                "status": 200,
+                "content": "LAB_SOUTH_PRIVATE_SUMMARY"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "name": "south then north",
+        "kind": "attack",
+        "input": {
+          "requests": [
+            {
+              "session": "LAB_SOUTH_SESSION",
+              "document_id": "summary"
+            },
+            {
+              "session": "LAB_NORTH_SESSION",
+              "document_id": "summary"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "responses": [
+              {
+                "status": 200,
+                "content": "LAB_SOUTH_PRIVATE_SUMMARY"
+              },
+              {
+                "status": 200,
+                "content": "LAB_SOUTH_PRIVATE_SUMMARY"
+              }
+            ]
+          }
+        },
+        "fixed": {
+          "equals": {
+            "responses": [
+              {
+                "status": 200,
+                "content": "LAB_SOUTH_PRIVATE_SUMMARY"
+              },
+              {
+                "status": 200,
+                "content": "LAB_NORTH_PRIVATE_SUMMARY"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "name": "body cannot select authenticated tenant",
+        "kind": "attack",
+        "input": {
+          "requests": [
+            {
+              "session": "LAB_NORTH_SESSION",
+              "document_id": "summary"
+            },
+            {
+              "session": "LAB_SOUTH_SESSION",
+              "document_id": "summary",
+              "tenant_id": "north"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "responses": [
+              {
+                "status": 200,
+                "content": "LAB_NORTH_PRIVATE_SUMMARY"
+              },
+              {
+                "status": 200,
+                "content": "LAB_NORTH_PRIVATE_SUMMARY"
+              }
+            ]
+          }
+        },
+        "fixed": {
+          "equals": {
+            "responses": [
+              {
+                "status": 200,
+                "content": "LAB_NORTH_PRIVATE_SUMMARY"
+              },
+              {
+                "status": 200,
+                "content": "LAB_SOUTH_PRIVATE_SUMMARY"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "name": "missing sequence",
+        "kind": "robustness",
+        "input": {},
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          }
+        }
+      },
+      {
+        "name": "empty sequence",
+        "kind": "robustness",
+        "input": {
+          "requests": []
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          }
+        }
+      },
+      {
+        "name": "too many requests",
+        "kind": "robustness",
+        "input": {
+          "requests": [
+            {
+              "session": "LAB_NORTH_SESSION",
+              "document_id": "summary"
+            },
+            {
+              "session": "LAB_NORTH_SESSION",
+              "document_id": "summary"
+            },
+            {
+              "session": "LAB_NORTH_SESSION",
+              "document_id": "summary"
+            },
+            {
+              "session": "LAB_NORTH_SESSION",
+              "document_id": "summary"
+            },
+            {
+              "session": "LAB_NORTH_SESSION",
+              "document_id": "summary"
+            },
+            {
+              "session": "LAB_NORTH_SESSION",
+              "document_id": "summary"
+            },
+            {
+              "session": "LAB_NORTH_SESSION",
+              "document_id": "summary"
+            },
+            {
+              "session": "LAB_NORTH_SESSION",
+              "document_id": "summary"
+            },
+            {
+              "session": "LAB_NORTH_SESSION",
+              "document_id": "summary"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          }
+        }
+      },
+      {
+        "name": "bad document type",
+        "kind": "robustness",
+        "input": {
+          "requests": [
+            {
+              "session": "LAB_NORTH_SESSION",
+              "document_id": []
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "responses": [
+              {
+                "status": 400
+              }
+            ]
+          }
+        },
+        "fixed": {
+          "equals": {
+            "responses": [
+              {
+                "status": 400
+              }
+            ]
+          }
+        }
+      },
+      {
+        "name": "non-object item",
+        "kind": "robustness",
+        "input": {
+          "requests": [
+            []
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "responses": [
+              {
+                "status": 400
+              }
+            ]
+          }
+        },
+        "fixed": {
+          "equals": {
+            "responses": [
+              {
+                "status": 400
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "vulnerable": "labs/rest-api/tenant-cache/vulnerable/main.py",
+    "fixed": "labs/rest-api/tenant-cache/fixed/main.py"
+  },
+  {
+    "id": "rest-api/tenant-admin-scope",
+    "language": "rest-api",
+    "cwe": [
+      "CWE-863"
+    ],
+    "owasp": [
+      "A01:2025",
+      "API5:2023"
+    ],
+    "description": "A user who is an administrator in north but only a viewer in south can disable a south account because authorization searches for any admin membership. The target account's tenant and the caller's memberships are server-owned.",
+    "remediation": "Resolve administrative authority in the target account's actual tenant. A tenant administrator has no platform-wide privilege. Ignore client-supplied tenant and role fields, and leave all accounts unchanged when authorization fails. The persisted JSON file is an observation of this bounded local mutation, not a concurrent account service.",
+    "scope": "executable",
+    "references": [
+      {
+        "title": "OWASP API5:2023 — Broken Function Level Authorization",
+        "url": "https://owasp.org/API-Security/editions/2023/en/0xa5-broken-function-level-authorization/"
+      }
+    ],
+    "tests": [
+      {
+        "name": "north admin own tenant",
+        "kind": "benign",
+        "input": {
+          "session": "LAB_NORTH_ADMIN",
+          "account_id": "north-member"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "disabled": "north-member"
+          },
+          "files": [
+            {
+              "path": "accounts-state.json",
+              "content": "{\"north-member\": {\"active\": false, \"tenant\": \"north\"}, \"south-member\": {\"active\": true, \"tenant\": \"south\"}}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "disabled": "north-member"
+          },
+          "files": [
+            {
+              "path": "accounts-state.json",
+              "content": "{\"north-member\": {\"active\": false, \"tenant\": \"north\"}, \"south-member\": {\"active\": true, \"tenant\": \"south\"}}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "south admin own tenant",
+        "kind": "benign",
+        "input": {
+          "session": "LAB_SOUTH_ADMIN",
+          "account_id": "south-member"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "disabled": "south-member"
+          },
+          "files": [
+            {
+              "path": "accounts-state.json",
+              "content": "{\"north-member\": {\"active\": true, \"tenant\": \"north\"}, \"south-member\": {\"active\": false, \"tenant\": \"south\"}}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "disabled": "south-member"
+          },
+          "files": [
+            {
+              "path": "accounts-state.json",
+              "content": "{\"north-member\": {\"active\": true, \"tenant\": \"north\"}, \"south-member\": {\"active\": false, \"tenant\": \"south\"}}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "viewer cannot disable",
+        "kind": "benign",
+        "input": {
+          "session": "LAB_NORTH_VIEWER",
+          "account_id": "north-member"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 403
+          },
+          "files": [
+            {
+              "path": "accounts-state.json",
+              "content": "{\"north-member\": {\"active\": true, \"tenant\": \"north\"}, \"south-member\": {\"active\": true, \"tenant\": \"south\"}}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 403
+          },
+          "files": [
+            {
+              "path": "accounts-state.json",
+              "content": "{\"north-member\": {\"active\": true, \"tenant\": \"north\"}, \"south-member\": {\"active\": true, \"tenant\": \"south\"}}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "admin elsewhere but viewer here",
+        "kind": "attack",
+        "input": {
+          "session": "LAB_NORTH_ADMIN",
+          "account_id": "south-member"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "disabled": "south-member"
+          },
+          "files": [
+            {
+              "path": "accounts-state.json",
+              "content": "{\"north-member\": {\"active\": true, \"tenant\": \"north\"}, \"south-member\": {\"active\": false, \"tenant\": \"south\"}}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 403
+          },
+          "files": [
+            {
+              "path": "accounts-state.json",
+              "content": "{\"north-member\": {\"active\": true, \"tenant\": \"north\"}, \"south-member\": {\"active\": true, \"tenant\": \"south\"}}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "admin without target membership",
+        "kind": "attack",
+        "input": {
+          "session": "LAB_SOUTH_ADMIN",
+          "account_id": "north-member"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "disabled": "north-member"
+          },
+          "files": [
+            {
+              "path": "accounts-state.json",
+              "content": "{\"north-member\": {\"active\": false, \"tenant\": \"north\"}, \"south-member\": {\"active\": true, \"tenant\": \"south\"}}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 403
+          },
+          "files": [
+            {
+              "path": "accounts-state.json",
+              "content": "{\"north-member\": {\"active\": true, \"tenant\": \"north\"}, \"south-member\": {\"active\": true, \"tenant\": \"south\"}}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "forged tenant and role",
+        "kind": "attack",
+        "input": {
+          "session": "LAB_NORTH_ADMIN",
+          "account_id": "south-member",
+          "tenant_id": "north",
+          "role": "admin"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "disabled": "south-member"
+          },
+          "files": [
+            {
+              "path": "accounts-state.json",
+              "content": "{\"north-member\": {\"active\": true, \"tenant\": \"north\"}, \"south-member\": {\"active\": false, \"tenant\": \"south\"}}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 403
+          },
+          "files": [
+            {
+              "path": "accounts-state.json",
+              "content": "{\"north-member\": {\"active\": true, \"tenant\": \"north\"}, \"south-member\": {\"active\": true, \"tenant\": \"south\"}}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "viewer cannot claim admin",
+        "kind": "benign",
+        "input": {
+          "session": "LAB_NORTH_VIEWER",
+          "account_id": "north-member",
+          "role": "admin"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 403
+          },
+          "files": [
+            {
+              "path": "accounts-state.json",
+              "content": "{\"north-member\": {\"active\": true, \"tenant\": \"north\"}, \"south-member\": {\"active\": true, \"tenant\": \"south\"}}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 403
+          },
+          "files": [
+            {
+              "path": "accounts-state.json",
+              "content": "{\"north-member\": {\"active\": true, \"tenant\": \"north\"}, \"south-member\": {\"active\": true, \"tenant\": \"south\"}}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "invalid session",
+        "kind": "benign",
+        "input": {
+          "session": "INVALID",
+          "account_id": "north-member"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 401
+          },
+          "files": [
+            {
+              "path": "accounts-state.json",
+              "content": "{\"north-member\": {\"active\": true, \"tenant\": \"north\"}, \"south-member\": {\"active\": true, \"tenant\": \"south\"}}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 401
+          },
+          "files": [
+            {
+              "path": "accounts-state.json",
+              "content": "{\"north-member\": {\"active\": true, \"tenant\": \"north\"}, \"south-member\": {\"active\": true, \"tenant\": \"south\"}}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "unknown account",
+        "kind": "benign",
+        "input": {
+          "session": "LAB_NORTH_ADMIN",
+          "account_id": "missing"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 404
+          },
+          "files": [
+            {
+              "path": "accounts-state.json",
+              "content": "{\"north-member\": {\"active\": true, \"tenant\": \"north\"}, \"south-member\": {\"active\": true, \"tenant\": \"south\"}}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 404
+          },
+          "files": [
+            {
+              "path": "accounts-state.json",
+              "content": "{\"north-member\": {\"active\": true, \"tenant\": \"north\"}, \"south-member\": {\"active\": true, \"tenant\": \"south\"}}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "non-string account",
+        "kind": "robustness",
+        "input": {
+          "session": "LAB_NORTH_ADMIN",
+          "account_id": []
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "accounts-state.json",
+              "content": "{\"north-member\": {\"active\": true, \"tenant\": \"north\"}, \"south-member\": {\"active\": true, \"tenant\": \"south\"}}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "accounts-state.json",
+              "content": "{\"north-member\": {\"active\": true, \"tenant\": \"north\"}, \"south-member\": {\"active\": true, \"tenant\": \"south\"}}\n"
+            }
+          ]
+        }
+      }
+    ],
+    "vulnerable": "labs/rest-api/tenant-admin-scope/vulnerable/main.py",
+    "fixed": "labs/rest-api/tenant-admin-scope/fixed/main.py"
+  },
+  {
+    "id": "rest-api/tenant-export-worker",
+    "language": "rest-api",
+    "cwe": [
+      "CWE-863"
+    ],
+    "owasp": [
+      "A01:2025",
+      "API1:2023"
+    ],
+    "description": "Export enqueueing validates tenant ownership and persists trusted scope, but a separate worker connection queries SQLite by document ID alone. Identical local IDs in different tenants then cause an export of another tenant's data. EDB-41433 motivates unauthorized client export; the queue mechanism is an original extension.",
+    "remediation": "Carry the authenticated tenant in the service-owned job and constrain the worker query by both tenant and document ID. The composite database key is (tenant,id). Tests inspect the serialized job, real SQLite rows and exported bytes. The queue is replayed synchronously in an owned temporary directory; broker authentication, permission revocation and scheduling races are outside this fixture.",
+    "scope": "executable",
+    "references": [
+      {
+        "title": "EDB-41433 — ProjectSend r754 client export IDOR — Lawrence Amer",
+        "url": "https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/php/webapps/41433.txt"
+      },
+      {
+        "title": "OWASP API1:2023 — Broken Object Level Authorization",
+        "url": "https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/"
+      }
+    ],
+    "tests": [
+      {
+        "name": "north local ID",
+        "kind": "benign",
+        "input": {
+          "session": "LAB_NORTH_SESSION",
+          "document_id": 1
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "content": "LAB_NORTH_EXPORT"
+          },
+          "files": [
+            {
+              "path": "export.txt",
+              "content": "LAB_NORTH_EXPORT"
+            },
+            {
+              "path": "queued-job.json",
+              "content": "{\"document_id\": 1, \"tenant\": \"north\"}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "content": "LAB_NORTH_EXPORT"
+          },
+          "files": [
+            {
+              "path": "export.txt",
+              "content": "LAB_NORTH_EXPORT"
+            },
+            {
+              "path": "queued-job.json",
+              "content": "{\"document_id\": 1, \"tenant\": \"north\"}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "south distinct ID",
+        "kind": "benign",
+        "input": {
+          "session": "LAB_SOUTH_SESSION",
+          "document_id": 2
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "content": "LAB_SOUTH_SECOND_EXPORT"
+          },
+          "files": [
+            {
+              "path": "export.txt",
+              "content": "LAB_SOUTH_SECOND_EXPORT"
+            },
+            {
+              "path": "queued-job.json",
+              "content": "{\"document_id\": 2, \"tenant\": \"south\"}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "content": "LAB_SOUTH_SECOND_EXPORT"
+          },
+          "files": [
+            {
+              "path": "export.txt",
+              "content": "LAB_SOUTH_SECOND_EXPORT"
+            },
+            {
+              "path": "queued-job.json",
+              "content": "{\"document_id\": 2, \"tenant\": \"south\"}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "colliding local ID",
+        "kind": "attack",
+        "input": {
+          "session": "LAB_SOUTH_SESSION",
+          "document_id": 1
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "content": "LAB_NORTH_EXPORT"
+          },
+          "files": [
+            {
+              "path": "export.txt",
+              "content": "LAB_NORTH_EXPORT"
+            },
+            {
+              "path": "queued-job.json",
+              "content": "{\"document_id\": 1, \"tenant\": \"south\"}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "content": "LAB_SOUTH_EXPORT"
+          },
+          "files": [
+            {
+              "path": "export.txt",
+              "content": "LAB_SOUTH_EXPORT"
+            },
+            {
+              "path": "queued-job.json",
+              "content": "{\"document_id\": 1, \"tenant\": \"south\"}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "client tenant is ignored",
+        "kind": "attack",
+        "input": {
+          "session": "LAB_SOUTH_SESSION",
+          "document_id": 1,
+          "tenant": "north"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "content": "LAB_NORTH_EXPORT"
+          },
+          "files": [
+            {
+              "path": "export.txt",
+              "content": "LAB_NORTH_EXPORT"
+            },
+            {
+              "path": "queued-job.json",
+              "content": "{\"document_id\": 1, \"tenant\": \"south\"}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "content": "LAB_SOUTH_EXPORT"
+          },
+          "files": [
+            {
+              "path": "export.txt",
+              "content": "LAB_SOUTH_EXPORT"
+            },
+            {
+              "path": "queued-job.json",
+              "content": "{\"document_id\": 1, \"tenant\": \"south\"}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "foreign-only ID cannot be queued",
+        "kind": "benign",
+        "input": {
+          "session": "LAB_NORTH_SESSION",
+          "document_id": 2
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 404
+          },
+          "files": [
+            {
+              "path": "export.txt",
+              "type": "absent"
+            },
+            {
+              "path": "queued-job.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 404
+          },
+          "files": [
+            {
+              "path": "export.txt",
+              "type": "absent"
+            },
+            {
+              "path": "queued-job.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "missing document",
+        "kind": "benign",
+        "input": {
+          "session": "LAB_SOUTH_SESSION",
+          "document_id": 99
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 404
+          },
+          "files": [
+            {
+              "path": "export.txt",
+              "type": "absent"
+            },
+            {
+              "path": "queued-job.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 404
+          },
+          "files": [
+            {
+              "path": "export.txt",
+              "type": "absent"
+            },
+            {
+              "path": "queued-job.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "invalid session",
+        "kind": "benign",
+        "input": {
+          "session": "INVALID",
+          "document_id": 1
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 401
+          },
+          "files": [
+            {
+              "path": "export.txt",
+              "type": "absent"
+            },
+            {
+              "path": "queued-job.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 401
+          },
+          "files": [
+            {
+              "path": "export.txt",
+              "type": "absent"
+            },
+            {
+              "path": "queued-job.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "string ID",
+        "kind": "robustness",
+        "input": {
+          "session": "LAB_SOUTH_SESSION",
+          "document_id": "1"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "export.txt",
+              "type": "absent"
+            },
+            {
+              "path": "queued-job.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "export.txt",
+              "type": "absent"
+            },
+            {
+              "path": "queued-job.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "boolean ID",
+        "kind": "robustness",
+        "input": {
+          "session": "LAB_SOUTH_SESSION",
+          "document_id": true
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "export.txt",
+              "type": "absent"
+            },
+            {
+              "path": "queued-job.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "export.txt",
+              "type": "absent"
+            },
+            {
+              "path": "queued-job.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "non-object request",
+        "kind": "robustness",
+        "input": [],
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "export.txt",
+              "type": "absent"
+            },
+            {
+              "path": "queued-job.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "export.txt",
+              "type": "absent"
+            },
+            {
+              "path": "queued-job.json",
+              "type": "absent"
+            }
+          ]
+        }
+      }
+    ],
+    "vulnerable": "labs/rest-api/tenant-export-worker/vulnerable/main.py",
+    "fixed": "labs/rest-api/tenant-export-worker/fixed/main.py",
+    "database": "sqlite"
+  },
+  {
+    "id": "rest-api/tenant-bulk-update",
+    "language": "rest-api",
+    "cwe": [
+      "CWE-863"
+    ],
+    "owasp": [
+      "A01:2025",
+      "API1:2023"
+    ],
+    "description": "A batch archive endpoint checks the first document's tenant and then updates every requested ID. A permitted first element can conceal unauthorized later elements. EDB-39473 motivates object-level mutation authorization; batch and tenant behavior are original extensions.",
+    "remediation": "Validate ownership of every requested object before any write, within one SQLite transaction, and retain the tenant predicate in each update. A rejected mixed batch must leave both owned and foreign rows unchanged. Client tenant fields cannot override session scope. The lab does not model a database-enforced row-level security policy.",
+    "scope": "executable",
+    "references": [
+      {
+        "title": "EDB-39473 — Chamilo message deletion IDOR — Lawrence Amer",
+        "url": "https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/php/webapps/39473.txt"
+      },
+      {
+        "title": "OWASP API1:2023 — Broken Object Level Authorization",
+        "url": "https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/"
+      }
+    ],
+    "tests": [
+      {
+        "name": "north own batch",
+        "kind": "benign",
+        "input": {
+          "session": "LAB_NORTH_SESSION",
+          "document_ids": [
+            1,
+            2
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "archived": [
+              1,
+              2
+            ]
+          },
+          "files": [
+            {
+              "path": "documents-state.json",
+              "content": "[{\"archived\": true, \"id\": 1, \"tenant\": \"north\"}, {\"archived\": true, \"id\": 2, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 3, \"tenant\": \"south\"}, {\"archived\": false, \"id\": 4, \"tenant\": \"south\"}]\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "archived": [
+              1,
+              2
+            ]
+          },
+          "files": [
+            {
+              "path": "documents-state.json",
+              "content": "[{\"archived\": true, \"id\": 1, \"tenant\": \"north\"}, {\"archived\": true, \"id\": 2, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 3, \"tenant\": \"south\"}, {\"archived\": false, \"id\": 4, \"tenant\": \"south\"}]\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "south own batch",
+        "kind": "benign",
+        "input": {
+          "session": "LAB_SOUTH_SESSION",
+          "document_ids": [
+            3,
+            4
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "archived": [
+              3,
+              4
+            ]
+          },
+          "files": [
+            {
+              "path": "documents-state.json",
+              "content": "[{\"archived\": false, \"id\": 1, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 2, \"tenant\": \"north\"}, {\"archived\": true, \"id\": 3, \"tenant\": \"south\"}, {\"archived\": true, \"id\": 4, \"tenant\": \"south\"}]\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "archived": [
+              3,
+              4
+            ]
+          },
+          "files": [
+            {
+              "path": "documents-state.json",
+              "content": "[{\"archived\": false, \"id\": 1, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 2, \"tenant\": \"north\"}, {\"archived\": true, \"id\": 3, \"tenant\": \"south\"}, {\"archived\": true, \"id\": 4, \"tenant\": \"south\"}]\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "single owned document",
+        "kind": "benign",
+        "input": {
+          "session": "LAB_NORTH_SESSION",
+          "document_ids": [
+            2
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "archived": [
+              2
+            ]
+          },
+          "files": [
+            {
+              "path": "documents-state.json",
+              "content": "[{\"archived\": false, \"id\": 1, \"tenant\": \"north\"}, {\"archived\": true, \"id\": 2, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 3, \"tenant\": \"south\"}, {\"archived\": false, \"id\": 4, \"tenant\": \"south\"}]\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "archived": [
+              2
+            ]
+          },
+          "files": [
+            {
+              "path": "documents-state.json",
+              "content": "[{\"archived\": false, \"id\": 1, \"tenant\": \"north\"}, {\"archived\": true, \"id\": 2, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 3, \"tenant\": \"south\"}, {\"archived\": false, \"id\": 4, \"tenant\": \"south\"}]\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "mixed batch north then south",
+        "kind": "attack",
+        "input": {
+          "session": "LAB_NORTH_SESSION",
+          "document_ids": [
+            1,
+            3
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "archived": [
+              1,
+              3
+            ]
+          },
+          "files": [
+            {
+              "path": "documents-state.json",
+              "content": "[{\"archived\": true, \"id\": 1, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 2, \"tenant\": \"north\"}, {\"archived\": true, \"id\": 3, \"tenant\": \"south\"}, {\"archived\": false, \"id\": 4, \"tenant\": \"south\"}]\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 403
+          },
+          "files": [
+            {
+              "path": "documents-state.json",
+              "content": "[{\"archived\": false, \"id\": 1, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 2, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 3, \"tenant\": \"south\"}, {\"archived\": false, \"id\": 4, \"tenant\": \"south\"}]\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "mixed batch south then north",
+        "kind": "attack",
+        "input": {
+          "session": "LAB_SOUTH_SESSION",
+          "document_ids": [
+            3,
+            1
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "archived": [
+              3,
+              1
+            ]
+          },
+          "files": [
+            {
+              "path": "documents-state.json",
+              "content": "[{\"archived\": true, \"id\": 1, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 2, \"tenant\": \"north\"}, {\"archived\": true, \"id\": 3, \"tenant\": \"south\"}, {\"archived\": false, \"id\": 4, \"tenant\": \"south\"}]\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 403
+          },
+          "files": [
+            {
+              "path": "documents-state.json",
+              "content": "[{\"archived\": false, \"id\": 1, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 2, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 3, \"tenant\": \"south\"}, {\"archived\": false, \"id\": 4, \"tenant\": \"south\"}]\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "foreign last element",
+        "kind": "attack",
+        "input": {
+          "session": "LAB_NORTH_SESSION",
+          "document_ids": [
+            1,
+            2,
+            4
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "archived": [
+              1,
+              2,
+              4
+            ]
+          },
+          "files": [
+            {
+              "path": "documents-state.json",
+              "content": "[{\"archived\": true, \"id\": 1, \"tenant\": \"north\"}, {\"archived\": true, \"id\": 2, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 3, \"tenant\": \"south\"}, {\"archived\": true, \"id\": 4, \"tenant\": \"south\"}]\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 403
+          },
+          "files": [
+            {
+              "path": "documents-state.json",
+              "content": "[{\"archived\": false, \"id\": 1, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 2, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 3, \"tenant\": \"south\"}, {\"archived\": false, \"id\": 4, \"tenant\": \"south\"}]\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "forged tenant field",
+        "kind": "attack",
+        "input": {
+          "session": "LAB_NORTH_SESSION",
+          "document_ids": [
+            1,
+            3
+          ],
+          "tenant_id": "south"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "archived": [
+              1,
+              3
+            ]
+          },
+          "files": [
+            {
+              "path": "documents-state.json",
+              "content": "[{\"archived\": true, \"id\": 1, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 2, \"tenant\": \"north\"}, {\"archived\": true, \"id\": 3, \"tenant\": \"south\"}, {\"archived\": false, \"id\": 4, \"tenant\": \"south\"}]\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 403
+          },
+          "files": [
+            {
+              "path": "documents-state.json",
+              "content": "[{\"archived\": false, \"id\": 1, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 2, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 3, \"tenant\": \"south\"}, {\"archived\": false, \"id\": 4, \"tenant\": \"south\"}]\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "foreign first rejected",
+        "kind": "benign",
+        "input": {
+          "session": "LAB_NORTH_SESSION",
+          "document_ids": [
+            3,
+            1
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 403
+          },
+          "files": [
+            {
+              "path": "documents-state.json",
+              "content": "[{\"archived\": false, \"id\": 1, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 2, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 3, \"tenant\": \"south\"}, {\"archived\": false, \"id\": 4, \"tenant\": \"south\"}]\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 403
+          },
+          "files": [
+            {
+              "path": "documents-state.json",
+              "content": "[{\"archived\": false, \"id\": 1, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 2, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 3, \"tenant\": \"south\"}, {\"archived\": false, \"id\": 4, \"tenant\": \"south\"}]\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "missing object no partial write",
+        "kind": "benign",
+        "input": {
+          "session": "LAB_NORTH_SESSION",
+          "document_ids": [
+            1,
+            99
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 404
+          },
+          "files": [
+            {
+              "path": "documents-state.json",
+              "content": "[{\"archived\": false, \"id\": 1, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 2, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 3, \"tenant\": \"south\"}, {\"archived\": false, \"id\": 4, \"tenant\": \"south\"}]\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 404
+          },
+          "files": [
+            {
+              "path": "documents-state.json",
+              "content": "[{\"archived\": false, \"id\": 1, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 2, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 3, \"tenant\": \"south\"}, {\"archived\": false, \"id\": 4, \"tenant\": \"south\"}]\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "invalid session",
+        "kind": "benign",
+        "input": {
+          "session": "INVALID",
+          "document_ids": [
+            1
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 401
+          },
+          "files": [
+            {
+              "path": "documents-state.json",
+              "content": "[{\"archived\": false, \"id\": 1, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 2, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 3, \"tenant\": \"south\"}, {\"archived\": false, \"id\": 4, \"tenant\": \"south\"}]\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 401
+          },
+          "files": [
+            {
+              "path": "documents-state.json",
+              "content": "[{\"archived\": false, \"id\": 1, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 2, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 3, \"tenant\": \"south\"}, {\"archived\": false, \"id\": 4, \"tenant\": \"south\"}]\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "empty batch",
+        "kind": "robustness",
+        "input": {
+          "session": "LAB_NORTH_SESSION",
+          "document_ids": []
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "documents-state.json",
+              "content": "[{\"archived\": false, \"id\": 1, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 2, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 3, \"tenant\": \"south\"}, {\"archived\": false, \"id\": 4, \"tenant\": \"south\"}]\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "documents-state.json",
+              "content": "[{\"archived\": false, \"id\": 1, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 2, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 3, \"tenant\": \"south\"}, {\"archived\": false, \"id\": 4, \"tenant\": \"south\"}]\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "duplicate IDs",
+        "kind": "robustness",
+        "input": {
+          "session": "LAB_NORTH_SESSION",
+          "document_ids": [
+            1,
+            1
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "documents-state.json",
+              "content": "[{\"archived\": false, \"id\": 1, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 2, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 3, \"tenant\": \"south\"}, {\"archived\": false, \"id\": 4, \"tenant\": \"south\"}]\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "documents-state.json",
+              "content": "[{\"archived\": false, \"id\": 1, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 2, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 3, \"tenant\": \"south\"}, {\"archived\": false, \"id\": 4, \"tenant\": \"south\"}]\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "non-list IDs",
+        "kind": "robustness",
+        "input": {
+          "session": "LAB_NORTH_SESSION",
+          "document_ids": {}
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "documents-state.json",
+              "content": "[{\"archived\": false, \"id\": 1, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 2, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 3, \"tenant\": \"south\"}, {\"archived\": false, \"id\": 4, \"tenant\": \"south\"}]\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "documents-state.json",
+              "content": "[{\"archived\": false, \"id\": 1, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 2, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 3, \"tenant\": \"south\"}, {\"archived\": false, \"id\": 4, \"tenant\": \"south\"}]\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "boolean ID",
+        "kind": "robustness",
+        "input": {
+          "session": "LAB_NORTH_SESSION",
+          "document_ids": [
+            true
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "documents-state.json",
+              "content": "[{\"archived\": false, \"id\": 1, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 2, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 3, \"tenant\": \"south\"}, {\"archived\": false, \"id\": 4, \"tenant\": \"south\"}]\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "documents-state.json",
+              "content": "[{\"archived\": false, \"id\": 1, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 2, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 3, \"tenant\": \"south\"}, {\"archived\": false, \"id\": 4, \"tenant\": \"south\"}]\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "non-integer ID",
+        "kind": "robustness",
+        "input": {
+          "session": "LAB_NORTH_SESSION",
+          "document_ids": [
+            "1"
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "documents-state.json",
+              "content": "[{\"archived\": false, \"id\": 1, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 2, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 3, \"tenant\": \"south\"}, {\"archived\": false, \"id\": 4, \"tenant\": \"south\"}]\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "documents-state.json",
+              "content": "[{\"archived\": false, \"id\": 1, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 2, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 3, \"tenant\": \"south\"}, {\"archived\": false, \"id\": 4, \"tenant\": \"south\"}]\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "oversized batch",
+        "kind": "robustness",
+        "input": {
+          "session": "LAB_NORTH_SESSION",
+          "document_ids": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "documents-state.json",
+              "content": "[{\"archived\": false, \"id\": 1, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 2, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 3, \"tenant\": \"south\"}, {\"archived\": false, \"id\": 4, \"tenant\": \"south\"}]\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "documents-state.json",
+              "content": "[{\"archived\": false, \"id\": 1, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 2, \"tenant\": \"north\"}, {\"archived\": false, \"id\": 3, \"tenant\": \"south\"}, {\"archived\": false, \"id\": 4, \"tenant\": \"south\"}]\n"
+            }
+          ]
+        }
+      }
+    ],
+    "vulnerable": "labs/rest-api/tenant-bulk-update/vulnerable/main.py",
+    "fixed": "labs/rest-api/tenant-bulk-update/fixed/main.py",
+    "database": "sqlite"
+  },
+  {
+    "id": "rest-api/tenant-signed-download",
+    "language": "rest-api",
+    "cwe": [
+      "CWE-863"
+    ],
+    "owasp": [
+      "A01:2025",
+      "API1:2023"
+    ],
+    "description": "A bearer download grant authenticates a local document ID and expiry but omits its tenant. An authorized requester changes only the tenant during redemption and reads a different organization's document with the same ID. The fixture computes a real HMAC with a fresh server-owned key.",
+    "remediation": "Sign and verify the action, tenant, document identifier and expiration as one unambiguously serialized tuple. Authenticated issuance is scoped to the server session; redemption is an intentionally shareable bearer capability. One invocation models issuance followed by redemption using a pinned clock. Key distribution, revocation and HTTP delivery are outside this local flow.",
+    "scope": "executable",
+    "references": [
+      {
+        "title": "OWASP — Multi-Tenant Application Security",
+        "url": "https://cheatsheetseries.owasp.org/cheatsheets/Multi_Tenant_Security_Cheat_Sheet.html"
+      }
+    ],
+    "tests": [
+      {
+        "name": "north intended document",
+        "kind": "benign",
+        "input": {
+          "session": "LAB_NORTH_SESSION",
+          "issued_document_id": "report",
+          "requested_tenant": "north",
+          "requested_document_id": "report"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "content": "LAB_NORTH_SHARED_REPORT"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "content": "LAB_NORTH_SHARED_REPORT"
+          }
+        }
+      },
+      {
+        "name": "south intended document",
+        "kind": "benign",
+        "input": {
+          "session": "LAB_SOUTH_SESSION",
+          "issued_document_id": "report",
+          "requested_tenant": "south",
+          "requested_document_id": "report"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "content": "LAB_SOUTH_SHARED_REPORT"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "content": "LAB_SOUTH_SHARED_REPORT"
+          }
+        }
+      },
+      {
+        "name": "different authorized document",
+        "kind": "benign",
+        "input": {
+          "session": "LAB_NORTH_SESSION",
+          "issued_document_id": "notes",
+          "requested_tenant": "north",
+          "requested_document_id": "notes"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "content": "LAB_NORTH_SHARED_NOTES"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "content": "LAB_NORTH_SHARED_NOTES"
+          }
+        }
+      },
+      {
+        "name": "replace north with south",
+        "kind": "attack",
+        "input": {
+          "session": "LAB_NORTH_SESSION",
+          "issued_document_id": "report",
+          "requested_tenant": "south",
+          "requested_document_id": "report"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "content": "LAB_SOUTH_SHARED_REPORT"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 403
+          }
+        }
+      },
+      {
+        "name": "replace south with north",
+        "kind": "attack",
+        "input": {
+          "session": "LAB_SOUTH_SESSION",
+          "issued_document_id": "report",
+          "requested_tenant": "north",
+          "requested_document_id": "report"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "content": "LAB_NORTH_SHARED_REPORT"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 403
+          }
+        }
+      },
+      {
+        "name": "forged issuer tenant field",
+        "kind": "attack",
+        "input": {
+          "session": "LAB_NORTH_SESSION",
+          "issued_document_id": "report",
+          "requested_tenant": "south",
+          "requested_document_id": "report",
+          "tenant_id": "south"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "content": "LAB_SOUTH_SHARED_REPORT"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 403
+          }
+        }
+      },
+      {
+        "name": "alter document invalidates signature",
+        "kind": "benign",
+        "input": {
+          "session": "LAB_NORTH_SESSION",
+          "issued_document_id": "report",
+          "requested_tenant": "north",
+          "requested_document_id": "notes"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 403
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 403
+          }
+        }
+      },
+      {
+        "name": "cannot issue foreign-only document",
+        "kind": "benign",
+        "input": {
+          "session": "LAB_SOUTH_SESSION",
+          "issued_document_id": "notes",
+          "requested_tenant": "north",
+          "requested_document_id": "notes"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 404
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 404
+          }
+        }
+      },
+      {
+        "name": "invalid session",
+        "kind": "benign",
+        "input": {
+          "session": "INVALID",
+          "issued_document_id": "report",
+          "requested_tenant": "north",
+          "requested_document_id": "report"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 401
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401
+          }
+        }
+      },
+      {
+        "name": "missing fields",
+        "kind": "robustness",
+        "input": {
+          "session": "LAB_NORTH_SESSION"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          }
+        }
+      },
+      {
+        "name": "non-object input",
+        "kind": "robustness",
+        "input": [],
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          }
+        }
+      },
+      {
+        "name": "non-string tenant",
+        "kind": "robustness",
+        "input": {
+          "session": "LAB_NORTH_SESSION",
+          "issued_document_id": "report",
+          "requested_tenant": [],
+          "requested_document_id": "report"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          }
+        }
+      },
+      {
+        "name": "oversized document",
+        "kind": "robustness",
+        "input": {
+          "session": "LAB_NORTH_SESSION",
+          "issued_document_id": "report",
+          "requested_tenant": "north",
+          "requested_document_id": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          }
+        }
+      }
+    ],
+    "vulnerable": "labs/rest-api/tenant-signed-download/vulnerable/main.py",
+    "fixed": "labs/rest-api/tenant-signed-download/fixed/main.py"
+  },
+  {
+    "id": "rest-api/tenant-session-switch",
+    "language": "rest-api",
+    "cwe": [
+      "CWE-863"
+    ],
+    "owasp": [
+      "A01:2025",
+      "API5:2023"
+    ],
+    "description": "A session caches both tenant and role. Switching to an allowed organization changes only the tenant, so a former administrator remains privileged in an organization where the same user is merely a viewer. Conversely, stale viewer privileges can block a valid admin operation after switching.",
+    "remediation": "Recompute the role from service-owned memberships whenever the active tenant changes. Update tenant and role together, reject non-member destinations without altering the session, and check target ownership during administrative actions. Tests inspect the resulting session and account snapshot. Membership revocation during concurrent requests is not modeled.",
+    "scope": "executable",
+    "references": [
+      {
+        "title": "OWASP — Multi-Tenant Application Security",
+        "url": "https://cheatsheetseries.owasp.org/cheatsheets/Multi_Tenant_Security_Cheat_Sheet.html"
+      }
+    ],
+    "tests": [
+      {
+        "name": "admin in initial tenant",
+        "kind": "benign",
+        "input": {
+          "session": "LAB_ALICE_NORTH",
+          "actions": [
+            {
+              "action": "disable",
+              "account_id": "north-member"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "events": [
+              {
+                "status": 200,
+                "disabled": "north-member"
+              }
+            ]
+          },
+          "files": [
+            {
+              "path": "session-state.json",
+              "content": "{\"accounts\": {\"north-member\": {\"active\": false, \"tenant\": \"north\"}, \"south-member\": {\"active\": true, \"tenant\": \"south\"}}, \"session\": {\"role\": \"admin\", \"subject\": \"alice\", \"tenant\": \"north\"}}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "events": [
+              {
+                "status": 200,
+                "disabled": "north-member"
+              }
+            ]
+          },
+          "files": [
+            {
+              "path": "session-state.json",
+              "content": "{\"accounts\": {\"north-member\": {\"active\": false, \"tenant\": \"north\"}, \"south-member\": {\"active\": true, \"tenant\": \"south\"}}, \"session\": {\"role\": \"admin\", \"subject\": \"alice\", \"tenant\": \"north\"}}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "viewer in initial tenant",
+        "kind": "benign",
+        "input": {
+          "session": "LAB_ALICE_SOUTH",
+          "actions": [
+            {
+              "action": "disable",
+              "account_id": "south-member"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "events": [
+              {
+                "status": 403
+              }
+            ]
+          },
+          "files": [
+            {
+              "path": "session-state.json",
+              "content": "{\"accounts\": {\"north-member\": {\"active\": true, \"tenant\": \"north\"}, \"south-member\": {\"active\": true, \"tenant\": \"south\"}}, \"session\": {\"role\": \"viewer\", \"subject\": \"alice\", \"tenant\": \"south\"}}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "events": [
+              {
+                "status": 403
+              }
+            ]
+          },
+          "files": [
+            {
+              "path": "session-state.json",
+              "content": "{\"accounts\": {\"north-member\": {\"active\": true, \"tenant\": \"north\"}, \"south-member\": {\"active\": true, \"tenant\": \"south\"}}, \"session\": {\"role\": \"viewer\", \"subject\": \"alice\", \"tenant\": \"south\"}}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "same tenant switch",
+        "kind": "benign",
+        "input": {
+          "session": "LAB_ALICE_NORTH",
+          "actions": [
+            {
+              "action": "switch",
+              "tenant": "north"
+            },
+            {
+              "action": "disable",
+              "account_id": "north-member"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "events": [
+              {
+                "status": 200,
+                "tenant": "north"
+              },
+              {
+                "status": 200,
+                "disabled": "north-member"
+              }
+            ]
+          },
+          "files": [
+            {
+              "path": "session-state.json",
+              "content": "{\"accounts\": {\"north-member\": {\"active\": false, \"tenant\": \"north\"}, \"south-member\": {\"active\": true, \"tenant\": \"south\"}}, \"session\": {\"role\": \"admin\", \"subject\": \"alice\", \"tenant\": \"north\"}}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "events": [
+              {
+                "status": 200,
+                "tenant": "north"
+              },
+              {
+                "status": 200,
+                "disabled": "north-member"
+              }
+            ]
+          },
+          "files": [
+            {
+              "path": "session-state.json",
+              "content": "{\"accounts\": {\"north-member\": {\"active\": false, \"tenant\": \"north\"}, \"south-member\": {\"active\": true, \"tenant\": \"south\"}}, \"session\": {\"role\": \"admin\", \"subject\": \"alice\", \"tenant\": \"north\"}}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "admin role survives downgrade",
+        "kind": "attack",
+        "input": {
+          "session": "LAB_ALICE_NORTH",
+          "actions": [
+            {
+              "action": "switch",
+              "tenant": "south"
+            },
+            {
+              "action": "disable",
+              "account_id": "south-member"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "events": [
+              {
+                "status": 200,
+                "tenant": "south"
+              },
+              {
+                "status": 200,
+                "disabled": "south-member"
+              }
+            ]
+          },
+          "files": [
+            {
+              "path": "session-state.json",
+              "content": "{\"accounts\": {\"north-member\": {\"active\": true, \"tenant\": \"north\"}, \"south-member\": {\"active\": false, \"tenant\": \"south\"}}, \"session\": {\"role\": \"admin\", \"subject\": \"alice\", \"tenant\": \"south\"}}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "events": [
+              {
+                "status": 200,
+                "tenant": "south"
+              },
+              {
+                "status": 403
+              }
+            ]
+          },
+          "files": [
+            {
+              "path": "session-state.json",
+              "content": "{\"accounts\": {\"north-member\": {\"active\": true, \"tenant\": \"north\"}, \"south-member\": {\"active\": true, \"tenant\": \"south\"}}, \"session\": {\"role\": \"viewer\", \"subject\": \"alice\", \"tenant\": \"south\"}}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "body role cannot preserve privilege",
+        "kind": "attack",
+        "input": {
+          "session": "LAB_ALICE_NORTH",
+          "actions": [
+            {
+              "action": "switch",
+              "tenant": "south",
+              "role": "admin"
+            },
+            {
+              "action": "disable",
+              "account_id": "south-member",
+              "role": "admin"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "events": [
+              {
+                "status": 200,
+                "tenant": "south"
+              },
+              {
+                "status": 200,
+                "disabled": "south-member"
+              }
+            ]
+          },
+          "files": [
+            {
+              "path": "session-state.json",
+              "content": "{\"accounts\": {\"north-member\": {\"active\": true, \"tenant\": \"north\"}, \"south-member\": {\"active\": false, \"tenant\": \"south\"}}, \"session\": {\"role\": \"admin\", \"subject\": \"alice\", \"tenant\": \"south\"}}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "events": [
+              {
+                "status": 200,
+                "tenant": "south"
+              },
+              {
+                "status": 403
+              }
+            ]
+          },
+          "files": [
+            {
+              "path": "session-state.json",
+              "content": "{\"accounts\": {\"north-member\": {\"active\": true, \"tenant\": \"north\"}, \"south-member\": {\"active\": true, \"tenant\": \"south\"}}, \"session\": {\"role\": \"viewer\", \"subject\": \"alice\", \"tenant\": \"south\"}}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "legitimate role upgrade",
+        "kind": "functional",
+        "input": {
+          "session": "LAB_ALICE_SOUTH",
+          "actions": [
+            {
+              "action": "switch",
+              "tenant": "north"
+            },
+            {
+              "action": "disable",
+              "account_id": "north-member"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "events": [
+              {
+                "status": 200,
+                "tenant": "north"
+              },
+              {
+                "status": 403
+              }
+            ]
+          },
+          "files": [
+            {
+              "path": "session-state.json",
+              "content": "{\"accounts\": {\"north-member\": {\"active\": true, \"tenant\": \"north\"}, \"south-member\": {\"active\": true, \"tenant\": \"south\"}}, \"session\": {\"role\": \"viewer\", \"subject\": \"alice\", \"tenant\": \"north\"}}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "events": [
+              {
+                "status": 200,
+                "tenant": "north"
+              },
+              {
+                "status": 200,
+                "disabled": "north-member"
+              }
+            ]
+          },
+          "files": [
+            {
+              "path": "session-state.json",
+              "content": "{\"accounts\": {\"north-member\": {\"active\": false, \"tenant\": \"north\"}, \"south-member\": {\"active\": true, \"tenant\": \"south\"}}, \"session\": {\"role\": \"admin\", \"subject\": \"alice\", \"tenant\": \"north\"}}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "switch back after denied action",
+        "kind": "attack",
+        "input": {
+          "session": "LAB_ALICE_NORTH",
+          "actions": [
+            {
+              "action": "switch",
+              "tenant": "south"
+            },
+            {
+              "action": "disable",
+              "account_id": "south-member"
+            },
+            {
+              "action": "switch",
+              "tenant": "north"
+            },
+            {
+              "action": "disable",
+              "account_id": "north-member"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "events": [
+              {
+                "status": 200,
+                "tenant": "south"
+              },
+              {
+                "status": 200,
+                "disabled": "south-member"
+              },
+              {
+                "status": 200,
+                "tenant": "north"
+              },
+              {
+                "status": 200,
+                "disabled": "north-member"
+              }
+            ]
+          },
+          "files": [
+            {
+              "path": "session-state.json",
+              "content": "{\"accounts\": {\"north-member\": {\"active\": false, \"tenant\": \"north\"}, \"south-member\": {\"active\": false, \"tenant\": \"south\"}}, \"session\": {\"role\": \"admin\", \"subject\": \"alice\", \"tenant\": \"north\"}}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "events": [
+              {
+                "status": 200,
+                "tenant": "south"
+              },
+              {
+                "status": 403
+              },
+              {
+                "status": 200,
+                "tenant": "north"
+              },
+              {
+                "status": 200,
+                "disabled": "north-member"
+              }
+            ]
+          },
+          "files": [
+            {
+              "path": "session-state.json",
+              "content": "{\"accounts\": {\"north-member\": {\"active\": false, \"tenant\": \"north\"}, \"south-member\": {\"active\": true, \"tenant\": \"south\"}}, \"session\": {\"role\": \"admin\", \"subject\": \"alice\", \"tenant\": \"north\"}}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "non-member switch preserves session",
+        "kind": "benign",
+        "input": {
+          "session": "LAB_BOB_SOUTH",
+          "actions": [
+            {
+              "action": "switch",
+              "tenant": "north"
+            },
+            {
+              "action": "disable",
+              "account_id": "south-member"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "events": [
+              {
+                "status": 403
+              },
+              {
+                "status": 200,
+                "disabled": "south-member"
+              }
+            ]
+          },
+          "files": [
+            {
+              "path": "session-state.json",
+              "content": "{\"accounts\": {\"north-member\": {\"active\": true, \"tenant\": \"north\"}, \"south-member\": {\"active\": false, \"tenant\": \"south\"}}, \"session\": {\"role\": \"admin\", \"subject\": \"bob\", \"tenant\": \"south\"}}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "events": [
+              {
+                "status": 403
+              },
+              {
+                "status": 200,
+                "disabled": "south-member"
+              }
+            ]
+          },
+          "files": [
+            {
+              "path": "session-state.json",
+              "content": "{\"accounts\": {\"north-member\": {\"active\": true, \"tenant\": \"north\"}, \"south-member\": {\"active\": false, \"tenant\": \"south\"}}, \"session\": {\"role\": \"admin\", \"subject\": \"bob\", \"tenant\": \"south\"}}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "target tenant still checked",
+        "kind": "benign",
+        "input": {
+          "session": "LAB_ALICE_NORTH",
+          "actions": [
+            {
+              "action": "disable",
+              "account_id": "south-member"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "events": [
+              {
+                "status": 404
+              }
+            ]
+          },
+          "files": [
+            {
+              "path": "session-state.json",
+              "content": "{\"accounts\": {\"north-member\": {\"active\": true, \"tenant\": \"north\"}, \"south-member\": {\"active\": true, \"tenant\": \"south\"}}, \"session\": {\"role\": \"admin\", \"subject\": \"alice\", \"tenant\": \"north\"}}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "events": [
+              {
+                "status": 404
+              }
+            ]
+          },
+          "files": [
+            {
+              "path": "session-state.json",
+              "content": "{\"accounts\": {\"north-member\": {\"active\": true, \"tenant\": \"north\"}, \"south-member\": {\"active\": true, \"tenant\": \"south\"}}, \"session\": {\"role\": \"admin\", \"subject\": \"alice\", \"tenant\": \"north\"}}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "invalid action shape",
+        "kind": "robustness",
+        "input": {
+          "session": "LAB_ALICE_NORTH",
+          "actions": [
+            []
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "events": [
+              {
+                "status": 400
+              }
+            ]
+          },
+          "files": [
+            {
+              "path": "session-state.json",
+              "content": "{\"accounts\": {\"north-member\": {\"active\": true, \"tenant\": \"north\"}, \"south-member\": {\"active\": true, \"tenant\": \"south\"}}, \"session\": {\"role\": \"admin\", \"subject\": \"alice\", \"tenant\": \"north\"}}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "events": [
+              {
+                "status": 400
+              }
+            ]
+          },
+          "files": [
+            {
+              "path": "session-state.json",
+              "content": "{\"accounts\": {\"north-member\": {\"active\": true, \"tenant\": \"north\"}, \"south-member\": {\"active\": true, \"tenant\": \"south\"}}, \"session\": {\"role\": \"admin\", \"subject\": \"alice\", \"tenant\": \"north\"}}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "invalid switch tenant",
+        "kind": "robustness",
+        "input": {
+          "session": "LAB_ALICE_NORTH",
+          "actions": [
+            {
+              "action": "switch",
+              "tenant": []
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "events": [
+              {
+                "status": 400
+              }
+            ]
+          },
+          "files": [
+            {
+              "path": "session-state.json",
+              "content": "{\"accounts\": {\"north-member\": {\"active\": true, \"tenant\": \"north\"}, \"south-member\": {\"active\": true, \"tenant\": \"south\"}}, \"session\": {\"role\": \"admin\", \"subject\": \"alice\", \"tenant\": \"north\"}}\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "events": [
+              {
+                "status": 400
+              }
+            ]
+          },
+          "files": [
+            {
+              "path": "session-state.json",
+              "content": "{\"accounts\": {\"north-member\": {\"active\": true, \"tenant\": \"north\"}, \"south-member\": {\"active\": true, \"tenant\": \"south\"}}, \"session\": {\"role\": \"admin\", \"subject\": \"alice\", \"tenant\": \"north\"}}\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "invalid session",
+        "kind": "robustness",
+        "input": {
+          "session": "INVALID",
+          "actions": [
+            {
+              "action": "switch",
+              "tenant": "north"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 401
+          },
+          "files": [
+            {
+              "path": "session-state.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 401
+          },
+          "files": [
+            {
+              "path": "session-state.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "empty actions",
+        "kind": "robustness",
+        "input": {
+          "session": "LAB_ALICE_NORTH",
+          "actions": []
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "session-state.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "session-state.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "oversized actions",
+        "kind": "robustness",
+        "input": {
+          "session": "LAB_ALICE_NORTH",
+          "actions": [
+            {
+              "action": "switch",
+              "tenant": "north"
+            },
+            {
+              "action": "switch",
+              "tenant": "north"
+            },
+            {
+              "action": "switch",
+              "tenant": "north"
+            },
+            {
+              "action": "switch",
+              "tenant": "north"
+            },
+            {
+              "action": "switch",
+              "tenant": "north"
+            },
+            {
+              "action": "switch",
+              "tenant": "north"
+            },
+            {
+              "action": "switch",
+              "tenant": "north"
+            },
+            {
+              "action": "switch",
+              "tenant": "north"
+            },
+            {
+              "action": "switch",
+              "tenant": "north"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "session-state.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "session-state.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "non-object request",
+        "kind": "robustness",
+        "input": [],
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "session-state.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "session-state.json",
+              "type": "absent"
+            }
+          ]
+        }
+      }
+    ],
+    "vulnerable": "labs/rest-api/tenant-session-switch/vulnerable/main.py",
+    "fixed": "labs/rest-api/tenant-session-switch/fixed/main.py"
+  },
+  {
+    "id": "rest-api/tenant-storage-prefix",
+    "language": "rest-api",
+    "cwe": [
+      "CWE-22"
+    ],
+    "owasp": [
+      "A01:2025",
+      "API1:2023"
+    ],
+    "description": "A storage handler resolves a requested path and checks that its string starts with the tenant root. The sibling directory north-backup passes the north prefix test, allowing another tenant's private file to be read. The regression reads actual UTF-8 files.",
+    "remediation": "Compare resolved path ancestry, not textual prefixes, and obtain the storage root from the authenticated session. Preserve valid nested and normalized in-root paths. This fixture assumes an owned local directory tree without concurrent symlink replacement; it does not claim race-free OS sandboxing.",
+    "scope": "executable",
+    "references": [
+      {
+        "title": "OWASP — Multi-Tenant Application Security",
+        "url": "https://cheatsheetseries.owasp.org/cheatsheets/Multi_Tenant_Security_Cheat_Sheet.html"
+      },
+      {
+        "title": "MITRE CWE-187 — Partial String Comparison",
+        "url": "https://cwe.mitre.org/data/definitions/187.html"
+      }
+    ],
+    "tests": [
+      {
+        "name": "own report",
+        "kind": "benign",
+        "input": {
+          "session": "LAB_NORTH_SESSION",
+          "path": "report.txt"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "content": "LAB_NORTH_STORAGE"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "content": "LAB_NORTH_STORAGE"
+          }
+        }
+      },
+      {
+        "name": "nested own document",
+        "kind": "benign",
+        "input": {
+          "session": "LAB_NORTH_SESSION",
+          "path": "docs/notes.txt"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "content": "LAB_NORTH_NOTES"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "content": "LAB_NORTH_NOTES"
+          }
+        }
+      },
+      {
+        "name": "normalized own path",
+        "kind": "benign",
+        "input": {
+          "session": "LAB_NORTH_SESSION",
+          "path": "docs/../report.txt"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "content": "LAB_NORTH_STORAGE"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "content": "LAB_NORTH_STORAGE"
+          }
+        }
+      },
+      {
+        "name": "backup tenant own document",
+        "kind": "benign",
+        "input": {
+          "session": "LAB_BACKUP_SESSION",
+          "path": "private.txt"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "content": "LAB_BACKUP_PRIVATE"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "content": "LAB_BACKUP_PRIVATE"
+          }
+        }
+      },
+      {
+        "name": "south tenant own document",
+        "kind": "benign",
+        "input": {
+          "session": "LAB_SOUTH_SESSION",
+          "path": "private.txt"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "content": "LAB_SOUTH_PRIVATE"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "content": "LAB_SOUTH_PRIVATE"
+          }
+        }
+      },
+      {
+        "name": "sibling prefix escape",
+        "kind": "attack",
+        "input": {
+          "session": "LAB_NORTH_SESSION",
+          "path": "../north-backup/private.txt"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "content": "LAB_BACKUP_PRIVATE"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 403
+          }
+        }
+      },
+      {
+        "name": "nested sibling prefix escape",
+        "kind": "attack",
+        "input": {
+          "session": "LAB_NORTH_SESSION",
+          "path": "docs/../../north-backup/private.txt"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "content": "LAB_BACKUP_PRIVATE"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 403
+          }
+        }
+      },
+      {
+        "name": "body tenant cannot choose root",
+        "kind": "attack",
+        "input": {
+          "session": "LAB_NORTH_SESSION",
+          "path": "../north-backup/private.txt",
+          "tenant_id": "north-backup"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "content": "LAB_BACKUP_PRIVATE"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 403
+          }
+        }
+      },
+      {
+        "name": "unrelated sibling denied",
+        "kind": "benign",
+        "input": {
+          "session": "LAB_NORTH_SESSION",
+          "path": "../south/private.txt"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 403
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 403
+          }
+        }
+      },
+      {
+        "name": "parent directory denied",
+        "kind": "benign",
+        "input": {
+          "session": "LAB_NORTH_SESSION",
+          "path": ".."
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 403
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 403
+          }
+        }
+      },
+      {
+        "name": "missing file",
+        "kind": "benign",
+        "input": {
+          "session": "LAB_NORTH_SESSION",
+          "path": "missing.txt"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 404
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 404
+          }
+        }
+      },
+      {
+        "name": "directory not a file",
+        "kind": "benign",
+        "input": {
+          "session": "LAB_NORTH_SESSION",
+          "path": "docs"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 404
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 404
+          }
+        }
+      },
+      {
+        "name": "invalid session",
+        "kind": "benign",
+        "input": {
+          "session": "INVALID",
+          "path": "report.txt"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 401
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401
+          }
+        }
+      },
+      {
+        "name": "non-object request",
+        "kind": "robustness",
+        "input": [],
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          }
+        }
+      },
+      {
+        "name": "non-string path",
+        "kind": "robustness",
+        "input": {
+          "session": "LAB_NORTH_SESSION",
+          "path": []
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          }
+        }
+      },
+      {
+        "name": "empty path",
+        "kind": "robustness",
+        "input": {
+          "session": "LAB_NORTH_SESSION",
+          "path": ""
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          }
+        }
+      },
+      {
+        "name": "NUL path",
+        "kind": "robustness",
+        "input": {
+          "session": "LAB_NORTH_SESSION",
+          "path": "x\u0000y"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          }
+        }
+      },
+      {
+        "name": "oversized path",
+        "kind": "robustness",
+        "input": {
+          "session": "LAB_NORTH_SESSION",
+          "path": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          }
+        }
+      }
+    ],
+    "vulnerable": "labs/rest-api/tenant-storage-prefix/vulnerable/main.py",
+    "fixed": "labs/rest-api/tenant-storage-prefix/fixed/main.py"
+  },
+  {
+    "id": "python/argument-injection",
+    "language": "python",
+    "cwe": [
+      "CWE-88"
+    ],
+    "owasp": [
+      "A05:2025"
+    ],
+    "description": "A wrapper passes user input as one argv element to a real child process without a shell, but the child still interprets a leading option. An internal --include-private switch exposes a synthetic private record. Inspired by EDB-44993; the argparse search tool is original laboratory code, not GitList.",
+    "remediation": "Insert the child tool's -- option terminator before the untrusted positional query. Retain argv execution and the absolute interpreter/source paths. This correction relies on the child parser honoring --; other programs need their own argument contract. Tests use a real bounded subprocess and an internal search option, with no external program, shell command execution or network access.",
+    "scope": "executable",
+    "references": [
+      {
+        "title": "EDB-44993 — GitList 0.6.0 Argument Injection — Kacper Szurek / Shelby Pace",
+        "url": "https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/php/remote/44993.rb"
+      },
+      {
+        "title": "MITRE CWE-88 — Argument Injection",
+        "url": "https://cwe.mitre.org/data/definitions/88.html"
+      }
+    ],
+    "tests": [
+      {
+        "name": "public report",
+        "kind": "benign",
+        "input": "report",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "matches": [
+              "PUBLIC_REPORT"
+            ]
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "matches": [
+              "PUBLIC_REPORT"
+            ]
+          }
+        }
+      },
+      {
+        "name": "case insensitive search",
+        "kind": "benign",
+        "input": "NOTES",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "matches": [
+              "PUBLIC_NOTES"
+            ]
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "matches": [
+              "PUBLIC_NOTES"
+            ]
+          }
+        }
+      },
+      {
+        "name": "empty query",
+        "kind": "benign",
+        "input": "",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "matches": [
+              "PUBLIC_REPORT",
+              "PUBLIC_NOTES"
+            ]
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "matches": [
+              "PUBLIC_REPORT",
+              "PUBLIC_NOTES"
+            ]
+          }
+        }
+      },
+      {
+        "name": "unknown text",
+        "kind": "benign",
+        "input": "nothing",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "matches": []
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "matches": []
+          }
+        }
+      },
+      {
+        "name": "shell characters are literal",
+        "kind": "benign",
+        "input": "; echo LAB_MARKER",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "matches": []
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "matches": []
+          }
+        }
+      },
+      {
+        "name": "spaces stay one argument",
+        "kind": "benign",
+        "input": "public report",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "matches": []
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "matches": []
+          }
+        }
+      },
+      {
+        "name": "private option injected",
+        "kind": "attack",
+        "input": "--include-private",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "matches": [
+              "PUBLIC_REPORT",
+              "PUBLIC_NOTES",
+              "LAB_PRIVATE_REPORT"
+            ]
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "matches": []
+          }
+        }
+      },
+      {
+        "name": "help option becomes literal",
+        "kind": "functional",
+        "input": "--help",
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid tool argument"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "matches": []
+          }
+        }
+      },
+      {
+        "name": "unknown option becomes literal",
+        "kind": "functional",
+        "input": "--unknown",
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid tool argument"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "matches": []
+          }
+        }
+      },
+      {
+        "name": "non-string input",
+        "kind": "robustness",
+        "input": {},
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid query"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid query"
+          }
+        }
+      },
+      {
+        "name": "NUL input",
+        "kind": "robustness",
+        "input": "x\u0000y",
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid query"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid query"
+          }
+        }
+      },
+      {
+        "name": "oversized query",
+        "kind": "robustness",
+        "input": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid query"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid query"
+          }
+        }
+      }
+    ],
+    "vulnerable": "labs/python/argument-injection/vulnerable/main.py",
+    "fixed": "labs/python/argument-injection/fixed/main.py"
+  },
+  {
+    "id": "python/format-string-disclosure",
+    "language": "python",
+    "cwe": [
+      "CWE-134"
+    ],
+    "owasp": [
+      "A05:2025"
+    ],
+    "description": "A caller-controlled Python str.format template receives a rich profile object. Attribute and dictionary traversal in a replacement field exposes a synthetic private API key. This is real Python format-string evaluation, not Jinja/Twig or arbitrary code execution.",
+    "remediation": "Define a small renderer contract: permit only the public name and team placeholders, reject attribute/item traversal, conversions and format specifications, then format using only those public strings. Preserve literal braces and ordinary text. The fixture tests confidentiality and formatting behavior; it does not model HTML output or a full template engine.",
+    "scope": "executable",
+    "references": [
+      {
+        "title": "Python — Format String Syntax",
+        "url": "https://docs.python.org/3/library/string.html#format-string-syntax"
+      },
+      {
+        "title": "MITRE CWE-134 — Use of Externally-Controlled Format String",
+        "url": "https://cwe.mitre.org/data/definitions/134.html"
+      }
+    ],
+    "tests": [
+      {
+        "name": "public placeholders",
+        "kind": "benign",
+        "input": "Hello {name}, {team}",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "text": "Hello Alice, Engineering"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "text": "Hello Alice, Engineering"
+          }
+        }
+      },
+      {
+        "name": "literal text",
+        "kind": "benign",
+        "input": "Welcome",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "text": "Welcome"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "text": "Welcome"
+          }
+        }
+      },
+      {
+        "name": "escaped braces",
+        "kind": "benign",
+        "input": "{{name}} {name}",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "text": "{name} Alice"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "text": "{name} Alice"
+          }
+        }
+      },
+      {
+        "name": "Unicode text",
+        "kind": "benign",
+        "input": "Équipe : {team}",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "text": "Équipe : Engineering"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "text": "Équipe : Engineering"
+          }
+        }
+      },
+      {
+        "name": "empty template",
+        "kind": "benign",
+        "input": "",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "text": ""
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "text": ""
+          }
+        }
+      },
+      {
+        "name": "private attribute and item",
+        "kind": "attack",
+        "input": "{profile.private[api_key]}",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "text": "LAB_FORMAT_PRIVATE_KEY"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid template"
+          }
+        }
+      },
+      {
+        "name": "dictionary traversal",
+        "kind": "attack",
+        "input": "{profile.__dict__[private][api_key]}",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "text": "LAB_FORMAT_PRIVATE_KEY"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid template"
+          }
+        }
+      },
+      {
+        "name": "private dictionary representation",
+        "kind": "attack",
+        "input": "{profile.private}",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "text": "{'api_key': 'LAB_FORMAT_PRIVATE_KEY'}"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid template"
+          }
+        }
+      },
+      {
+        "name": "conversion outside supported contract",
+        "kind": "functional",
+        "input": "{name!r}",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "text": "'Alice'"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid template"
+          }
+        }
+      },
+      {
+        "name": "format specification outside contract",
+        "kind": "functional",
+        "input": "{name:>8}",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "text": "   Alice"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid template"
+          }
+        }
+      },
+      {
+        "name": "unknown field",
+        "kind": "robustness",
+        "input": "{unknown}",
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid template"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid template"
+          }
+        }
+      },
+      {
+        "name": "unclosed field",
+        "kind": "robustness",
+        "input": "{name",
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid template"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid template"
+          }
+        }
+      },
+      {
+        "name": "non-string template",
+        "kind": "robustness",
+        "input": [],
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid template"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid template"
+          }
+        }
+      },
+      {
+        "name": "oversized template",
+        "kind": "robustness",
+        "input": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid template"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid template"
+          }
+        }
+      }
+    ],
+    "vulnerable": "labs/python/format-string-disclosure/vulnerable/main.py",
+    "fixed": "labs/python/format-string-disclosure/fixed/main.py"
+  },
+  {
+    "id": "python/file-create-race",
+    "language": "python",
+    "cwe": [
+      "CWE-367"
+    ],
+    "owasp": [
+      "A06:2025"
+    ],
+    "description": "A writer checks that report.txt does not exist, then opens it for writing. A synchronized attacker thread inserts a symlink in that interval, redirecting the write to a synthetic victim file. EDB-24749 motivates insecure temporary-file symlink attacks; the deterministic check/use schedule is an original extension.",
+    "remediation": "Use exclusive atomic file creation (open mode x) so a file or symlink appearing after the check causes a conflict instead of an overwrite. The parent directory is fixed and trusted; only the final filename is raced. Event synchronization makes the attack deterministic without timing thresholds. The fixture runs only in its owned workspace and never touches real system temporary files.",
+    "scope": "executable",
+    "references": [
+      {
+        "title": "MITRE CWE-367 — Time-of-check Time-of-use Race Condition",
+        "url": "https://cwe.mitre.org/data/definitions/367.html"
+      },
+      {
+        "title": "EDB-24749 — Cscope insecure temporary file creation — Gangstuck / Psirac",
+        "url": "https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/linux/local/24749.sh"
+      }
+    ],
+    "tests": [
+      {
+        "name": "ordinary report",
+        "kind": "benign",
+        "input": {
+          "race": false,
+          "content": "LAB_REPORT"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 201
+          },
+          "files": [
+            {
+              "path": "report.txt",
+              "content": "LAB_REPORT"
+            },
+            {
+              "path": "victim.txt",
+              "content": "LAB_ORIGINAL"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 201
+          },
+          "files": [
+            {
+              "path": "report.txt",
+              "content": "LAB_REPORT"
+            },
+            {
+              "path": "victim.txt",
+              "content": "LAB_ORIGINAL"
+            }
+          ]
+        }
+      },
+      {
+        "name": "Unicode report",
+        "kind": "benign",
+        "input": {
+          "race": false,
+          "content": "Résumé\n"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 201
+          },
+          "files": [
+            {
+              "path": "report.txt",
+              "content": "Résumé\n"
+            },
+            {
+              "path": "victim.txt",
+              "content": "LAB_ORIGINAL"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 201
+          },
+          "files": [
+            {
+              "path": "report.txt",
+              "content": "Résumé\n"
+            },
+            {
+              "path": "victim.txt",
+              "content": "LAB_ORIGINAL"
+            }
+          ]
+        }
+      },
+      {
+        "name": "empty report",
+        "kind": "benign",
+        "input": {
+          "race": false,
+          "content": ""
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 201
+          },
+          "files": [
+            {
+              "path": "report.txt",
+              "content": ""
+            },
+            {
+              "path": "victim.txt",
+              "content": "LAB_ORIGINAL"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 201
+          },
+          "files": [
+            {
+              "path": "report.txt",
+              "content": ""
+            },
+            {
+              "path": "victim.txt",
+              "content": "LAB_ORIGINAL"
+            }
+          ]
+        }
+      },
+      {
+        "name": "symlink insertion overwrites victim",
+        "kind": "attack",
+        "input": {
+          "race": true,
+          "content": "LAB_OVERWRITTEN"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 201
+          },
+          "files": [
+            {
+              "path": "report.txt",
+              "type": "symlink",
+              "target": "victim.txt"
+            },
+            {
+              "path": "victim.txt",
+              "content": "LAB_OVERWRITTEN"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 409
+          },
+          "files": [
+            {
+              "path": "report.txt",
+              "type": "symlink",
+              "target": "victim.txt"
+            },
+            {
+              "path": "victim.txt",
+              "content": "LAB_ORIGINAL"
+            }
+          ]
+        }
+      },
+      {
+        "name": "symlink insertion can truncate victim",
+        "kind": "attack",
+        "input": {
+          "race": true,
+          "content": ""
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 201
+          },
+          "files": [
+            {
+              "path": "report.txt",
+              "type": "symlink",
+              "target": "victim.txt"
+            },
+            {
+              "path": "victim.txt",
+              "content": ""
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 409
+          },
+          "files": [
+            {
+              "path": "report.txt",
+              "type": "symlink",
+              "target": "victim.txt"
+            },
+            {
+              "path": "victim.txt",
+              "content": "LAB_ORIGINAL"
+            }
+          ]
+        }
+      },
+      {
+        "name": "non-object request",
+        "kind": "robustness",
+        "input": [],
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "report.txt",
+              "type": "absent"
+            },
+            {
+              "path": "victim.txt",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "report.txt",
+              "type": "absent"
+            },
+            {
+              "path": "victim.txt",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "missing schedule",
+        "kind": "robustness",
+        "input": {
+          "content": "x"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "report.txt",
+              "type": "absent"
+            },
+            {
+              "path": "victim.txt",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "report.txt",
+              "type": "absent"
+            },
+            {
+              "path": "victim.txt",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "non-boolean schedule",
+        "kind": "robustness",
+        "input": {
+          "race": 1,
+          "content": "x"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "report.txt",
+              "type": "absent"
+            },
+            {
+              "path": "victim.txt",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "report.txt",
+              "type": "absent"
+            },
+            {
+              "path": "victim.txt",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "non-string content",
+        "kind": "robustness",
+        "input": {
+          "race": false,
+          "content": 1
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "report.txt",
+              "type": "absent"
+            },
+            {
+              "path": "victim.txt",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "report.txt",
+              "type": "absent"
+            },
+            {
+              "path": "victim.txt",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "oversized content",
+        "kind": "robustness",
+        "input": {
+          "race": true,
+          "content": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "report.txt",
+              "type": "absent"
+            },
+            {
+              "path": "victim.txt",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400
+          },
+          "files": [
+            {
+              "path": "report.txt",
+              "type": "absent"
+            },
+            {
+              "path": "victim.txt",
+              "type": "absent"
+            }
+          ]
+        }
+      }
+    ],
+    "vulnerable": "labs/python/file-create-race/vulnerable/main.py",
+    "fixed": "labs/python/file-create-race/fixed/main.py"
   }
 ]

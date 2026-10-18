@@ -49,3 +49,6 @@ Run commands from the repository root. Cases are independent and use synthetic f
 | [Jwt default key](jwt-default-key/README.md) | CWE-321 | A04:2025 | executable |
 | [Jwt disabled user](jwt-disabled-user/README.md) | CWE-863 | A01:2025, A07:2025 | executable |
 | [Csv formula injection](csv-formula-injection/README.md) | CWE-1236 | A05:2025 | executable |
+| [Argument injection](argument-injection/README.md) | CWE-88 | A05:2025 | executable |
+| [Format string disclosure](format-string-disclosure/README.md) | CWE-134 | A05:2025 | executable |
+| [File create race](file-create-race/README.md) | CWE-367 | A06:2025 | executable |
