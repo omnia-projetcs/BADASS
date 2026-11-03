@@ -36,9 +36,43 @@ inspired by these public reports:
 - Gangstuck / Psirac, Cscope insecure temporary file creation, EDB-24749
   (`python/file-create-race`):
   https://gitlab.com/exploit-database/exploitdb/-/blob/main/exploits/linux/local/24749.sh
+- Lucas Souza, Apache HTTP Server 2.4.50 path traversal, EDB-50406,
+  CVE-2021-42013 (`python/double-decoding-traversal`):
+  https://www.exploit-db.com/exploits/50406
+- tmrswrr, Akaunting 3.1.8 template expression injection, EDB-52030
+  (`python/item-template-injection`):
+  https://www.exploit-db.com/exploits/52030
+- sirpedrotavares, CHIYU TCP/IP Converter CRLF injection, EDB-49923
+  (`python/cgi-redirect-splitting`):
+  https://www.exploit-db.com/exploits/49923
+- Jorge González Milla (Pig-Tail), flyto_core 2.26.7 DNS rebinding SSRF,
+  EDB-52651 (`python/dns-rebinding-ssrf`):
+  https://www.exploit-db.com/exploits/52651
+- 9tamilmathi (Tamil Mathi T.), ThingsBoard 4.2.0 SVG resource SSRF,
+  EDB-52551, CVE-2025-34282 (`python/svg-resource-ssrf`):
+  https://www.exploit-db.com/exploits/52551
+- Emir Polat, CVAT remote-file import SSRF, EDB-51030, CVE-2022-31188
+  (`python/remote-import-ssrf`):
+  https://www.exploit-db.com/exploits/51030
+- Andrey B. Panfilov, OpenText Documentum TAR symlink traversal, EDB-43002,
+  CVE-2017-15276 (`python/tar-symlink-escape`):
+  https://www.exploit-db.com/exploits/43002
+- Gergely Eberhardt, Ubee EVW3226 1.0.20 factoryBypass authentication bypass,
+  EDB-40156 (`python/factory-auth-bypass`):
+  https://www.exploit-db.com/exploits/40156
+- SecuriTeam / Francis Alexander, OrientDB query-clause permission bypass,
+  EDB-44068, CVE-2017-11467 (`python/query-clause-authorization`):
+  https://www.exploit-db.com/exploits/44068
+- Andrew Gill, Oracle E-Business Suite backslash open redirect, EDB-43592,
+  CVE-2017-3528 (`python/backslash-open-redirect`):
+  https://www.exploit-db.com/exploits/43592
 
 No Exploit-DB source code or affected application is vendored. These simplified
 Python models do not claim to reproduce or validate the original products or CVE.
+The three new SSRF cases use an offline DNS/endpoint registry rather than real
+network requests. The template case uses a bounded original arithmetic engine.
+The OrientDB-inspired case covers the query authorization stage only. Detailed
+assumptions and exclusions are recorded in each case's remediation and README.
 
 The REST API tenant-isolation extensions also reference Lawrence Amer's reports
 on ProjectSend r754 client export IDOR (EDB-41433) and Chamilo message deletion

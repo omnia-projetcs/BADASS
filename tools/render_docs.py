@@ -22,7 +22,22 @@ NAMES = {'xss': 'Cross-site scripting (XSS)', 'sql-injection': 'SQL injection', 
          'sql-second-order': 'Second-order SQL injection', 'xss-attribute': 'XSS in an HTML attribute',
          'ssrf-redirect': 'SSRF through an HTTP redirect', 'order-concurrency': 'Concurrent duplicate shipment',
          'partial-signature': 'Partial HMAC comparison', 'client-price': 'Client-controlled price',
-         'regex-origin': 'Permissive origin regex', 'signed-action-replay': 'Signed action replay'}
+         'regex-origin': 'Permissive origin regex', 'signed-action-replay': 'Signed action replay',
+         'double-decoding-traversal': 'Double-decoding path traversal',
+         'item-template-injection': 'Item-name template injection',
+         'cgi-redirect-splitting': 'CGI redirect response splitting',
+         'dns-rebinding-ssrf': 'DNS rebinding SSRF',
+         'svg-resource-ssrf': 'SVG resource SSRF', 'remote-import-ssrf': 'Remote-file import SSRF',
+         'tar-symlink-escape': 'TAR symlink escape', 'factory-auth-bypass': 'Factory authentication bypass',
+         'query-clause-authorization': 'Query-clause authorization bypass',
+         'backslash-open-redirect': 'Backslash open redirect'}
+
+
+def exploitdb_cases(cases):
+    """Keep the sourced Python index in sync with catalog additions."""
+    return [(case, next(ref for ref in case['references'] if 'EDB-' in ref['title']))
+            for case in cases if case['language'] == 'python'
+            and any('EDB-' in ref['title'] for ref in case.get('references', []))]
 
 
 def title(case):
@@ -45,6 +60,7 @@ def render():
     core = next(g for g in plan['groups'] if g['id'] == 'common-core')
     core_ids = set(core['cwe'])
     vector_count = sum(len(case['tests']) for case in cases)
+    edb_cases = exploitdb_cases(cases)
     badges = [
         '[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)',
         '[![Python 3.11+](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)',
@@ -102,17 +118,9 @@ def render():
              'Prepare these packages before running the Node.js section with the general runner.',
              'See [dependency fixtures, advisory and SCA evaluation](docs/DEPENDENCIES.md).', '',
              '## Exploit-DB inspired cases', '',
-             'Ten original Python fixtures model weaknesses documented in public Exploit-DB entries:', '',
-             '- [SQL login bypass](labs/python/sql-login-bypass/README.md) (EDB-41029).',
-             '- [ZIP extraction traversal](labs/python/zip-slip/README.md) (EDB-39816).',
-             '- [Password-reset Host poisoning](labs/python/password-reset-host/README.md) (EDB-52485).',
-             '- [Unrestricted upload](labs/python/unrestricted-upload/README.md) (EDB-45169).',
-             '- [XML external entity file disclosure](labs/python/xxe/README.md) (EDB-43113).',
-             '- [Default JWT signing key](labs/python/jwt-default-key/README.md) (EDB-51354).',
-             '- [JWT accepted for a disabled account](labs/python/jwt-disabled-user/README.md) (EDB-51992).',
-             '- [CSV formula injection](labs/python/csv-formula-injection/README.md) (EDB-49805).',
-             '- [Child-process argument injection](labs/python/argument-injection/README.md) (EDB-44993).',
-             '- [File creation race](labs/python/file-create-race/README.md) (EDB-24749).', '',
+             f'{len(edb_cases)} original Python fixtures model weaknesses documented in public Exploit-DB entries:', '',
+             *[f'- [{title(case)}](labs/{case["id"]}/README.md) '
+               f'({ref["title"].partition(" ")[0]}).' for case, ref in edb_cases], '',
              'Each includes a corrected counterpart, synthetic inputs and regression expectations.',
              'These are teaching models, not reproductions of the affected products. Source references',
              'and scope limits appear in each case README.', '',

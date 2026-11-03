@@ -35183,5 +35183,2402 @@
     ],
     "vulnerable": "labs/node/signed-action-replay/vulnerable/main.js",
     "fixed": "labs/node/signed-action-replay/fixed/main.js"
+  },
+  {
+    "id": "python/double-decoding-traversal",
+    "language": "python",
+    "cwe": [
+      "CWE-22"
+    ],
+    "owasp": [
+      "A01:2025"
+    ],
+    "description": "A download handler checks the first URL decoding pass but reads a path after a second pass. Nested percent encodings can disclose a real synthetic file outside public/. Inspired by EDB-50406; this is an original laboratory model of the specified boundary, not a reproduction of the affected product.",
+    "remediation": "Decode to a bounded stable form before validation, reject residual encodings and backslashes, then resolve and enforce containment in public/. Reads use real local files. The model covers disclosure only, not Apache CGI execution; concurrent filesystem mutation is outside this fixture.",
+    "scope": "executable",
+    "references": [
+      {
+        "title": "EDB-50406 — Apache HTTP Server 2.4.50 — Path Traversal / CVE-2021-42013 (Lucas Souza)",
+        "url": "https://www.exploit-db.com/exploits/50406"
+      }
+    ],
+    "tests": [
+      {
+        "name": "public file",
+        "kind": "benign",
+        "input": "welcome.txt",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "body": "WELCOME"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "body": "WELCOME"
+          }
+        }
+      },
+      {
+        "name": "encoded public name",
+        "kind": "benign",
+        "input": "%77elcome.txt",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "body": "WELCOME"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "body": "WELCOME"
+          }
+        }
+      },
+      {
+        "name": "missing file",
+        "kind": "benign",
+        "input": "missing.txt",
+        "vulnerable": {
+          "equals": {
+            "status": 404,
+            "error": "missing file"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 404,
+            "error": "missing file"
+          }
+        }
+      },
+      {
+        "name": "plain traversal denied",
+        "kind": "benign",
+        "input": "../secret.txt",
+        "vulnerable": {
+          "equals": {
+            "status": 403,
+            "error": "outside public root"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 403,
+            "error": "outside public root"
+          }
+        }
+      },
+      {
+        "name": "double encoded traversal",
+        "kind": "attack",
+        "input": "%252e%252e%252fsecret.txt",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "body": "LAB_SECRET"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 403,
+            "error": "outside public root"
+          }
+        }
+      },
+      {
+        "name": "mixed encoded dots",
+        "kind": "attack",
+        "input": "%%32%65%%32%65/secret.txt",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "body": "LAB_SECRET"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 403,
+            "error": "outside public root"
+          }
+        }
+      },
+      {
+        "name": "wrong type",
+        "kind": "robustness",
+        "input": [],
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid path"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid path"
+          }
+        }
+      },
+      {
+        "name": "malformed UTF8",
+        "kind": "robustness",
+        "input": "%FF",
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid path"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid path"
+          }
+        }
+      },
+      {
+        "name": "encoded NUL",
+        "kind": "robustness",
+        "input": "%00",
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid path"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid path"
+          }
+        }
+      }
+    ],
+    "vulnerable": "labs/python/double-decoding-traversal/vulnerable/main.py",
+    "fixed": "labs/python/double-decoding-traversal/fixed/main.py"
+  },
+  {
+    "id": "python/item-template-injection",
+    "language": "python",
+    "cwe": [
+      "CWE-1336"
+    ],
+    "owasp": [
+      "A05:2025"
+    ],
+    "description": "An item name is concatenated into a text template before compilation. A bounded, original arithmetic template engine evaluates embedded expressions instead of displaying the name as data. Inspired by EDB-52030; this is an original laboratory model of the specified boundary, not a reproduction of the affected product.",
+    "remediation": "Compile only the trusted template and substitute the name as a value. The teaching engine implements integer addition, subtraction and multiplication via AST, with size and node limits; it has no Python eval, attribute access, filesystem access or code execution. The EDB report demonstrates expression evaluation; this fixture makes no claim about further impact or the vendor engine.",
+    "scope": "executable",
+    "references": [
+      {
+        "title": "EDB-52030 — Akaunting 3.1.8 — Server-Side Template Injection (tmrswrr)",
+        "url": "https://www.exploit-db.com/exploits/52030"
+      }
+    ],
+    "tests": [
+      {
+        "name": "normal name",
+        "kind": "benign",
+        "input": {
+          "name": "Notebook"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "text": "Item: Notebook"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "text": "Item: Notebook"
+          }
+        }
+      },
+      {
+        "name": "unicode name",
+        "kind": "benign",
+        "input": {
+          "name": "Café"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "text": "Item: Café"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "text": "Item: Café"
+          }
+        }
+      },
+      {
+        "name": "empty name",
+        "kind": "benign",
+        "input": {
+          "name": ""
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "text": "Item: "
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "text": "Item: "
+          }
+        }
+      },
+      {
+        "name": "arithmetic in name",
+        "kind": "attack",
+        "input": {
+          "name": "{{7*7}}"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "text": "Item: 49"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "text": "Item: {{7*7}}"
+          }
+        }
+      },
+      {
+        "name": "second expression",
+        "kind": "attack",
+        "input": {
+          "name": "Lot {{10+2}}"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "text": "Item: Lot 12"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "text": "Item: Lot {{10+2}}"
+          }
+        }
+      },
+      {
+        "name": "unknown expression stays data",
+        "kind": "functional",
+        "input": {
+          "name": "{{ customer }}"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid template"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "text": "Item: {{ customer }}"
+          }
+        }
+      },
+      {
+        "name": "missing name",
+        "kind": "robustness",
+        "input": {},
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid template"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid template"
+          }
+        }
+      },
+      {
+        "name": "non-string name",
+        "kind": "robustness",
+        "input": {
+          "name": []
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid template"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid template"
+          }
+        }
+      },
+      {
+        "name": "oversized name",
+        "kind": "robustness",
+        "input": {
+          "name": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid template"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid template"
+          }
+        }
+      }
+    ],
+    "vulnerable": "labs/python/item-template-injection/vulnerable/main.py",
+    "fixed": "labs/python/item-template-injection/fixed/main.py"
+  },
+  {
+    "id": "python/cgi-redirect-splitting",
+    "language": "python",
+    "cwe": [
+      "CWE-113"
+    ],
+    "owasp": [
+      "A05:2025"
+    ],
+    "description": "A CGI query parameter is URL-decoded and inserted into a serialized HTTP Location header. CRLF sequences create extra headers or terminate the header block. Inspired by EDB-49923; this is an original laboratory model of the specified boundary, not a reproduction of the affected product.",
+    "remediation": "Reject every control character after query decoding and before response serialization. This is a response-serialization fixture with no live HTTP server or browser; it demonstrates header/body boundaries, not script execution.",
+    "scope": "executable",
+    "references": [
+      {
+        "title": "EDB-49923 — CHIYU TCP/IP Converter devices — CRLF injection (sirpedrotavares)",
+        "url": "https://www.exploit-db.com/exploits/49923"
+      }
+    ],
+    "tests": [
+      {
+        "name": "normal redirect",
+        "kind": "benign",
+        "input": "redirect=settings.htm",
+        "vulnerable": {
+          "equals": "HTTP/1.1 302 Found\r\nLocation: settings.htm\r\nContent-Length: 0\r\n\r\n"
+        },
+        "fixed": {
+          "equals": "HTTP/1.1 302 Found\r\nLocation: settings.htm\r\nContent-Length: 0\r\n\r\n"
+        }
+      },
+      {
+        "name": "encoded slash",
+        "kind": "benign",
+        "input": "redirect=%2Fsettings",
+        "vulnerable": {
+          "equals": "HTTP/1.1 302 Found\r\nLocation: /settings\r\nContent-Length: 0\r\n\r\n"
+        },
+        "fixed": {
+          "equals": "HTTP/1.1 302 Found\r\nLocation: /settings\r\nContent-Length: 0\r\n\r\n"
+        }
+      },
+      {
+        "name": "extra query parameter",
+        "kind": "benign",
+        "input": "redirect=settings.htm&mode=1",
+        "vulnerable": {
+          "equals": "HTTP/1.1 302 Found\r\nLocation: settings.htm\r\nContent-Length: 0\r\n\r\n"
+        },
+        "fixed": {
+          "equals": "HTTP/1.1 302 Found\r\nLocation: settings.htm\r\nContent-Length: 0\r\n\r\n"
+        }
+      },
+      {
+        "name": "injected response header",
+        "kind": "attack",
+        "input": "redirect=settings.htm%0D%0AX-Lab%3A+injected",
+        "vulnerable": {
+          "equals": "HTTP/1.1 302 Found\r\nLocation: settings.htm\r\nX-Lab: injected\r\nContent-Length: 0\r\n\r\n"
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid redirect"
+          }
+        }
+      },
+      {
+        "name": "response body injection",
+        "kind": "attack",
+        "input": "redirect=settings.htm%0D%0A%0D%0ALAB_BODY",
+        "vulnerable": {
+          "equals": "HTTP/1.1 302 Found\r\nLocation: settings.htm\r\n\r\nLAB_BODY\r\nContent-Length: 0\r\n\r\n"
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid redirect"
+          }
+        }
+      },
+      {
+        "name": "LF header injection",
+        "kind": "attack",
+        "input": "redirect=x%0AX-Lab%3A+y",
+        "vulnerable": {
+          "equals": "HTTP/1.1 302 Found\r\nLocation: x\nX-Lab: y\r\nContent-Length: 0\r\n\r\n"
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid redirect"
+          }
+        }
+      },
+      {
+        "name": "duplicate redirect",
+        "kind": "robustness",
+        "input": "redirect=a&redirect=b",
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid redirect"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid redirect"
+          }
+        }
+      },
+      {
+        "name": "missing redirect",
+        "kind": "robustness",
+        "input": "mode=1",
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid redirect"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid redirect"
+          }
+        }
+      },
+      {
+        "name": "bad UTF8",
+        "kind": "robustness",
+        "input": "redirect=%FF",
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid redirect"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid redirect"
+          }
+        }
+      },
+      {
+        "name": "wrong type",
+        "kind": "robustness",
+        "input": {},
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid redirect"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid redirect"
+          }
+        }
+      }
+    ],
+    "vulnerable": "labs/python/cgi-redirect-splitting/vulnerable/main.py",
+    "fixed": "labs/python/cgi-redirect-splitting/fixed/main.py"
+  },
+  {
+    "id": "python/dns-rebinding-ssrf",
+    "language": "python",
+    "cwe": [
+      "CWE-918"
+    ],
+    "owasp": [
+      "A01:2025",
+      "API7:2023"
+    ],
+    "description": "An outbound handler validates a DNS answer, then resolves again at connection time. A deterministic resolver changes from a public address to an internal address and a synthetic transport exposes an internal service marker. Inspired by EDB-52651; this is an original laboratory model of the specified boundary, not a reproduction of the affected product.",
+    "remediation": "Validate all returned addresses and pass the chosen validated address directly to the transport, preserving the original host separately. The resolver sequences and transport are trusted fixture dependencies, not request parameters. This is a handler model: no DNS, socket, TLS or HTTP request occurs; production code also needs redirect, proxy and TLS policy.",
+    "scope": "handler-model",
+    "references": [
+      {
+        "title": "EDB-52651 — flyto_core 2.26.7 — DNS rebinding SSRF (Jorge González Milla)",
+        "url": "https://www.exploit-db.com/exploits/52651"
+      }
+    ],
+    "tests": [
+      {
+        "name": "stable public DNS",
+        "kind": "benign",
+        "input": "https://images.test/image",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "body": "PUBLIC_IMAGE"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "body": "PUBLIC_IMAGE"
+          }
+        }
+      },
+      {
+        "name": "public literal address",
+        "kind": "benign",
+        "input": "https://93.184.216.34/image",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "body": "PUBLIC_IMAGE"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "body": "PUBLIC_IMAGE"
+          }
+        }
+      },
+      {
+        "name": "private first answer denied",
+        "kind": "benign",
+        "input": "http://localhost/",
+        "vulnerable": {
+          "equals": {
+            "status": 403,
+            "error": "internal destination"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 403,
+            "error": "internal destination"
+          }
+        }
+      },
+      {
+        "name": "rebind to loopback",
+        "kind": "attack",
+        "input": "http://rebind.test/image",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "body": "LAB_INTERNAL_SERVICE"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "body": "PUBLIC_IMAGE"
+          }
+        }
+      },
+      {
+        "name": "rebind to link-local",
+        "kind": "attack",
+        "input": "http://metadata.test/image",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "body": "LAB_INTERNAL_SERVICE"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "body": "PUBLIC_IMAGE"
+          }
+        }
+      },
+      {
+        "name": "mixed answer set",
+        "kind": "attack",
+        "input": "http://mixed.test/image",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "body": "PUBLIC_IMAGE"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 403,
+            "error": "internal destination"
+          }
+        }
+      },
+      {
+        "name": "credentials forbidden",
+        "kind": "robustness",
+        "input": "http://user@images.test/",
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid URL"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid URL"
+          }
+        }
+      },
+      {
+        "name": "invalid port",
+        "kind": "robustness",
+        "input": "http://images.test:wrong/",
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid URL"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid URL"
+          }
+        }
+      },
+      {
+        "name": "unknown host",
+        "kind": "robustness",
+        "input": "http://unknown.test/",
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid URL"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid URL"
+          }
+        }
+      },
+      {
+        "name": "wrong type",
+        "kind": "robustness",
+        "input": null,
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid URL"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid URL"
+          }
+        }
+      }
+    ],
+    "vulnerable": "labs/python/dns-rebinding-ssrf/vulnerable/main.py",
+    "fixed": "labs/python/dns-rebinding-ssrf/fixed/main.py"
+  },
+  {
+    "id": "python/svg-resource-ssrf",
+    "language": "python",
+    "cwe": [
+      "CWE-918"
+    ],
+    "owasp": [
+      "A01:2025",
+      "API7:2023"
+    ],
+    "description": "An authenticated SVG upload follows href and xlink:href resources during server-side processing. A real XML parser feeds an offline endpoint registry and can retrieve synthetic internal content. Inspired by EDB-52551; this is an original laboratory model of the specified boundary, not a reproduction of the affected product.",
+    "remediation": "Preflight the entire SVG and permit only local fragment references; reject external resources before any fetch. The strict policy also rejects external public images. Authentication is a synthetic tenant-admin token. This bounded handler model parses SVG references but does not render images, execute scripts, perform network requests or reproduce ThingsBoard.",
+    "scope": "handler-model",
+    "references": [
+      {
+        "title": "EDB-52551 — ThingsBoard 4.2.0 — SVG resource SSRF / CVE-2025-34282 (9tamilmathi)",
+        "url": "https://www.exploit-db.com/exploits/52551"
+      }
+    ],
+    "tests": [
+      {
+        "name": "empty drawing",
+        "kind": "benign",
+        "input": {
+          "token": "LAB_TENANT_ADMIN",
+          "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\"/>"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "resources": []
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "resources": []
+          }
+        }
+      },
+      {
+        "name": "fragment reference",
+        "kind": "benign",
+        "input": {
+          "token": "LAB_TENANT_ADMIN",
+          "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><image href=\"#icon\"/></svg>"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "resources": []
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "resources": []
+          }
+        }
+      },
+      {
+        "name": "xlink fragment",
+        "kind": "benign",
+        "input": {
+          "token": "LAB_TENANT_ADMIN",
+          "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><image xlink:href=\"#icon\"/></svg>"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "resources": []
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "resources": []
+          }
+        }
+      },
+      {
+        "name": "loopback image",
+        "kind": "attack",
+        "input": {
+          "token": "LAB_TENANT_ADMIN",
+          "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><image href=\"http://127.0.0.1/config\"/></svg>"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "resources": [
+              "LAB_INTERNAL_CONFIG"
+            ]
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 403,
+            "error": "external SVG resource"
+          }
+        }
+      },
+      {
+        "name": "xlink metadata",
+        "kind": "attack",
+        "input": {
+          "token": "LAB_TENANT_ADMIN",
+          "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><image xlink:href=\"http://169.254.169.254/metadata\"/></svg>"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "resources": [
+              "LAB_METADATA"
+            ]
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 403,
+            "error": "external SVG resource"
+          }
+        }
+      },
+      {
+        "name": "public external image disabled",
+        "kind": "functional",
+        "input": {
+          "token": "LAB_TENANT_ADMIN",
+          "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><image href=\"https://images.test/logo.png\"/></svg>"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "resources": [
+              "PUBLIC_IMAGE"
+            ]
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 403,
+            "error": "external SVG resource"
+          }
+        }
+      },
+      {
+        "name": "missing authorization",
+        "kind": "benign",
+        "input": {
+          "token": "wrong",
+          "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><image href=\"#icon\"/></svg>"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        }
+      },
+      {
+        "name": "malformed XML",
+        "kind": "robustness",
+        "input": {
+          "token": "LAB_TENANT_ADMIN",
+          "svg": "<svg"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid SVG"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid SVG"
+          }
+        }
+      },
+      {
+        "name": "DTD forbidden",
+        "kind": "robustness",
+        "input": {
+          "token": "LAB_TENANT_ADMIN",
+          "svg": "<!DOCTYPE svg><svg/>"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid SVG"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid SVG"
+          }
+        }
+      },
+      {
+        "name": "non-string document",
+        "kind": "robustness",
+        "input": {
+          "token": "LAB_TENANT_ADMIN",
+          "svg": []
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid SVG"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid SVG"
+          }
+        }
+      }
+    ],
+    "vulnerable": "labs/python/svg-resource-ssrf/vulnerable/main.py",
+    "fixed": "labs/python/svg-resource-ssrf/fixed/main.py"
+  },
+  {
+    "id": "python/remote-import-ssrf",
+    "language": "python",
+    "cwe": [
+      "CWE-918"
+    ],
+    "owasp": [
+      "A01:2025",
+      "API7:2023"
+    ],
+    "description": "An authenticated remote-file import accepts internal destinations and writes returned synthetic content into actual download files. URL parsing, address resolution and endpoint fetching are separate operations. Inspired by EDB-51030; this is an original laboratory model of the specified boundary, not a reproduction of the affected product.",
+    "remediation": "Preflight every URL and all resolved addresses, reject non-global destinations, and pass the validated address to the offline fetch dependency. Invalid mixed batches produce no files. This handler model uses a fixed trusted DNS/endpoint registry, never external DNS or HTTP; it does not model redirects, proxies, TLS or CVAT task processing.",
+    "scope": "handler-model",
+    "references": [
+      {
+        "title": "EDB-51030 — CVAT — remote-file SSRF / CVE-2022-31188 (Emir Polat)",
+        "url": "https://www.exploit-db.com/exploits/51030"
+      }
+    ],
+    "tests": [
+      {
+        "name": "public import",
+        "kind": "benign",
+        "input": {
+          "token": "LAB_ANNOTATOR",
+          "remote_files": [
+            "https://images.test/logo"
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "imported": 1
+          },
+          "files": [
+            {
+              "path": "downloads/0.txt",
+              "content": "PUBLIC_IMAGE"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "imported": 1
+          },
+          "files": [
+            {
+              "path": "downloads/0.txt",
+              "content": "PUBLIC_IMAGE"
+            }
+          ]
+        }
+      },
+      {
+        "name": "public literal",
+        "kind": "benign",
+        "input": {
+          "token": "LAB_ANNOTATOR",
+          "remote_files": [
+            "http://93.184.216.34/"
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "imported": 1
+          },
+          "files": [
+            {
+              "path": "downloads/0.txt",
+              "content": "PUBLIC_IMAGE"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "imported": 1
+          },
+          "files": [
+            {
+              "path": "downloads/0.txt",
+              "content": "PUBLIC_IMAGE"
+            }
+          ]
+        }
+      },
+      {
+        "name": "loopback import",
+        "kind": "attack",
+        "input": {
+          "token": "LAB_ANNOTATOR",
+          "remote_files": [
+            "http://localhost/config"
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "imported": 1
+          },
+          "files": [
+            {
+              "path": "downloads/0.txt",
+              "content": "LAB_INTERNAL_CONFIG"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 403,
+            "error": "internal destination"
+          },
+          "files": [
+            {
+              "path": "downloads/0.txt",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "private DNS import",
+        "kind": "attack",
+        "input": {
+          "token": "LAB_ANNOTATOR",
+          "remote_files": [
+            "http://internal.test/config"
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "imported": 1
+          },
+          "files": [
+            {
+              "path": "downloads/0.txt",
+              "content": "LAB_INTERNAL_CONFIG"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 403,
+            "error": "internal destination"
+          },
+          "files": [
+            {
+              "path": "downloads/0.txt",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "IPv6 loopback",
+        "kind": "attack",
+        "input": {
+          "token": "LAB_ANNOTATOR",
+          "remote_files": [
+            "http://[::1]/"
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "imported": 1
+          },
+          "files": [
+            {
+              "path": "downloads/0.txt",
+              "content": "LAB_INTERNAL_CONFIG"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 403,
+            "error": "internal destination"
+          },
+          "files": [
+            {
+              "path": "downloads/0.txt",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "mixed DNS answers",
+        "kind": "attack",
+        "input": {
+          "token": "LAB_ANNOTATOR",
+          "remote_files": [
+            "http://mixed.test/"
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "imported": 1
+          },
+          "files": [
+            {
+              "path": "downloads/0.txt",
+              "content": "PUBLIC_IMAGE"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 403,
+            "error": "internal destination"
+          },
+          "files": [
+            {
+              "path": "downloads/0.txt",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "preflight whole batch",
+        "kind": "attack",
+        "input": {
+          "token": "LAB_ANNOTATOR",
+          "remote_files": [
+            "https://images.test/logo",
+            "http://internal.test/config"
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "imported": 2
+          },
+          "files": [
+            {
+              "path": "downloads/0.txt",
+              "content": "PUBLIC_IMAGE"
+            },
+            {
+              "path": "downloads/1.txt",
+              "content": "LAB_INTERNAL_CONFIG"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 403,
+            "error": "internal destination"
+          },
+          "files": [
+            {
+              "path": "downloads/0.txt",
+              "type": "absent"
+            },
+            {
+              "path": "downloads/1.txt",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "unauthenticated import",
+        "kind": "benign",
+        "input": {
+          "token": "wrong",
+          "remote_files": [
+            "https://images.test/logo"
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          },
+          "files": [
+            {
+              "path": "downloads/0.txt",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          },
+          "files": [
+            {
+              "path": "downloads/0.txt",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "non-HTTP scheme",
+        "kind": "robustness",
+        "input": {
+          "token": "LAB_ANNOTATOR",
+          "remote_files": [
+            "file:///secret.txt"
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid remote files"
+          },
+          "files": [
+            {
+              "path": "downloads/0.txt",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid remote files"
+          },
+          "files": [
+            {
+              "path": "downloads/0.txt",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "empty batch",
+        "kind": "robustness",
+        "input": {
+          "token": "LAB_ANNOTATOR",
+          "remote_files": []
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid remote files"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid remote files"
+          }
+        }
+      },
+      {
+        "name": "bad URL type",
+        "kind": "robustness",
+        "input": {
+          "token": "LAB_ANNOTATOR",
+          "remote_files": [
+            null
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid remote files"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid remote files"
+          }
+        }
+      },
+      {
+        "name": "malformed port",
+        "kind": "robustness",
+        "input": {
+          "token": "LAB_ANNOTATOR",
+          "remote_files": [
+            "http://images.test:bad/"
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid remote files"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid remote files"
+          }
+        }
+      }
+    ],
+    "vulnerable": "labs/python/remote-import-ssrf/vulnerable/main.py",
+    "fixed": "labs/python/remote-import-ssrf/fixed/main.py"
+  },
+  {
+    "id": "python/tar-symlink-escape",
+    "language": "python",
+    "cwe": [
+      "CWE-59"
+    ],
+    "owasp": [
+      "A01:2025"
+    ],
+    "description": "An upload constructs and parses a real in-memory TAR archive. Lexically valid member names can follow an earlier archive symlink to overwrite a synthetic file outside unpacked/. Inspired by EDB-43002; this is an original laboratory model of the specified boundary, not a reproduction of the affected product.",
+    "remediation": "Preflight every parsed TAR member, accept regular files only, reject symlinks in destination parents and enforce resolved containment before extraction. The local harness confines even the vulnerable link targets to its working directory. No Documentum code is included; concurrent filesystem mutation and hard-link extraction are outside this bounded fixture.",
+    "scope": "executable",
+    "references": [
+      {
+        "title": "EDB-43002 — OpenText Documentum Content Server — TAR symlink traversal / CVE-2017-15276 (Andrey B. Panfilov)",
+        "url": "https://www.exploit-db.com/exploits/43002"
+      }
+    ],
+    "tests": [
+      {
+        "name": "regular file",
+        "kind": "benign",
+        "input": {
+          "members": [
+            {
+              "name": "readme.txt",
+              "content": "HELLO"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "extracted": 1
+          },
+          "files": [
+            {
+              "path": "unpacked/readme.txt",
+              "content": "HELLO"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "extracted": 1
+          },
+          "files": [
+            {
+              "path": "unpacked/readme.txt",
+              "content": "HELLO"
+            }
+          ]
+        }
+      },
+      {
+        "name": "nested file",
+        "kind": "benign",
+        "input": {
+          "members": [
+            {
+              "name": "docs/notes.txt",
+              "content": "NOTES"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "extracted": 1
+          },
+          "files": [
+            {
+              "path": "unpacked/docs/notes.txt",
+              "content": "NOTES"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "extracted": 1
+          },
+          "files": [
+            {
+              "path": "unpacked/docs/notes.txt",
+              "content": "NOTES"
+            }
+          ]
+        }
+      },
+      {
+        "name": "link redirects write",
+        "kind": "attack",
+        "input": {
+          "members": [
+            {
+              "name": "pivot",
+              "link": ".."
+            },
+            {
+              "name": "pivot/secret.txt",
+              "content": "LAB_OVERWRITTEN"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "extracted": 2
+          },
+          "files": [
+            {
+              "path": "secret.txt",
+              "content": "LAB_OVERWRITTEN"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "unsafe archive member"
+          },
+          "files": [
+            {
+              "path": "secret.txt",
+              "content": "LAB_SECRET"
+            },
+            {
+              "path": "unpacked/pivot",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "preflight before writing",
+        "kind": "attack",
+        "input": {
+          "members": [
+            {
+              "name": "readme.txt",
+              "content": "HELLO"
+            },
+            {
+              "name": "pivot",
+              "link": ".."
+            },
+            {
+              "name": "pivot/private.txt",
+              "content": "CHANGED"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "extracted": 3
+          },
+          "files": [
+            {
+              "path": "unpacked/readme.txt",
+              "content": "HELLO"
+            },
+            {
+              "path": "private.txt",
+              "content": "CHANGED"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "unsafe archive member"
+          },
+          "files": [
+            {
+              "path": "unpacked/readme.txt",
+              "type": "absent"
+            },
+            {
+              "path": "private.txt",
+              "content": "LAB_SECRET"
+            }
+          ]
+        }
+      },
+      {
+        "name": "plain traversal rejected",
+        "kind": "benign",
+        "input": {
+          "members": [
+            {
+              "name": "../secret.txt",
+              "content": "NO"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "unsafe archive member"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "unsafe archive member"
+          }
+        }
+      },
+      {
+        "name": "duplicate member rejected",
+        "kind": "benign",
+        "input": {
+          "members": [
+            {
+              "name": "same",
+              "content": "ONE"
+            },
+            {
+              "name": "same",
+              "content": "TWO"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "unsafe archive member"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "unsafe archive member"
+          }
+        }
+      },
+      {
+        "name": "empty archive",
+        "kind": "robustness",
+        "input": {
+          "members": []
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid archive"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid archive"
+          }
+        }
+      },
+      {
+        "name": "invalid content",
+        "kind": "robustness",
+        "input": {
+          "members": [
+            {
+              "name": "x",
+              "content": null
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid archive"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid archive"
+          }
+        }
+      },
+      {
+        "name": "NUL name",
+        "kind": "robustness",
+        "input": {
+          "members": [
+            {
+              "name": "a\u0000b",
+              "content": "X"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid archive"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid archive"
+          }
+        }
+      },
+      {
+        "name": "oversized content",
+        "kind": "robustness",
+        "input": {
+          "members": [
+            {
+              "name": "x",
+              "content": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid archive"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid archive"
+          }
+        }
+      }
+    ],
+    "vulnerable": "labs/python/tar-symlink-escape/vulnerable/main.py",
+    "fixed": "labs/python/tar-symlink-escape/fixed/main.py"
+  },
+  {
+    "id": "python/factory-auth-bypass",
+    "language": "python",
+    "cwe": [
+      "CWE-288"
+    ],
+    "owasp": [
+      "A07:2025"
+    ],
+    "description": "A factoryBypass query parameter creates an administrator session without credentials. A successful request updates a real SQLite configuration row, making the unauthorized state change observable. Inspired by EDB-40156; this is an original laboratory model of the specified boundary, not a reproduction of the affected product.",
+    "remediation": "Remove the factory bypass from the remote request path and require an existing server-side administrator session. Session tokens are fixed synthetic credentials in this fixture, not a production session scheme. Tests inspect committed sessions and configuration rows; other weaknesses in the multi-issue EDB report are outside this case.",
+    "scope": "executable",
+    "references": [
+      {
+        "title": "EDB-40156 — Ubee EVW3226 1.0.20 — factoryBypass authentication bypass (Gergely Eberhardt)",
+        "url": "https://www.exploit-db.com/exploits/40156"
+      }
+    ],
+    "tests": [
+      {
+        "name": "administrator update",
+        "kind": "benign",
+        "input": {
+          "token": "LAB_ADMIN_SESSION",
+          "banner": "HELLO"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "banner": "HELLO"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "banner": "HELLO"
+          }
+        }
+      },
+      {
+        "name": "anonymous denied",
+        "kind": "benign",
+        "input": {
+          "banner": "HELLO"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        }
+      },
+      {
+        "name": "reader denied",
+        "kind": "benign",
+        "input": {
+          "token": "LAB_READER_SESSION",
+          "banner": "HELLO"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        }
+      },
+      {
+        "name": "factory parameter grants admin",
+        "kind": "attack",
+        "input": {
+          "query": "factoryBypass=1",
+          "banner": "CHANGED"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "banner": "CHANGED"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        }
+      },
+      {
+        "name": "presence bypass with zero",
+        "kind": "attack",
+        "input": {
+          "query": "factoryBypass=0",
+          "banner": "CHANGED"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "banner": "CHANGED"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        }
+      },
+      {
+        "name": "reader escalates through factory path",
+        "kind": "attack",
+        "input": {
+          "token": "LAB_READER_SESSION",
+          "query": "factoryBypass=",
+          "banner": "CHANGED"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "banner": "CHANGED"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        }
+      },
+      {
+        "name": "unrelated query has no bypass",
+        "kind": "benign",
+        "input": {
+          "query": "mode=factoryBypass",
+          "banner": "HELLO"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        }
+      },
+      {
+        "name": "missing banner",
+        "kind": "robustness",
+        "input": {},
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid request"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid request"
+          }
+        }
+      },
+      {
+        "name": "wrong query type",
+        "kind": "robustness",
+        "input": {
+          "query": [],
+          "banner": "X"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid request"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid request"
+          }
+        }
+      },
+      {
+        "name": "wrong request type",
+        "kind": "robustness",
+        "input": [],
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid request"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid request"
+          }
+        }
+      }
+    ],
+    "vulnerable": "labs/python/factory-auth-bypass/vulnerable/main.py",
+    "fixed": "labs/python/factory-auth-bypass/fixed/main.py",
+    "database": "sqlite"
+  },
+  {
+    "id": "python/query-clause-authorization",
+    "language": "python",
+    "cwe": [
+      "CWE-863"
+    ],
+    "owasp": [
+      "A01:2025"
+    ],
+    "description": "A query gateway checks restricted-table permissions only on its simple query branch. Adding an allowed WHERE or ORDER BY clause lets a reader retrieve private role rows from real SQLite queries. Inspired by EDB-44068; this is an original laboratory model of the specified boundary, not a reproduction of the affected product.",
+    "remediation": "Authorize the resolved table before branching on query clauses. Table and sort identifiers are mapped from allowlists and filter values are bound as parameters in both variants, isolating the authorization weakness from SQL injection. Trusted fixture tokens determine roles; only the metadata-disclosure stage of the OrientDB report is modeled, not its later code-execution chain.",
+    "scope": "executable",
+    "references": [
+      {
+        "title": "EDB-44068 — OrientDB — query-clause permission bypass / CVE-2017-11467 (SecuriTeam / Francis Alexander)",
+        "url": "https://www.exploit-db.com/exploits/44068"
+      }
+    ],
+    "tests": [
+      {
+        "name": "reader public table",
+        "kind": "benign",
+        "input": {
+          "token": "LAB_READER",
+          "table": "documents"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "rows": [
+              "public"
+            ]
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "rows": [
+              "public"
+            ]
+          }
+        }
+      },
+      {
+        "name": "reader public sorted table",
+        "kind": "benign",
+        "input": {
+          "token": "LAB_READER",
+          "table": "documents",
+          "order_by": "name"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "rows": [
+              "public"
+            ]
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "rows": [
+              "public"
+            ]
+          }
+        }
+      },
+      {
+        "name": "admin private table",
+        "kind": "benign",
+        "input": {
+          "token": "LAB_ADMIN",
+          "table": "roles",
+          "order_by": "name"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "rows": [
+              "admin",
+              "reader"
+            ]
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "rows": [
+              "admin",
+              "reader"
+            ]
+          }
+        }
+      },
+      {
+        "name": "plain restricted query denied",
+        "kind": "benign",
+        "input": {
+          "token": "LAB_READER",
+          "table": "roles"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 403,
+            "error": "restricted table"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 403,
+            "error": "restricted table"
+          }
+        }
+      },
+      {
+        "name": "ORDER BY bypass",
+        "kind": "attack",
+        "input": {
+          "token": "LAB_READER",
+          "table": "roles",
+          "order_by": "name"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "rows": [
+              "admin",
+              "reader"
+            ]
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 403,
+            "error": "restricted table"
+          }
+        }
+      },
+      {
+        "name": "WHERE bypass",
+        "kind": "attack",
+        "input": {
+          "token": "LAB_READER",
+          "table": "roles",
+          "name": "admin"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "rows": [
+              "admin"
+            ]
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 403,
+            "error": "restricted table"
+          }
+        }
+      },
+      {
+        "name": "descending bypass",
+        "kind": "attack",
+        "input": {
+          "token": "LAB_READER",
+          "table": "roles",
+          "order_by": "name DESC"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "rows": [
+              "reader",
+              "admin"
+            ]
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 403,
+            "error": "restricted table"
+          }
+        }
+      },
+      {
+        "name": "filter binds SQL characters",
+        "kind": "benign",
+        "input": {
+          "token": "LAB_READER",
+          "table": "documents",
+          "name": "' OR 1=1 --"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "rows": []
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "rows": []
+          }
+        }
+      },
+      {
+        "name": "sort identifier injection denied",
+        "kind": "robustness",
+        "input": {
+          "token": "LAB_ADMIN",
+          "table": "roles",
+          "order_by": "name; DROP TABLE roles"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid query"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid query"
+          }
+        }
+      },
+      {
+        "name": "wrong table type",
+        "kind": "robustness",
+        "input": {
+          "token": "LAB_READER",
+          "table": []
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid query"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid query"
+          }
+        }
+      },
+      {
+        "name": "unknown token",
+        "kind": "benign",
+        "input": {
+          "token": "wrong",
+          "table": "roles",
+          "order_by": "name"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        }
+      }
+    ],
+    "vulnerable": "labs/python/query-clause-authorization/vulnerable/main.py",
+    "fixed": "labs/python/query-clause-authorization/fixed/main.py",
+    "database": "sqlite"
+  },
+  {
+    "id": "python/backslash-open-redirect",
+    "language": "python",
+    "cwe": [
+      "CWE-601"
+    ],
+    "owasp": [
+      "A01:2025"
+    ],
+    "description": "A local-path redirect check allows a slash followed by a backslash. Browsers interpreting backslashes as separators can treat the resulting Location as a network-path reference to an external host. Inspired by EDB-43592; this is an original laboratory model of the specified boundary, not a reproduction of the affected product.",
+    "remediation": "After one strict percent-decoding pass, reject backslashes, control characters, residual percent encodings and any URL authority or scheme; allow only absolute local paths beginning with a single slash. Output is a Location model with no live browser. Tests normalize the browser separator behavior explicitly; this is not a complete WHATWG URL parser.",
+    "scope": "executable",
+    "references": [
+      {
+        "title": "EDB-43592 — Oracle E-Business Suite — backslash open redirect / CVE-2017-3528 (Andrew Gill)",
+        "url": "https://www.exploit-db.com/exploits/43592"
+      }
+    ],
+    "tests": [
+      {
+        "name": "local dashboard",
+        "kind": "benign",
+        "input": "/dashboard",
+        "vulnerable": {
+          "equals": {
+            "status": 302,
+            "location": "/dashboard"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 302,
+            "location": "/dashboard"
+          }
+        }
+      },
+      {
+        "name": "encoded local path",
+        "kind": "benign",
+        "input": "%2Fdocs%2Fhelp",
+        "vulnerable": {
+          "equals": {
+            "status": 302,
+            "location": "/docs/help"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 302,
+            "location": "/docs/help"
+          }
+        }
+      },
+      {
+        "name": "local query",
+        "kind": "benign",
+        "input": "/search?q=test",
+        "vulnerable": {
+          "equals": {
+            "status": 302,
+            "location": "/search?q=test"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 302,
+            "location": "/search?q=test"
+          }
+        }
+      },
+      {
+        "name": "external URL denied",
+        "kind": "benign",
+        "input": "https://evil.test/",
+        "vulnerable": {
+          "equals": {
+            "status": 403,
+            "error": "external redirect"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 403,
+            "error": "external redirect"
+          }
+        }
+      },
+      {
+        "name": "network path denied",
+        "kind": "benign",
+        "input": "//evil.test/",
+        "vulnerable": {
+          "equals": {
+            "status": 403,
+            "error": "external redirect"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 403,
+            "error": "external redirect"
+          }
+        }
+      },
+      {
+        "name": "backslash authority",
+        "kind": "attack",
+        "input": "/\\evil.test/path",
+        "vulnerable": {
+          "equals": {
+            "status": 302,
+            "location": "/\\evil.test/path"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 403,
+            "error": "external redirect"
+          }
+        }
+      },
+      {
+        "name": "encoded backslash authority",
+        "kind": "attack",
+        "input": "/%5Cevil.test/path",
+        "vulnerable": {
+          "equals": {
+            "status": 302,
+            "location": "/\\evil.test/path"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 403,
+            "error": "external redirect"
+          }
+        }
+      },
+      {
+        "name": "double encoded separator rejected",
+        "kind": "functional",
+        "input": "/%255Cevil.test/path",
+        "vulnerable": {
+          "equals": {
+            "status": 302,
+            "location": "/%5Cevil.test/path"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 403,
+            "error": "external redirect"
+          }
+        }
+      },
+      {
+        "name": "CRLF rejected",
+        "kind": "robustness",
+        "input": "/x%0D%0AX-Lab:y",
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid redirect"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid redirect"
+          }
+        }
+      },
+      {
+        "name": "wrong input type",
+        "kind": "robustness",
+        "input": {},
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid redirect"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid redirect"
+          }
+        }
+      },
+      {
+        "name": "bad UTF8",
+        "kind": "robustness",
+        "input": "/%FF",
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid redirect"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid redirect"
+          }
+        }
+      }
+    ],
+    "vulnerable": "labs/python/backslash-open-redirect/vulnerable/main.py",
+    "fixed": "labs/python/backslash-open-redirect/fixed/main.py"
   }
 ]

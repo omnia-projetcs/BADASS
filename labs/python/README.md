@@ -62,3 +62,13 @@ Run commands from the repository root. Cases are independent and use synthetic f
 | [Client-controlled price](client-price/README.md) | CWE-602 | A06:2025 | executable |
 | [Permissive origin regex](regex-origin/README.md) | CWE-625 | A01:2025 | executable |
 | [Signed action replay](signed-action-replay/README.md) | CWE-294 | A07:2025 | executable |
+| [Double-decoding path traversal](double-decoding-traversal/README.md) | CWE-22 | A01:2025 | executable |
+| [Item-name template injection](item-template-injection/README.md) | CWE-1336 | A05:2025 | executable |
+| [CGI redirect response splitting](cgi-redirect-splitting/README.md) | CWE-113 | A05:2025 | executable |
+| [DNS rebinding SSRF](dns-rebinding-ssrf/README.md) | CWE-918 | A01:2025, API7:2023 | handler-model |
+| [SVG resource SSRF](svg-resource-ssrf/README.md) | CWE-918 | A01:2025, API7:2023 | handler-model |
+| [Remote-file import SSRF](remote-import-ssrf/README.md) | CWE-918 | A01:2025, API7:2023 | handler-model |
+| [TAR symlink escape](tar-symlink-escape/README.md) | CWE-59 | A01:2025 | executable |
+| [Factory authentication bypass](factory-auth-bypass/README.md) | CWE-288 | A07:2025 | executable |
+| [Query-clause authorization bypass](query-clause-authorization/README.md) | CWE-863 | A01:2025 | executable |
+| [Backslash open redirect](backslash-open-redirect/README.md) | CWE-601 | A01:2025 | executable |
