@@ -72,3 +72,6 @@ Run commands from the repository root. Cases are independent and use synthetic f
 | [Factory authentication bypass](factory-auth-bypass/README.md) | CWE-288 | A07:2025 | executable |
 | [Query-clause authorization bypass](query-clause-authorization/README.md) | CWE-863 | A01:2025 | executable |
 | [Backslash open redirect](backslash-open-redirect/README.md) | CWE-601 | A01:2025 | executable |
+| [Log4Shell: message lookup injection](log4shell-lookup/README.md) | CWE-917 | A05:2025 | handler-model |
+| [TeamCity: dispatch authentication bypass](teamcity-dispatch-bypass/README.md) | CWE-288 | A07:2025, API5:2023 | handler-model |
+| [Confluence: pre-auth expression evaluation](confluence-expression-dispatch/README.md) | CWE-917 | A05:2025 | handler-model |

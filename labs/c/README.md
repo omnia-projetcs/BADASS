@@ -34,3 +34,7 @@ Run commands from the repository root. Cases are independent and use synthetic f
 | [Null dereference](null-dereference/README.md) | CWE-476 | A06:2025 | executable |
 | [Out of bounds read](out-of-bounds-read/README.md) | CWE-125 | A06:2025 | executable |
 | [Integer overflow](integer-overflow/README.md) | CWE-190 | A06:2025 | executable |
+| [PHP2Shell: request OOM cleanup](php2shell-oom/README.md) | CWE-416 | A06:2025, A10:2025 | native-model |
+| [PHP2Shell: stale worker state](php2shell-stale-state/README.md) | CWE-416 | A06:2025, A10:2025 | native-model |
+| [Node2Shell: Brotli block-switch status](node2shell-block-switch/README.md) | CWE-252, CWE-787 | A06:2025, A10:2025 | native-model |
+| [PHP-CGI best-fit argument injection](php-cgi-best-fit/README.md) | CWE-88 | A05:2025 | native-model |

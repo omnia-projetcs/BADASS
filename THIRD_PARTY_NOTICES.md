@@ -2,6 +2,36 @@
 
 Original project code is covered by [LICENSE](LICENSE).
 
+## Named CVE teaching models
+
+The seven named-CVE cases covering Log4Shell, TeamCity, PHP-CGI, Confluence,
+PHP2Shell and Node2Shell are original reduced implementations. They reference
+upstream advisories and, for Brotli, the upstream correction to identify the
+failure mechanism. No PHP, Node.js, Brotli, Log4j, TeamCity, Confluence or
+third-party exploit source is vendored or copied into these fixtures.
+
+- PHP Group / PHP security team, CVE-2026-109618 (OOM corruption):
+  https://github.com/php/php-src/security/advisories/GHSA-w8hw-w9fx-j79w
+- PHP Group / PHP security team, CVE-2026-109619 (stale global state):
+  https://github.com/php/php-src/security/advisories/GHSA-6wmf-4rv5-p3rp
+- Node.js / Google Brotli, CVE-2026-111497 (Node2Shell):
+  https://nodejs.org/en/blog/vulnerability/october-2026-security-releases
+  https://github.com/google/brotli/commit/0ed4268a4401abcb4472096340477cf4af7d1a2b
+- Orange Tsai / DEVCORE and PHP Group, CVE-2024-4577 (Windows CGI arguments):
+  https://github.com/php/php-src/security/advisories/GHSA-3qgc-jrrr-25jv
+- Apache Logging Services, CVE-2021-44228 (Log4Shell):
+  https://logging.apache.org/security.html
+- JetBrains / Rapid7, CVE-2024-27198 (TeamCity authentication bypass):
+  https://blog.jetbrains.com/teamcity/2024/03/additional-critical-security-issues-affecting-teamcity-on-premises-cve-2024-27198-and-cve-2024-27199-update-to-2023-11-4-now/
+- Atlassian, CVE-2022-26134 (Confluence expression injection):
+  https://confluence.atlassian.com/doc/confluence-security-advisory-2022-06-02-1130377146.html
+
+The Log4Shell, TeamCity, PHP-CGI and Confluence models also reference EDB-51183,
+EDB-52411, EDB-52331 and EDB-50952 respectively. Those reports are cited in each
+case README; their exploit code is not included. The PHP2Shell and Node2Shell
+models rely on the upstream references above and claim no invented Exploit-DB
+identifier. See [model boundaries and provenance](docs/NAMED-CVES.md).
+
 ## Exploit-DB references
 
 The Exploit-DB-inspired Python cases are original educational implementations

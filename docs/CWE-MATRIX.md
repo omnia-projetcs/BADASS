@@ -2,7 +2,7 @@
 
 Source: MITRE CWE **4.20**. All **1450** entries from the imported snapshot are included.
 
-**72 implemented weaknesses**, **897 gaps**, **481 category/view entries**.
+**75 implemented weaknesses**, **894 gaps**, **481 category/view entries**.
 
 `implemented` means source pairs and vectors exist, not that a scanner detected them or a runtime was available.
 Test results are tracked separately. `gap` is an unimplemented weakness. `taxonomy-only` is a category or view.
@@ -99,7 +99,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-85 | Doubled Character XSS Manipulations | weakness | Draft | gap |  |
 | CWE-86 | Improper Neutralization of Invalid Characters in Identifiers in Web Pages | weakness | Draft | gap |  |
 | CWE-87 | Improper Neutralization of Alternate XSS Syntax | weakness | Draft | gap |  |
-| CWE-88 | Improper Neutralization of Argument Delimiters in a Command ('Argument Injection') | weakness | Draft | implemented | [python/argument-injection](../labs/python/argument-injection/README.md) |
+| CWE-88 | Improper Neutralization of Argument Delimiters in a Command ('Argument Injection') | weakness | Draft | implemented | [python/argument-injection](../labs/python/argument-injection/README.md), [c/php-cgi-best-fit](../labs/c/php-cgi-best-fit/README.md) |
 | CWE-89 | Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection') | weakness | Stable | implemented | [python/sql-injection](../labs/python/sql-injection/README.md), [c/sql-injection](../labs/c/sql-injection/README.md), [cpp/sql-injection](../labs/cpp/sql-injection/README.md), [go/sql-injection](../labs/go/sql-injection/README.md), [php/sql-injection](../labs/php/sql-injection/README.md), [node/sql-injection](../labs/node/sql-injection/README.md), [typescript/sql-injection](../labs/typescript/sql-injection/README.md), [java/sql-injection](../labs/java/sql-injection/README.md), [ruby/sql-injection](../labs/ruby/sql-injection/README.md), [dotnet/sql-injection](../labs/dotnet/sql-injection/README.md), [rust/sql-injection](../labs/rust/sql-injection/README.md), [cgi/sql-injection](../labs/cgi/sql-injection/README.md), [rest-api/sql-injection](../labs/rest-api/sql-injection/README.md), [ai/sql-injection](../labs/ai/sql-injection/README.md), [python/sql-order-by](../labs/python/sql-order-by/README.md), [python/sql-second-order](../labs/python/sql-second-order/README.md), [python/sql-login-bypass](../labs/python/sql-login-bypass/README.md) |
 | CWE-90 | Improper Neutralization of Special Elements used in an LDAP Query ('LDAP Injection') | weakness | Draft | gap |  |
 | CWE-91 | XML Injection (aka Blind XPath Injection) | weakness | Draft | gap |  |
@@ -263,7 +263,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-249 | DEPRECATED: Often Misused: Path Manipulation | weakness | Deprecated | gap |  |
 | CWE-250 | Execution with Unnecessary Privileges | weakness | Draft | gap |  |
 | CWE-251 | Often Misused: String Management | category | Incomplete | taxonomy-only |  |
-| CWE-252 | Unchecked Return Value | weakness | Draft | gap |  |
+| CWE-252 | Unchecked Return Value | weakness | Draft | implemented | [c/node2shell-block-switch](../labs/c/node2shell-block-switch/README.md) |
 | CWE-253 | Incorrect Check of Function Return Value | weakness | Incomplete | gap |  |
 | CWE-254 | 7PK - Security Features | category | Incomplete | taxonomy-only |  |
 | CWE-255 | Credentials Management Errors | category | Draft | taxonomy-only |  |
@@ -299,7 +299,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-285 | Improper Authorization | weakness | Draft | gap |  |
 | CWE-286 | Incorrect User Management | weakness | Incomplete | gap |  |
 | CWE-287 | Improper Authentication | weakness | Draft | implemented | [rest-api/broken-authentication](../labs/rest-api/broken-authentication/README.md) |
-| CWE-288 | Authentication Bypass Using an Alternate Path or Channel | weakness | Incomplete | implemented | [python/factory-auth-bypass](../labs/python/factory-auth-bypass/README.md) |
+| CWE-288 | Authentication Bypass Using an Alternate Path or Channel | weakness | Incomplete | implemented | [python/factory-auth-bypass](../labs/python/factory-auth-bypass/README.md), [python/teamcity-dispatch-bypass](../labs/python/teamcity-dispatch-bypass/README.md) |
 | CWE-289 | Authentication Bypass by Alternate Name | weakness | Incomplete | gap |  |
 | CWE-290 | Authentication Bypass by Spoofing | weakness | Incomplete | gap |  |
 | CWE-291 | Reliance on IP Address for Authentication | weakness | Incomplete | gap |  |
@@ -427,7 +427,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-413 | Improper Resource Locking | weakness | Draft | gap |  |
 | CWE-414 | Missing Lock Check | weakness | Draft | gap |  |
 | CWE-415 | Double Free | weakness | Draft | implemented | [c/double-free](../labs/c/double-free/README.md), [cpp/double-free](../labs/cpp/double-free/README.md) |
-| CWE-416 | Use After Free | weakness | Stable | implemented | [c/use-after-free](../labs/c/use-after-free/README.md), [cpp/use-after-free](../labs/cpp/use-after-free/README.md) |
+| CWE-416 | Use After Free | weakness | Stable | implemented | [c/use-after-free](../labs/c/use-after-free/README.md), [cpp/use-after-free](../labs/cpp/use-after-free/README.md), [c/php2shell-oom](../labs/c/php2shell-oom/README.md), [c/php2shell-stale-state](../labs/c/php2shell-stale-state/README.md) |
 | CWE-417 | Communication Channel Errors | category | Draft | taxonomy-only |  |
 | CWE-418 | DEPRECATED: Channel Errors | category | Deprecated | taxonomy-only |  |
 | CWE-419 | Unprotected Primary Channel | weakness | Draft | gap |  |
@@ -798,7 +798,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-784 | Reliance on Cookies without Validation and Integrity Checking in a Security Decision | weakness | Draft | gap |  |
 | CWE-785 | Use of Path Manipulation Function without Maximum-sized Buffer | weakness | Incomplete | gap |  |
 | CWE-786 | Access of Memory Location Before Start of Buffer | weakness | Incomplete | gap |  |
-| CWE-787 | Out-of-bounds Write | weakness | Draft | gap |  |
+| CWE-787 | Out-of-bounds Write | weakness | Draft | implemented | [c/node2shell-block-switch](../labs/c/node2shell-block-switch/README.md) |
 | CWE-788 | Access of Memory Location After End of Buffer | weakness | Incomplete | gap |  |
 | CWE-789 | Memory Allocation with Excessive Size Value | weakness | Draft | gap |  |
 | CWE-790 | Improper Filtering of Special Elements | weakness | Incomplete | gap |  |
@@ -928,7 +928,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-914 | Improper Control of Dynamically-Identified Variables | weakness | Incomplete | gap |  |
 | CWE-915 | Improperly Controlled Modification of Dynamically-Determined Object Attributes | weakness | Incomplete | implemented | [python/mass-assignment](../labs/python/mass-assignment/README.md), [rest-api/property-authorization](../labs/rest-api/property-authorization/README.md) |
 | CWE-916 | Use of Password Hash With Insufficient Computational Effort | weakness | Incomplete | implemented | [python/weak-password-hash](../labs/python/weak-password-hash/README.md) |
-| CWE-917 | Improper Neutralization of Special Elements used in an Expression Language Statement ('Expression Language Injection') | weakness | Incomplete | gap |  |
+| CWE-917 | Improper Neutralization of Special Elements used in an Expression Language Statement ('Expression Language Injection') | weakness | Incomplete | implemented | [python/log4shell-lookup](../labs/python/log4shell-lookup/README.md), [python/confluence-expression-dispatch](../labs/python/confluence-expression-dispatch/README.md) |
 | CWE-918 | Server-Side Request Forgery (SSRF) | weakness | Incomplete | implemented | [rest-api/ssrf](../labs/rest-api/ssrf/README.md), [rest-api/ssrf-redirect](../labs/rest-api/ssrf-redirect/README.md), [python/dns-rebinding-ssrf](../labs/python/dns-rebinding-ssrf/README.md), [python/svg-resource-ssrf](../labs/python/svg-resource-ssrf/README.md), [python/remote-import-ssrf](../labs/python/remote-import-ssrf/README.md) |
 | CWE-919 | Weaknesses in Mobile Applications | view | Incomplete | taxonomy-only |  |
 | CWE-920 | Improper Restriction of Power Consumption | weakness | Incomplete | gap |  |

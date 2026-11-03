@@ -15,6 +15,10 @@ Every case still requires an identical benign vector and a discriminating attack
 `executable` examples perform actual operations in a temporary working directory.
 `handler-unit`, `state-machine-unit`, and `configuration-unit` examples validate an
 application boundary without claiming to reproduce a complete deployment.
+`handler-model` uses a reduced application protocol or offline service dependency.
+`native-model` executes an original reduced C model under sanitizers; its real
+memory effects do not establish exploitation of the referenced product or CVE.
+The [named CVE guide](NAMED-CVES.md) documents these model boundaries.
 `loopback-integration` exercises an actual local HTTP request. `ai-boundary-unit`
 validates application controls around a model; it does not run a model.
 `transaction-concurrency-unit` uses separate SQLite connections in concurrent
