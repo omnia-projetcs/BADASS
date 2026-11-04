@@ -4,8 +4,8 @@ Original project code is covered by [LICENSE](LICENSE).
 
 ## Named CVE teaching models
 
-The seven named-CVE cases covering Log4Shell, TeamCity, PHP-CGI, Confluence,
-PHP2Shell and Node2Shell are original reduced implementations. They reference
+The named-CVE cases covering runtimes, frameworks and service boundaries are
+original reduced implementations. They reference
 upstream advisories and, for Brotli, the upstream correction to identify the
 failure mechanism. No PHP, Node.js, Brotli, Log4j, TeamCity, Confluence or
 third-party exploit source is vendored or copied into these fixtures.
@@ -31,6 +31,33 @@ EDB-52411, EDB-52331 and EDB-50952 respectively. Those reports are cited in each
 case README; their exploit code is not included. The PHP2Shell and Node2Shell
 models rely on the upstream references above and claim no invented Exploit-DB
 identifier. See [model boundaries and provenance](docs/NAMED-CVES.md).
+
+The additional ten original models cite the following upstream reports. Their
+source code and third-party exploit implementations are not copied or vendored:
+
+- Spring / VMware, CVE-2022-22965 (Spring4Shell data binding):
+  https://spring.io/security/cve-2022-22965/
+- Jenkins security team / Yaniv Nizry, CVE-2024-23897 (CLI @file expansion):
+  https://www.jenkins.io/security/advisory/2024-01-24/
+- Fortinet / Felipe Alcantara, CVE-2022-40684 (forwarded identity), EDB-51092:
+  https://www.fortiguard.com/psirt/FG-IR-22-377
+  https://www.exploit-db.com/exploits/51092
+- Atlassian / Emir Polat, CVE-2023-22515 (setup state), EDB-51829:
+  https://confluence.atlassian.com/security/cve-2023-22515-broken-access-control-vulnerability-in-confluence-data-center-and-server-1295682276.html
+  https://www.exploit-db.com/exploits/51829
+- GitLab CNA, CVE-2023-7028 (unverified recovery-email recipients):
+  https://gitlab.com/gitlab-org/cves/-/blob/40bb099b1d6622fad9a67a2ed4e4c7addc9388a2/2023/CVE-2023-7028.json
+- MinIO security team, CVE-2023-28432 (bootstrap configuration disclosure):
+  https://github.com/minio/minio/security/advisories/GHSA-6xvq-wj2x-3h3q
+- Apache ActiveMQ, CVE-2023-46604 (unchecked constructor type):
+  https://activemq.apache.org/news/cve-2023-46604
+- Zabbix / Márk Rákóczi, CVE-2024-42327 (user.get SQL injection):
+  https://support.zabbix.com/browse/ZBX-25623
+- Nikolay Ermishkin / ImageTragick researchers, CVE-2016-3714, EDB-39767:
+  https://imagetragick.com/
+  https://www.exploit-db.com/exploits/39767
+- Apache HTTP Server, CVE-2023-25690 (rewrite/proxy request splitting):
+  https://httpd.apache.org/security/json/CVE-2023-25690.json
 
 ## Exploit-DB references
 

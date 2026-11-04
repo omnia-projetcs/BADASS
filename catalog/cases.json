@@ -39213,5 +39213,2585 @@
     ],
     "vulnerable": "labs/python/confluence-expression-dispatch/vulnerable/main.py",
     "fixed": "labs/python/confluence-expression-dispatch/fixed/main.py"
+  },
+  {
+    "id": "python/spring4shell-binding",
+    "language": "python",
+    "family": "spring4shell",
+    "cve": [
+      "CVE-2022-22965"
+    ],
+    "cwe": [
+      "CWE-915"
+    ],
+    "owasp": [
+      "A01:2025"
+    ],
+    "description": "Original reduced Python model inspired by CVE-2022-22965. A dotted-property binder traverses a synthetic class/module/class-loader graph and changes an internal access-log prefix. The sink writes a real local log to the altered filename. It models the binding boundary, not Spring, Tomcat, JSP writing or RCE.",
+    "remediation": "Preflight an exact allowlist of client-editable properties, including an explicitly allowed nested profile field, before traversing or modifying the model. Log prefixes remain confined to a synthetic logs directory in both variants. Actual Spring remediation requires the vendor fix and consideration of the deployment prerequisites described in its advisory.",
+    "scope": "handler-model",
+    "references": [
+      {
+        "title": "Spring Framework CVE-2022-22965 — data-binding RCE advisory",
+        "url": "https://spring.io/security/cve-2022-22965/"
+      }
+    ],
+    "tests": [
+      {
+        "name": "ordinary form",
+        "kind": "benign",
+        "input": {
+          "fields": {
+            "name": "bob"
+          }
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "name": "bob",
+            "display_name": "Alice"
+          },
+          "files": [
+            {
+              "path": "logs/access.log",
+              "content": "user=bob\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "name": "bob",
+            "display_name": "Alice"
+          },
+          "files": [
+            {
+              "path": "logs/access.log",
+              "content": "user=bob\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "allowed nested profile",
+        "kind": "benign",
+        "input": {
+          "fields": {
+            "profile.display_name": "Alicia"
+          }
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "name": "alice",
+            "display_name": "Alicia"
+          },
+          "files": [
+            {
+              "path": "logs/access.log",
+              "content": "user=alice\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "name": "alice",
+            "display_name": "Alicia"
+          },
+          "files": [
+            {
+              "path": "logs/access.log",
+              "content": "user=alice\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "empty form",
+        "kind": "benign",
+        "input": {
+          "fields": {}
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "name": "alice",
+            "display_name": "Alice"
+          },
+          "files": [
+            {
+              "path": "logs/access.log",
+              "content": "user=alice\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "name": "alice",
+            "display_name": "Alice"
+          },
+          "files": [
+            {
+              "path": "logs/access.log",
+              "content": "user=alice\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "class-loader traversal",
+        "kind": "attack",
+        "input": {
+          "fields": {
+            "class.module.classLoader.pipeline.prefix": "private"
+          }
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "name": "alice",
+            "display_name": "Alice"
+          },
+          "files": [
+            {
+              "path": "logs/private.log",
+              "content": "user=alice\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid binding"
+          },
+          "files": [
+            {
+              "path": "logs/private.log",
+              "type": "absent"
+            },
+            {
+              "path": "logs/access.log",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "whole binding preflight",
+        "kind": "attack",
+        "input": {
+          "fields": {
+            "name": "bob",
+            "class.module.classLoader.pipeline.prefix": "changed"
+          }
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "name": "bob",
+            "display_name": "Alice"
+          },
+          "files": [
+            {
+              "path": "logs/changed.log",
+              "content": "user=bob\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid binding"
+          }
+        }
+      },
+      {
+        "name": "unknown property",
+        "kind": "robustness",
+        "input": {
+          "fields": {
+            "missing.value": "x"
+          }
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid binding"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid binding"
+          }
+        }
+      },
+      {
+        "name": "non-string value",
+        "kind": "robustness",
+        "input": {
+          "fields": {
+            "name": []
+          }
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid binding"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid binding"
+          }
+        }
+      },
+      {
+        "name": "wrong request type",
+        "kind": "robustness",
+        "input": [],
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid binding"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid binding"
+          }
+        }
+      },
+      {
+        "name": "path-shaped prefix rejected",
+        "kind": "benign",
+        "input": {
+          "fields": {
+            "class.module.classLoader.pipeline.prefix": "../escape"
+          }
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid binding"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid binding"
+          }
+        }
+      }
+    ],
+    "vulnerable": "labs/python/spring4shell-binding/vulnerable/main.py",
+    "fixed": "labs/python/spring4shell-binding/fixed/main.py"
+  },
+  {
+    "id": "python/jenkins-cli-atfile",
+    "language": "python",
+    "family": "jenkins-cli",
+    "cve": [
+      "CVE-2024-23897"
+    ],
+    "cwe": [
+      "CWE-73"
+    ],
+    "owasp": [
+      "A01:2025"
+    ],
+    "description": "Original reduced Python model inspired by CVE-2024-23897. A CLI parser expands @file arguments before the command permission check. Its help error exposes the first line of a real synthetic private file. The reduced parser demonstrates pre-authorization disclosure only; it is not args4j, a Jenkins controller or the later RCE chain.",
+    "remediation": "Disable @file expansion for remotely supplied CLI arguments. Keep those arguments literal rather than attempting to authorize after expansion. File expansion in the vulnerable model is bounded to existing files inside the fixture workspace and a small size; it never reads outside the laboratory working directory. Actual Jenkins remediation is upgrading or disabling the affected CLI.",
+    "scope": "executable",
+    "references": [
+      {
+        "title": "Jenkins SECURITY-3314 / CVE-2024-23897 — official advisory",
+        "url": "https://www.jenkins.io/security/advisory/2024-01-24/"
+      }
+    ],
+    "tests": [
+      {
+        "name": "anonymous literal argument",
+        "kind": "benign",
+        "input": {
+          "args": [
+            "help"
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 403,
+            "argument": "help"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 403,
+            "argument": "help"
+          }
+        }
+      },
+      {
+        "name": "authorized literal arguments",
+        "kind": "benign",
+        "input": {
+          "args": [
+            "list",
+            "jobs"
+          ],
+          "token": "LAB_CLI_READER"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "arguments": [
+              "list",
+              "jobs"
+            ]
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "arguments": [
+              "list",
+              "jobs"
+            ]
+          }
+        }
+      },
+      {
+        "name": "anonymous private file",
+        "kind": "attack",
+        "input": {
+          "args": [
+            "@secret.txt"
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 403,
+            "argument": "LAB_SECRET"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 403,
+            "argument": "@secret.txt"
+          }
+        }
+      },
+      {
+        "name": "second private file",
+        "kind": "attack",
+        "input": {
+          "args": [
+            "@private.txt"
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 403,
+            "argument": "LAB_SECRET"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 403,
+            "argument": "@private.txt"
+          }
+        }
+      },
+      {
+        "name": "authorized parser file expansion",
+        "kind": "attack",
+        "input": {
+          "args": [
+            "@secret.txt"
+          ],
+          "token": "LAB_CLI_READER"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "arguments": [
+              "LAB_SECRET"
+            ]
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "arguments": [
+              "@secret.txt"
+            ]
+          }
+        }
+      },
+      {
+        "name": "literal at character inside text",
+        "kind": "benign",
+        "input": {
+          "args": [
+            "user@example.test"
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 403,
+            "argument": "user@example.test"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 403,
+            "argument": "user@example.test"
+          }
+        }
+      },
+      {
+        "name": "empty args",
+        "kind": "robustness",
+        "input": {
+          "args": []
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid command"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid command"
+          }
+        }
+      },
+      {
+        "name": "non-string argument",
+        "kind": "robustness",
+        "input": {
+          "args": [
+            null
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid command"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid command"
+          }
+        }
+      },
+      {
+        "name": "wrong request",
+        "kind": "robustness",
+        "input": null,
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid command"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid command"
+          }
+        }
+      }
+    ],
+    "vulnerable": "labs/python/jenkins-cli-atfile/vulnerable/main.py",
+    "fixed": "labs/python/jenkins-cli-atfile/fixed/main.py"
+  },
+  {
+    "id": "python/fortios-forwarded-auth",
+    "language": "python",
+    "family": "fortios-forwarded",
+    "cve": [
+      "CVE-2022-40684"
+    ],
+    "cwe": [
+      "CWE-288"
+    ],
+    "owasp": [
+      "A07:2025"
+    ],
+    "description": "Original reduced Python model inspired by CVE-2022-40684. An appliance handler trusts a loopback identity claimed in client Forwarded and User-Agent headers. A forged request writes a synthetic administrator key marker to a real local file. No Fortinet code, SSH key or SSH login is involved.",
+    "remediation": "Require an issued administrator token independent of client forwarding headers. Normalize header names and reject case-colliding duplicates before authorization. Real deployments must also authenticate trusted proxy or internal-service channels; this fixture models only the external request boundary.",
+    "scope": "handler-model",
+    "references": [
+      {
+        "title": "Fortinet CVE-2022-40684 — vendor advisory",
+        "url": "https://www.fortiguard.com/psirt/FG-IR-22-377"
+      },
+      {
+        "title": "EDB-51092 — Fortinet forwarded-header authentication bypass",
+        "url": "https://www.exploit-db.com/exploits/51092"
+      }
+    ],
+    "tests": [
+      {
+        "name": "valid admin token",
+        "kind": "benign",
+        "input": {
+          "key": "LAB_KEY_ADMIN",
+          "headers": {
+            "Authorization": "Bearer LAB_ADMIN_API_TOKEN"
+          }
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "key": "LAB_KEY_ADMIN"
+          },
+          "files": [
+            {
+              "path": "appliance-admin.keys",
+              "content": "LAB_KEY_ADMIN\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "key": "LAB_KEY_ADMIN"
+          },
+          "files": [
+            {
+              "path": "appliance-admin.keys",
+              "content": "LAB_KEY_ADMIN\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "lowercase header token",
+        "kind": "benign",
+        "input": {
+          "key": "LAB_KEY_ADMIN",
+          "headers": {
+            "authorization": "Bearer LAB_ADMIN_API_TOKEN"
+          }
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "key": "LAB_KEY_ADMIN"
+          },
+          "files": [
+            {
+              "path": "appliance-admin.keys",
+              "content": "LAB_KEY_ADMIN\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "key": "LAB_KEY_ADMIN"
+          },
+          "files": [
+            {
+              "path": "appliance-admin.keys",
+              "content": "LAB_KEY_ADMIN\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "anonymous request",
+        "kind": "benign",
+        "input": {
+          "key": "LAB_KEY_NEW"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        }
+      },
+      {
+        "name": "forged internal identity",
+        "kind": "attack",
+        "input": {
+          "key": "LAB_KEY_NEW",
+          "headers": {
+            "User-Agent": "Node.js",
+            "Forwarded": "by=\"[127.0.0.1]:80\";for=\"[127.0.0.1]:49490\";proto=http"
+          }
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "key": "LAB_KEY_NEW"
+          },
+          "files": [
+            {
+              "path": "appliance-admin.keys",
+              "content": "LAB_KEY_NEW\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          },
+          "files": [
+            {
+              "path": "appliance-admin.keys",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "alternate trusted agent spoof",
+        "kind": "attack",
+        "input": {
+          "key": "LAB_KEY_OTHER",
+          "headers": {
+            "User-Agent": "Report Runner",
+            "Forwarded": "by=\"[127.0.0.1]:80\";for=\"[127.0.0.1]:49490\";proto=http"
+          }
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "key": "LAB_KEY_OTHER"
+          },
+          "files": [
+            {
+              "path": "appliance-admin.keys",
+              "content": "LAB_KEY_OTHER\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        }
+      },
+      {
+        "name": "user agent alone denied",
+        "kind": "benign",
+        "input": {
+          "key": "LAB_KEY_NEW",
+          "headers": {
+            "User-Agent": "Node.js"
+          }
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        }
+      },
+      {
+        "name": "colliding authorization fields",
+        "kind": "robustness",
+        "input": {
+          "key": "LAB_KEY_NEW",
+          "headers": {
+            "Authorization": "a",
+            "authorization": "b"
+          }
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid key request"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid key request"
+          }
+        }
+      },
+      {
+        "name": "bad key shape",
+        "kind": "robustness",
+        "input": {
+          "key": "not-a-key",
+          "headers": {
+            "User-Agent": "Node.js",
+            "Forwarded": "by=\"[127.0.0.1]:80\";for=\"[127.0.0.1]:49490\";proto=http"
+          }
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid key request"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid key request"
+          }
+        }
+      },
+      {
+        "name": "header injection rejected",
+        "kind": "robustness",
+        "input": {
+          "key": "LAB_KEY_NEW",
+          "headers": {
+            "User-Agent": "a\r\nb"
+          }
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid key request"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid key request"
+          }
+        }
+      }
+    ],
+    "vulnerable": "labs/python/fortios-forwarded-auth/vulnerable/main.py",
+    "fixed": "labs/python/fortios-forwarded-auth/fixed/main.py"
+  },
+  {
+    "id": "python/confluence-setup-reopen",
+    "language": "python",
+    "family": "confluence-setup",
+    "cve": [
+      "CVE-2023-22515"
+    ],
+    "cwe": [
+      "CWE-915"
+    ],
+    "owasp": [
+      "A01:2025"
+    ],
+    "description": "Original reduced Python model inspired by CVE-2023-22515. An internal setup-complete property is writable through a public binding path. A second request then enters the setup administrator handler and commits an unauthorized account to SQLite. This reduced stateful model is separate from the earlier Confluence expression-injection case.",
+    "remediation": "Reject externally supplied internal setup properties and keep setup state in trusted storage. The setup route still supports legitimate initial installation using a server-controlled fresh-install fixture setting. The test environment flag is not client request data. Actual remediation is the patched Confluence release; this is not its Java or HTTP implementation.",
+    "scope": "handler-model",
+    "references": [
+      {
+        "title": "Atlassian CVE-2023-22515 — broken access control advisory",
+        "url": "https://confluence.atlassian.com/security/cve-2023-22515-broken-access-control-vulnerability-in-confluence-data-center-and-server-1295682276.html"
+      },
+      {
+        "title": "EDB-51829 — Confluence setup authentication bypass",
+        "url": "https://www.exploit-db.com/exploits/51829"
+      }
+    ],
+    "tests": [
+      {
+        "name": "installed server info",
+        "kind": "benign",
+        "input": {
+          "steps": [
+            {
+              "path": "/server-info.action"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "results": [
+              {
+                "status": 200,
+                "setup_complete": true
+              }
+            ]
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "results": [
+              {
+                "status": 200,
+                "setup_complete": true
+              }
+            ]
+          }
+        }
+      },
+      {
+        "name": "installed setup route closed",
+        "kind": "benign",
+        "input": {
+          "steps": [
+            {
+              "path": "/setup/setupadministrator.action",
+              "user": "lab-user"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "results": [
+              {
+                "status": 403,
+                "error": "setup closed"
+              }
+            ]
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "results": [
+              {
+                "status": 403,
+                "error": "setup closed"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "name": "legitimate initial setup",
+        "kind": "benign",
+        "input": {
+          "steps": [
+            {
+              "path": "/setup/setupadministrator.action",
+              "user": "lab-user"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "results": [
+              {
+                "status": 201,
+                "created": "lab-user"
+              }
+            ]
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "results": [
+              {
+                "status": 201,
+                "created": "lab-user"
+              }
+            ]
+          }
+        },
+        "env": {
+          "BADASS_SETUP_MODE": "fresh"
+        }
+      },
+      {
+        "name": "public binding reopens setup",
+        "kind": "attack",
+        "input": {
+          "steps": [
+            {
+              "path": "/server-info.action",
+              "params": {
+                "bootstrapStatusProvider.applicationConfig.setupComplete": "false"
+              }
+            },
+            {
+              "path": "/setup/setupadministrator.action",
+              "user": "lab-user"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "results": [
+              {
+                "status": 200,
+                "setup_complete": false
+              },
+              {
+                "status": 201,
+                "created": "lab-user"
+              }
+            ]
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "results": [
+              {
+                "status": 403,
+                "error": "protected property"
+              },
+              {
+                "status": 403,
+                "error": "setup closed"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "name": "reopened state visible next request",
+        "kind": "attack",
+        "input": {
+          "steps": [
+            {
+              "path": "/server-info.action",
+              "params": {
+                "bootstrapStatusProvider.applicationConfig.setupComplete": "false"
+              }
+            },
+            {
+              "path": "/server-info.action"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "results": [
+              {
+                "status": 200,
+                "setup_complete": false
+              },
+              {
+                "status": 200,
+                "setup_complete": false
+              }
+            ]
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "results": [
+              {
+                "status": 403,
+                "error": "protected property"
+              },
+              {
+                "status": 200,
+                "setup_complete": true
+              }
+            ]
+          }
+        }
+      },
+      {
+        "name": "empty sequence",
+        "kind": "robustness",
+        "input": {
+          "steps": []
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid setup request"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid setup request"
+          }
+        }
+      },
+      {
+        "name": "wrong property type",
+        "kind": "robustness",
+        "input": {
+          "steps": [
+            {
+              "path": "/server-info.action",
+              "params": {
+                "bootstrapStatusProvider.applicationConfig.setupComplete": []
+              }
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid setup request"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid setup request"
+          }
+        }
+      },
+      {
+        "name": "bad username",
+        "kind": "robustness",
+        "input": {
+          "steps": [
+            {
+              "path": "/setup/setupadministrator.action",
+              "user": "../bad"
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid setup request"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid setup request"
+          }
+        }
+      },
+      {
+        "name": "wrong request type",
+        "kind": "robustness",
+        "input": [],
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid setup request"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid setup request"
+          }
+        }
+      },
+      {
+        "name": "non-string route",
+        "kind": "robustness",
+        "input": {
+          "steps": [
+            {
+              "path": []
+            }
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid setup request"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid setup request"
+          }
+        }
+      }
+    ],
+    "vulnerable": "labs/python/confluence-setup-reopen/vulnerable/main.py",
+    "fixed": "labs/python/confluence-setup-reopen/fixed/main.py",
+    "database": "sqlite"
+  },
+  {
+    "id": "python/gitlab-reset-recipients",
+    "language": "python",
+    "family": "gitlab-reset",
+    "cve": [
+      "CVE-2023-7028"
+    ],
+    "cwe": [
+      "CWE-640"
+    ],
+    "owasp": [
+      "A07:2025"
+    ],
+    "description": "Original reduced Python model inspired by CVE-2023-7028. A reset request identifies a real account from one verified address but delivers the same recovery token to every supplied address, including an unverified recipient. Tests inspect a real synthetic outbox file. SMTP, password changes and GitLab application code are outside this model.",
+    "remediation": "Resolve exactly one account and filter delivery recipients against its server-side verified addresses. Preserve valid secondary addresses and reject requests spanning multiple accounts. The token is a fixed laboratory marker so tests isolate recipient authorization, not token generation security. Real remediation requires the GitLab security update.",
+    "scope": "handler-model",
+    "references": [
+      {
+        "title": "GitLab CNA record for CVE-2023-7028 — unverified recovery email",
+        "url": "https://gitlab.com/gitlab-org/cves/-/blob/40bb099b1d6622fad9a67a2ed4e4c7addc9388a2/2023/CVE-2023-7028.json"
+      }
+    ],
+    "tests": [
+      {
+        "name": "verified primary address",
+        "kind": "benign",
+        "input": {
+          "email": "alice@example.test"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 202,
+            "queued": 1
+          },
+          "files": [
+            {
+              "path": "outbox.json",
+              "content": "[{\"to\": \"alice@example.test\", \"token\": \"LAB_RESET_TOKEN\"}]\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 202,
+            "queued": 1
+          },
+          "files": [
+            {
+              "path": "outbox.json",
+              "content": "[{\"to\": \"alice@example.test\", \"token\": \"LAB_RESET_TOKEN\"}]\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "verified secondary address",
+        "kind": "benign",
+        "input": {
+          "email": "alice.alt@example.test"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 202,
+            "queued": 1
+          },
+          "files": [
+            {
+              "path": "outbox.json",
+              "content": "[{\"to\": \"alice.alt@example.test\", \"token\": \"LAB_RESET_TOKEN\"}]\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 202,
+            "queued": 1
+          },
+          "files": [
+            {
+              "path": "outbox.json",
+              "content": "[{\"to\": \"alice.alt@example.test\", \"token\": \"LAB_RESET_TOKEN\"}]\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "unknown address",
+        "kind": "benign",
+        "input": {
+          "email": "unknown@example.test"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 202,
+            "queued": 0
+          },
+          "files": [
+            {
+              "path": "outbox.json",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 202,
+            "queued": 0
+          },
+          "files": [
+            {
+              "path": "outbox.json",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "extra unverified recipient",
+        "kind": "attack",
+        "input": {
+          "email": [
+            "alice@example.test",
+            "attacker@example.test"
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 202,
+            "queued": 2
+          },
+          "files": [
+            {
+              "path": "outbox.json",
+              "content": "[{\"to\": \"alice@example.test\", \"token\": \"LAB_RESET_TOKEN\"}, {\"to\": \"attacker@example.test\", \"token\": \"LAB_RESET_TOKEN\"}]\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 202,
+            "queued": 1
+          },
+          "files": [
+            {
+              "path": "outbox.json",
+              "content": "[{\"to\": \"alice@example.test\", \"token\": \"LAB_RESET_TOKEN\"}]\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "unverified recipient first",
+        "kind": "attack",
+        "input": {
+          "email": [
+            "attacker@example.test",
+            "alice@example.test"
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 202,
+            "queued": 2
+          },
+          "files": [
+            {
+              "path": "outbox.json",
+              "content": "[{\"to\": \"attacker@example.test\", \"token\": \"LAB_RESET_TOKEN\"}, {\"to\": \"alice@example.test\", \"token\": \"LAB_RESET_TOKEN\"}]\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 202,
+            "queued": 1
+          },
+          "files": [
+            {
+              "path": "outbox.json",
+              "content": "[{\"to\": \"alice@example.test\", \"token\": \"LAB_RESET_TOKEN\"}]\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "verified address deduplication",
+        "kind": "benign",
+        "input": {
+          "email": [
+            "alice@example.test",
+            "ALICE@example.test"
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 202,
+            "queued": 1
+          },
+          "files": [
+            {
+              "path": "outbox.json",
+              "content": "[{\"to\": \"alice@example.test\", \"token\": \"LAB_RESET_TOKEN\"}]\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 202,
+            "queued": 1
+          },
+          "files": [
+            {
+              "path": "outbox.json",
+              "content": "[{\"to\": \"alice@example.test\", \"token\": \"LAB_RESET_TOKEN\"}]\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "ambiguous account request",
+        "kind": "robustness",
+        "input": {
+          "email": [
+            "alice@example.test",
+            "bob@example.test"
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid recovery request"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid recovery request"
+          }
+        }
+      },
+      {
+        "name": "empty recipient list",
+        "kind": "robustness",
+        "input": {
+          "email": []
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid recovery request"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid recovery request"
+          }
+        }
+      },
+      {
+        "name": "mail header injection",
+        "kind": "robustness",
+        "input": {
+          "email": "alice@example.test\r\nBcc:bad"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid recovery request"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid recovery request"
+          }
+        }
+      },
+      {
+        "name": "wrong recipient type",
+        "kind": "robustness",
+        "input": {
+          "email": [
+            {}
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid recovery request"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid recovery request"
+          }
+        }
+      }
+    ],
+    "vulnerable": "labs/python/gitlab-reset-recipients/vulnerable/main.py",
+    "fixed": "labs/python/gitlab-reset-recipients/fixed/main.py"
+  },
+  {
+    "id": "python/minio-bootstrap-disclosure",
+    "language": "python",
+    "family": "minio-bootstrap",
+    "cve": [
+      "CVE-2023-28432"
+    ],
+    "cwe": [
+      "CWE-306"
+    ],
+    "owasp": [
+      "A07:2025"
+    ],
+    "description": "Original reduced Python model inspired by CVE-2023-28432. A distributed bootstrap verification handler returns synthetic server configuration without checking its peer token. Its response includes a root credential marker. The configuration is a trusted fixture dependency, not host environment collection; no real MinIO deployment or network service is used.",
+    "remediation": "Authenticate the internode token before loading or serializing server configuration. A valid peer must retain access, while arbitrary self-asserted peer headers convey no privilege. Tests replace the configuration dependency with distinct values to verify the disclosure boundary. Actual remediation requires the MinIO fix.",
+    "scope": "handler-model",
+    "references": [
+      {
+        "title": "MinIO CVE-2023-28432 — information disclosure in cluster deployment",
+        "url": "https://github.com/minio/minio/security/advisories/GHSA-6xvq-wj2x-3h3q"
+      }
+    ],
+    "tests": [
+      {
+        "name": "valid cluster peer",
+        "kind": "benign",
+        "input": {
+          "path": "/bootstrap/verify",
+          "token": "LAB_CLUSTER_PEER_TOKEN"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "environment": {
+              "MINIO_ROOT_USER": "LAB_ROOT",
+              "MINIO_ROOT_PASSWORD": "LAB_MINIO_PASSWORD"
+            }
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "environment": {
+              "MINIO_ROOT_USER": "LAB_ROOT",
+              "MINIO_ROOT_PASSWORD": "LAB_MINIO_PASSWORD"
+            }
+          }
+        }
+      },
+      {
+        "name": "unknown route",
+        "kind": "benign",
+        "input": {
+          "path": "/health"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 404,
+            "error": "missing route"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 404,
+            "error": "missing route"
+          }
+        }
+      },
+      {
+        "name": "anonymous configuration disclosure",
+        "kind": "attack",
+        "input": {
+          "path": "/bootstrap/verify"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "environment": {
+              "MINIO_ROOT_USER": "LAB_ROOT",
+              "MINIO_ROOT_PASSWORD": "LAB_MINIO_PASSWORD"
+            }
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        }
+      },
+      {
+        "name": "invalid token configuration disclosure",
+        "kind": "attack",
+        "input": {
+          "path": "/bootstrap/verify",
+          "token": "wrong"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "environment": {
+              "MINIO_ROOT_USER": "LAB_ROOT",
+              "MINIO_ROOT_PASSWORD": "LAB_MINIO_PASSWORD"
+            }
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        }
+      },
+      {
+        "name": "self asserted peer has no identity",
+        "kind": "attack",
+        "input": {
+          "path": "/bootstrap/verify",
+          "peer": true
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "environment": {
+              "MINIO_ROOT_USER": "LAB_ROOT",
+              "MINIO_ROOT_PASSWORD": "LAB_MINIO_PASSWORD"
+            }
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        }
+      },
+      {
+        "name": "token object",
+        "kind": "robustness",
+        "input": {
+          "path": "/bootstrap/verify",
+          "token": {}
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid peer token"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid peer token"
+          }
+        }
+      },
+      {
+        "name": "oversized token",
+        "kind": "robustness",
+        "input": {
+          "path": "/bootstrap/verify",
+          "token": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid peer token"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid peer token"
+          }
+        }
+      },
+      {
+        "name": "wrong request shape",
+        "kind": "robustness",
+        "input": [],
+        "vulnerable": {
+          "equals": {
+            "status": 404,
+            "error": "missing route"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 404,
+            "error": "missing route"
+          }
+        }
+      }
+    ],
+    "vulnerable": "labs/python/minio-bootstrap-disclosure/vulnerable/main.py",
+    "fixed": "labs/python/minio-bootstrap-disclosure/fixed/main.py"
+  },
+  {
+    "id": "python/activemq-openwire-type",
+    "language": "python",
+    "family": "activemq-openwire",
+    "cve": [
+      "CVE-2023-46604"
+    ],
+    "cwe": [
+      "CWE-470"
+    ],
+    "owasp": [
+      "A05:2025"
+    ],
+    "description": "Original reduced Python model inspired by CVE-2023-46604. A serialized throwable names a class selected from an offline registry. The vulnerable decoder constructs it before checking its exception type; a synthetic context-loader constructor parses XML and writes a real marker file. This models constructor side effects, not Java class loading, OpenWire bytes or broker RCE.",
+    "remediation": "Validate the selected class against the permitted exception type before invoking any constructor. The registry is fixed laboratory code with no dynamic imports, and the XML context comes from an offline map. An error response after construction is too late to undo side effects. Actual ActiveMQ/OpenWire remediation requires the upstream fix in clients and brokers.",
+    "scope": "handler-model",
+    "references": [
+      {
+        "title": "Apache ActiveMQ CVE-2023-46604 — upstream impact and constructor behavior",
+        "url": "https://activemq.apache.org/news/cve-2023-46604"
+      }
+    ],
+    "tests": [
+      {
+        "name": "normal exception",
+        "kind": "benign",
+        "input": {
+          "class": "BrokerError",
+          "message": "queue missing"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "error_type": "BrokerError",
+            "message": "queue missing"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "error_type": "BrokerError",
+            "message": "queue missing"
+          }
+        }
+      },
+      {
+        "name": "empty exception message",
+        "kind": "benign",
+        "input": {
+          "class": "BrokerError",
+          "message": ""
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "error_type": "BrokerError",
+            "message": ""
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "error_type": "BrokerError",
+            "message": ""
+          }
+        }
+      },
+      {
+        "name": "constructor before type validation",
+        "kind": "attack",
+        "input": {
+          "class": "ContextLoader",
+          "message": "lab://context"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid throwable"
+          },
+          "files": [
+            {
+              "path": "loaded-context.txt",
+              "content": "LAB_CONTEXT_LOADED"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid throwable"
+          },
+          "files": [
+            {
+              "path": "loaded-context.txt",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "extra class metadata cannot authorize construction",
+        "kind": "attack",
+        "input": {
+          "class": "ContextLoader",
+          "message": "lab://context",
+          "is_exception": true
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid throwable"
+          },
+          "files": [
+            {
+              "path": "loaded-context.txt",
+              "content": "LAB_CONTEXT_LOADED"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid throwable"
+          },
+          "files": [
+            {
+              "path": "loaded-context.txt",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "unknown class",
+        "kind": "robustness",
+        "input": {
+          "class": "Unknown",
+          "message": "x"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid throwable"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid throwable"
+          }
+        }
+      },
+      {
+        "name": "class name object",
+        "kind": "robustness",
+        "input": {
+          "class": {},
+          "message": "x"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid throwable"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid throwable"
+          }
+        }
+      },
+      {
+        "name": "wrong message type",
+        "kind": "robustness",
+        "input": {
+          "class": "BrokerError",
+          "message": null
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid throwable"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid throwable"
+          }
+        }
+      },
+      {
+        "name": "oversized message",
+        "kind": "robustness",
+        "input": {
+          "class": "BrokerError",
+          "message": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid throwable"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid throwable"
+          }
+        }
+      }
+    ],
+    "vulnerable": "labs/python/activemq-openwire-type/vulnerable/main.py",
+    "fixed": "labs/python/activemq-openwire-type/fixed/main.py"
+  },
+  {
+    "id": "python/zabbix-role-projection",
+    "language": "python",
+    "family": "zabbix-api",
+    "cve": [
+      "CVE-2024-42327"
+    ],
+    "cwe": [
+      "CWE-89"
+    ],
+    "owasp": [
+      "A05:2025"
+    ],
+    "description": "Original reduced Python model inspired by CVE-2024-42327. An authenticated user.get-like API concatenates requested role projection expressions into a real SQLite query. A scalar subquery retrieves another role's synthetic administrator token despite a bound outer role identifier. The model isolates SQL projection injection, not Zabbix or a full privilege-escalation chain.",
+    "remediation": "Map requested projection identifiers through an exact allowlist and keep role identifiers bound. Reject the entire projection when any field is unknown; binding values does not make SQL identifiers safe. Preserve authorized multi-column requests and valid reader tokens. Actual remediation is the Zabbix security update.",
+    "scope": "executable",
+    "references": [
+      {
+        "title": "Zabbix ZBX-25623 / CVE-2024-42327 — user.get SQL injection",
+        "url": "https://support.zabbix.com/browse/ZBX-25623"
+      }
+    ],
+    "tests": [
+      {
+        "name": "role name",
+        "kind": "benign",
+        "input": {
+          "token": "LAB_API_READER",
+          "selectRole": [
+            "name"
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "role": {
+              "name": "reader"
+            }
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "role": {
+              "name": "reader"
+            }
+          }
+        }
+      },
+      {
+        "name": "multiple approved columns",
+        "kind": "benign",
+        "input": {
+          "token": "LAB_API_READER",
+          "selectRole": [
+            "name",
+            "roleid"
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "role": {
+              "name": "reader",
+              "roleid": 1
+            }
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "role": {
+              "name": "reader",
+              "roleid": 1
+            }
+          }
+        }
+      },
+      {
+        "name": "role identifier",
+        "kind": "benign",
+        "input": {
+          "token": "LAB_API_READER",
+          "selectRole": [
+            "roleid"
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "role": {
+              "roleid": 1
+            }
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "role": {
+              "roleid": 1
+            }
+          }
+        }
+      },
+      {
+        "name": "subquery leaks admin token",
+        "kind": "attack",
+        "input": {
+          "token": "LAB_API_READER",
+          "selectRole": [
+            "name",
+            "(SELECT token FROM roles WHERE roleid=9) AS leaked"
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "role": {
+              "name": "reader",
+              "leaked": "LAB_ADMIN_TOKEN"
+            }
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid projection"
+          }
+        }
+      },
+      {
+        "name": "alternate scalar query",
+        "kind": "attack",
+        "input": {
+          "token": "LAB_API_READER",
+          "selectRole": [
+            "(SELECT token FROM roles WHERE name='admin') AS secret"
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "role": {
+              "secret": "LAB_ADMIN_TOKEN"
+            }
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid projection"
+          }
+        }
+      },
+      {
+        "name": "token column not public",
+        "kind": "attack",
+        "input": {
+          "token": "LAB_API_READER",
+          "selectRole": [
+            "token"
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "role": {
+              "token": "LAB_READER_TOKEN"
+            }
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid projection"
+          }
+        }
+      },
+      {
+        "name": "no API token",
+        "kind": "benign",
+        "input": {
+          "selectRole": [
+            "name"
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 401,
+            "error": "denied"
+          }
+        }
+      },
+      {
+        "name": "empty projection",
+        "kind": "robustness",
+        "input": {
+          "token": "LAB_API_READER",
+          "selectRole": []
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid projection"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid projection"
+          }
+        }
+      },
+      {
+        "name": "non-string projection",
+        "kind": "robustness",
+        "input": {
+          "token": "LAB_API_READER",
+          "selectRole": [
+            {}
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid projection"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid projection"
+          }
+        }
+      },
+      {
+        "name": "unknown SQL column",
+        "kind": "robustness",
+        "input": {
+          "token": "LAB_API_READER",
+          "selectRole": [
+            "unknown"
+          ]
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid projection"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid projection"
+          }
+        }
+      }
+    ],
+    "vulnerable": "labs/python/zabbix-role-projection/vulnerable/main.py",
+    "fixed": "labs/python/zabbix-role-projection/fixed/main.py",
+    "database": "sqlite"
+  },
+  {
+    "id": "python/imagetragick-delegate",
+    "language": "python",
+    "family": "imagetragick",
+    "cve": [
+      "CVE-2016-3714"
+    ],
+    "cwe": [
+      "CWE-78"
+    ],
+    "owasp": [
+      "A05:2025"
+    ],
+    "description": "Original reduced Python model inspired by CVE-2016-3714. A parsed SVG resource URL is substituted into a shell-based delegate command. A crafted resource writes a real local marker via the shell. The delegate is the local printf utility, never an image converter or downloader, so this exercises the shell boundary without contacting the URL or reproducing ImageMagick.",
+    "remediation": "Pass the parsed resource as one positional argv element to a fixed executable, without a shell. Validate the bounded XML and expected resource scheme before delegation in both variants. The tests use only local printf commands and synthetic files. Real ImageMagick remediation also requires its security fixes and a suitable coder/delegate policy.",
+    "scope": "executable",
+    "references": [
+      {
+        "title": "ImageTragick original researcher disclosure — CVE-2016-3714",
+        "url": "https://imagetragick.com/"
+      },
+      {
+        "title": "EDB-39767 — ImageMagick delegate shell injection",
+        "url": "https://www.exploit-db.com/exploits/39767"
+      }
+    ],
+    "tests": [
+      {
+        "name": "ordinary SVG resource",
+        "kind": "benign",
+        "input": "<svg xmlns=\"http://www.w3.org/2000/svg\"><image href=\"https://images.test/picture.png\"/></svg>",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "echo": "https://images.test/picture.png"
+          },
+          "files": [
+            {
+              "path": "delegate-marker",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "echo": "https://images.test/picture.png"
+          },
+          "files": [
+            {
+              "path": "delegate-marker",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "resource query",
+        "kind": "benign",
+        "input": "<svg xmlns=\"http://www.w3.org/2000/svg\"><image href=\"https://images.test/picture?q=one\"/></svg>",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "echo": "https://images.test/picture?q=one"
+          },
+          "files": [
+            {
+              "path": "delegate-marker",
+              "type": "absent"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "echo": "https://images.test/picture?q=one"
+          },
+          "files": [
+            {
+              "path": "delegate-marker",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "quote terminates delegate argument",
+        "kind": "attack",
+        "input": "<svg xmlns=\"http://www.w3.org/2000/svg\"><image href=\"https://images.test/x&quot;; printf LAB_MARKER &gt; delegate-marker; #\"/></svg>",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "echo": "https://images.test/x"
+          },
+          "files": [
+            {
+              "path": "delegate-marker",
+              "content": "LAB_MARKER"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "echo": "https://images.test/x\"; printf LAB_MARKER > delegate-marker; #"
+          },
+          "files": [
+            {
+              "path": "delegate-marker",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "command substitution in resource",
+        "kind": "attack",
+        "input": "<svg xmlns=\"http://www.w3.org/2000/svg\"><image href=\"https://images.test/x$(printf LAB_SECOND &gt; delegate-marker)\"/></svg>",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "echo": "https://images.test/x"
+          },
+          "files": [
+            {
+              "path": "delegate-marker",
+              "content": "LAB_SECOND"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "echo": "https://images.test/x$(printf LAB_SECOND > delegate-marker)"
+          },
+          "files": [
+            {
+              "path": "delegate-marker",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "malformed XML",
+        "kind": "robustness",
+        "input": "<svg",
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid image resource"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid image resource"
+          }
+        }
+      },
+      {
+        "name": "wrong resource scheme",
+        "kind": "robustness",
+        "input": "<svg xmlns=\"http://www.w3.org/2000/svg\"><image href=\"file:///secret.txt\"/></svg>",
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid image resource"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid image resource"
+          }
+        }
+      },
+      {
+        "name": "no resource",
+        "kind": "robustness",
+        "input": "<svg xmlns=\"http://www.w3.org/2000/svg\"/>",
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid image resource"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid image resource"
+          }
+        }
+      },
+      {
+        "name": "wrong document type",
+        "kind": "robustness",
+        "input": [],
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid image resource"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid image resource"
+          }
+        }
+      },
+      {
+        "name": "DTD disabled",
+        "kind": "robustness",
+        "input": "<!DOCTYPE svg><svg xmlns=\"http://www.w3.org/2000/svg\"><image href=\"https://images.test/a\"/></svg>",
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid image resource"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid image resource"
+          }
+        }
+      }
+    ],
+    "vulnerable": "labs/python/imagetragick-delegate/vulnerable/main.py",
+    "fixed": "labs/python/imagetragick-delegate/fixed/main.py"
+  },
+  {
+    "id": "python/apache-proxy-request-splitting",
+    "language": "python",
+    "family": "apache-proxy",
+    "cve": [
+      "CVE-2023-25690"
+    ],
+    "cwe": [
+      "CWE-444"
+    ],
+    "owasp": [
+      "A05:2025"
+    ],
+    "description": "Original reduced Python model inspired by CVE-2023-25690. A rewrite handler decodes a client target and reinserts it into a serialized backend request. CRLF data turns one frontend input into two requests parsed by a real bounded backend parser. Tests observe serialized bytes on disk. This models request splitting, not Apache configuration, live sockets, chunked bodies or a full proxy deployment.",
+    "remediation": "Reject controls and spaces after URL decoding and before interpolating the rewritten target. Keep validation and serialization on the same representation. The backend parser is a deliberately small GET/header grammar and does not claim HTTP compliance or coverage of all request-smuggling variants. Actual remediation requires the Apache HTTP Server fix and review of affected rewrite rules.",
+    "scope": "executable",
+    "references": [
+      {
+        "title": "Apache HTTP Server CNA record CVE-2023-25690 — rewrite/proxy request splitting",
+        "url": "https://httpd.apache.org/security/json/CVE-2023-25690.json"
+      }
+    ],
+    "tests": [
+      {
+        "name": "ordinary rewritten target",
+        "kind": "benign",
+        "input": "report",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "requests": [
+              "/backend?q=report"
+            ]
+          },
+          "files": [
+            {
+              "path": "upstream.http",
+              "content": "GET /backend?q=report HTTP/1.1\r\nHost: backend.test\r\n\r\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "requests": [
+              "/backend?q=report"
+            ]
+          },
+          "files": [
+            {
+              "path": "upstream.http",
+              "content": "GET /backend?q=report HTTP/1.1\r\nHost: backend.test\r\n\r\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "encoded ordinary character",
+        "kind": "benign",
+        "input": "%72eport",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "requests": [
+              "/backend?q=report"
+            ]
+          },
+          "files": [
+            {
+              "path": "upstream.http",
+              "content": "GET /backend?q=report HTTP/1.1\r\nHost: backend.test\r\n\r\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "requests": [
+              "/backend?q=report"
+            ]
+          },
+          "files": [
+            {
+              "path": "upstream.http",
+              "content": "GET /backend?q=report HTTP/1.1\r\nHost: backend.test\r\n\r\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "empty target",
+        "kind": "benign",
+        "input": "",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "requests": [
+              "/backend?q="
+            ]
+          },
+          "files": [
+            {
+              "path": "upstream.http",
+              "content": "GET /backend?q= HTTP/1.1\r\nHost: backend.test\r\n\r\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "requests": [
+              "/backend?q="
+            ]
+          },
+          "files": [
+            {
+              "path": "upstream.http",
+              "content": "GET /backend?q= HTTP/1.1\r\nHost: backend.test\r\n\r\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "second administrative request",
+        "kind": "attack",
+        "input": "public%20HTTP%2F1.1%0D%0AHost%3A%20backend.test%0D%0A%0D%0AGET%20%2Fadmin%3Fx%3D",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "requests": [
+              "/backend?q=public",
+              "/admin?x="
+            ]
+          },
+          "files": [
+            {
+              "path": "upstream.http",
+              "content": "GET /backend?q=public HTTP/1.1\r\nHost: backend.test\r\n\r\nGET /admin?x= HTTP/1.1\r\nHost: backend.test\r\n\r\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid proxy target"
+          },
+          "files": [
+            {
+              "path": "upstream.http",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "alternate internal endpoint",
+        "kind": "attack",
+        "input": "one%20HTTP%2F1.1%0D%0AHost%3A%20backend.test%0D%0A%0D%0AGET%20%2Fprivate%3Fx%3D",
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "requests": [
+              "/backend?q=one",
+              "/private?x="
+            ]
+          },
+          "files": [
+            {
+              "path": "upstream.http",
+              "content": "GET /backend?q=one HTTP/1.1\r\nHost: backend.test\r\n\r\nGET /private?x= HTTP/1.1\r\nHost: backend.test\r\n\r\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid proxy target"
+          }
+        }
+      },
+      {
+        "name": "malformed request text",
+        "kind": "robustness",
+        "input": "two%20words",
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid proxy target"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid proxy target"
+          }
+        }
+      },
+      {
+        "name": "non-ASCII target",
+        "kind": "robustness",
+        "input": "%FF",
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid proxy target"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid proxy target"
+          }
+        }
+      },
+      {
+        "name": "wrong request type",
+        "kind": "robustness",
+        "input": {},
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid proxy target"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid proxy target"
+          }
+        }
+      },
+      {
+        "name": "oversized target",
+        "kind": "robustness",
+        "input": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid proxy target"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid proxy target"
+          }
+        }
+      }
+    ],
+    "vulnerable": "labs/python/apache-proxy-request-splitting/vulnerable/main.py",
+    "fixed": "labs/python/apache-proxy-request-splitting/fixed/main.py"
   }
 ]

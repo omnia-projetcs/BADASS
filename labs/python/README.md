@@ -75,3 +75,13 @@ Run commands from the repository root. Cases are independent and use synthetic f
 | [Log4Shell: message lookup injection](log4shell-lookup/README.md) | CWE-917 | A05:2025 | handler-model |
 | [TeamCity: dispatch authentication bypass](teamcity-dispatch-bypass/README.md) | CWE-288 | A07:2025, API5:2023 | handler-model |
 | [Confluence: pre-auth expression evaluation](confluence-expression-dispatch/README.md) | CWE-917 | A05:2025 | handler-model |
+| [Spring4Shell: class-loader property binding](spring4shell-binding/README.md) | CWE-915 | A01:2025 | handler-model |
+| [Jenkins CLI: pre-auth file expansion](jenkins-cli-atfile/README.md) | CWE-73 | A01:2025 | executable |
+| [FortiOS: forwarded-header authentication bypass](fortios-forwarded-auth/README.md) | CWE-288 | A07:2025 | handler-model |
+| [Confluence: setup-state binding](confluence-setup-reopen/README.md) | CWE-915 | A01:2025 | handler-model |
+| [GitLab: unverified reset recipients](gitlab-reset-recipients/README.md) | CWE-640 | A07:2025 | handler-model |
+| [MinIO: bootstrap credential disclosure](minio-bootstrap-disclosure/README.md) | CWE-306 | A07:2025 | handler-model |
+| [ActiveMQ: unchecked throwable construction](activemq-openwire-type/README.md) | CWE-470 | A05:2025 | handler-model |
+| [Zabbix: role projection SQL injection](zabbix-role-projection/README.md) | CWE-89 | A05:2025 | executable |
+| [ImageTragick: delegate shell injection](imagetragick-delegate/README.md) | CWE-78 | A05:2025 | executable |
+| [Apache HTTP Server: proxy request splitting](apache-proxy-request-splitting/README.md) | CWE-444 | A05:2025 | executable |

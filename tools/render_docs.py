@@ -37,7 +37,17 @@ NAMES = {'xss': 'Cross-site scripting (XSS)', 'sql-injection': 'SQL injection', 
          'php-cgi-best-fit': 'PHP-CGI best-fit argument injection',
          'log4shell-lookup': 'Log4Shell: message lookup injection',
          'teamcity-dispatch-bypass': 'TeamCity: dispatch authentication bypass',
-         'confluence-expression-dispatch': 'Confluence: pre-auth expression evaluation'}
+         'confluence-expression-dispatch': 'Confluence: pre-auth expression evaluation',
+         'spring4shell-binding': 'Spring4Shell: class-loader property binding',
+         'jenkins-cli-atfile': 'Jenkins CLI: pre-auth file expansion',
+         'fortios-forwarded-auth': 'FortiOS: forwarded-header authentication bypass',
+         'confluence-setup-reopen': 'Confluence: setup-state binding',
+         'gitlab-reset-recipients': 'GitLab: unverified reset recipients',
+         'minio-bootstrap-disclosure': 'MinIO: bootstrap credential disclosure',
+         'activemq-openwire-type': 'ActiveMQ: unchecked throwable construction',
+         'zabbix-role-projection': 'Zabbix: role projection SQL injection',
+         'imagetragick-delegate': 'ImageTragick: delegate shell injection',
+         'apache-proxy-request-splitting': 'Apache HTTP Server: proxy request splitting'}
 
 
 def exploitdb_cases(cases):
@@ -68,6 +78,7 @@ def render():
     core_ids = set(core['cwe'])
     vector_count = sum(len(case['tests']) for case in cases)
     edb_cases = exploitdb_cases(cases)
+    named_cases = [case for case in cases if case.get('family')]
     badges = [
         '[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)',
         '[![Python 3.11+](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)',
@@ -132,12 +143,12 @@ def render():
              'These are teaching models, not reproductions of the affected products. Source references',
              'and scope limits appear in each case README.', '',
              '## Named CVE teaching models', '',
-             'Seven focused cases cover Log4Shell, TeamCity, PHP-CGI, Confluence, PHP2Shell and Node2Shell.',
+             f'{len(named_cases)} focused cases model documented CVE mechanisms across runtimes, APIs, parsers and services.',
              'The PHP2Shell family has separate cases for its two CVEs. These original reduced models',
              'demonstrate specific failure mechanisms; they do not reproduce product-level RCE.', '',
              '| Case | CVE | Implementation scope |', '|---|---|---|',
              *[f'| [{title(case)}](labs/{case["id"]}/README.md) | {", ".join(case["cve"])} | {case["scope"]} |'
-               for case in cases if case.get('family')], '',
+               for case in named_cases], '',
              'Memory-safety cases execute under AddressSanitizer and exercise actual freed-memory reads or',
              'buffer writes. Python cases inspect real logs, response headers and SQLite state, with',
              'offline lookup dependencies. See [scope, upstream advisories and regression commands](docs/NAMED-CVES.md).', '',

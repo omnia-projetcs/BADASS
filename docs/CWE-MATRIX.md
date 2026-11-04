@@ -2,7 +2,7 @@
 
 Source: MITRE CWE **4.20**. All **1450** entries from the imported snapshot are included.
 
-**75 implemented weaknesses**, **894 gaps**, **481 category/view entries**.
+**79 implemented weaknesses**, **890 gaps**, **481 category/view entries**.
 
 `implemented` means source pairs and vectors exist, not that a scanner detected them or a runtime was available.
 Test results are tracked separately. `gap` is an unimplemented weakness. `taxonomy-only` is a category or view.
@@ -84,12 +84,12 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-70 | DEPRECATED: Mac Virtual File Problems | category | Deprecated | taxonomy-only |  |
 | CWE-71 | DEPRECATED: Apple '.DS_Store' | weakness | Deprecated | gap |  |
 | CWE-72 | Improper Handling of Apple HFS+ Alternate Data Stream Path | weakness | Incomplete | gap |  |
-| CWE-73 | External Control of File Name or Path | weakness | Draft | gap |  |
+| CWE-73 | External Control of File Name or Path | weakness | Draft | implemented | [python/jenkins-cli-atfile](../labs/python/jenkins-cli-atfile/README.md) |
 | CWE-74 | Improper Neutralization of Special Elements in Output Used by a Downstream Component ('Injection') | weakness | Incomplete | gap |  |
 | CWE-75 | Failure to Sanitize Special Elements into a Different Plane (Special Element Injection) | weakness | Draft | gap |  |
 | CWE-76 | Improper Neutralization of Equivalent Special Elements | weakness | Draft | gap |  |
 | CWE-77 | Improper Neutralization of Special Elements used in a Command ('Command Injection') | weakness | Draft | gap |  |
-| CWE-78 | Improper Neutralization of Special Elements used in an OS Command ('OS Command Injection') | weakness | Stable | implemented | [python/command-injection](../labs/python/command-injection/README.md), [node/command-injection](../labs/node/command-injection/README.md), [typescript/command-injection](../labs/typescript/command-injection/README.md), [php/command-injection](../labs/php/command-injection/README.md), [ruby/command-injection](../labs/ruby/command-injection/README.md), [go/command-injection](../labs/go/command-injection/README.md), [java/command-injection](../labs/java/command-injection/README.md), [rust/command-injection](../labs/rust/command-injection/README.md), [c/command-injection](../labs/c/command-injection/README.md), [cpp/command-injection](../labs/cpp/command-injection/README.md), [dotnet/command-injection](../labs/dotnet/command-injection/README.md), [cgi/command-injection](../labs/cgi/command-injection/README.md), [rest-api/command-injection](../labs/rest-api/command-injection/README.md), [ai/command-injection](../labs/ai/command-injection/README.md) |
+| CWE-78 | Improper Neutralization of Special Elements used in an OS Command ('OS Command Injection') | weakness | Stable | implemented | [python/command-injection](../labs/python/command-injection/README.md), [node/command-injection](../labs/node/command-injection/README.md), [typescript/command-injection](../labs/typescript/command-injection/README.md), [php/command-injection](../labs/php/command-injection/README.md), [ruby/command-injection](../labs/ruby/command-injection/README.md), [go/command-injection](../labs/go/command-injection/README.md), [java/command-injection](../labs/java/command-injection/README.md), [rust/command-injection](../labs/rust/command-injection/README.md), [c/command-injection](../labs/c/command-injection/README.md), [cpp/command-injection](../labs/cpp/command-injection/README.md), [dotnet/command-injection](../labs/dotnet/command-injection/README.md), [cgi/command-injection](../labs/cgi/command-injection/README.md), [rest-api/command-injection](../labs/rest-api/command-injection/README.md), [ai/command-injection](../labs/ai/command-injection/README.md), [python/imagetragick-delegate](../labs/python/imagetragick-delegate/README.md) |
 | CWE-79 | Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting') | weakness | Stable | implemented | [python/xss](../labs/python/xss/README.md), [node/xss](../labs/node/xss/README.md), [typescript/xss](../labs/typescript/xss/README.md), [php/xss](../labs/php/xss/README.md), [ruby/xss](../labs/ruby/xss/README.md), [go/xss](../labs/go/xss/README.md), [java/xss](../labs/java/xss/README.md), [rust/xss](../labs/rust/xss/README.md), [c/xss](../labs/c/xss/README.md), [cpp/xss](../labs/cpp/xss/README.md), [dotnet/xss](../labs/dotnet/xss/README.md), [cgi/xss](../labs/cgi/xss/README.md), [ai/unsafe-model-output](../labs/ai/unsafe-model-output/README.md), [rest-api/xss](../labs/rest-api/xss/README.md), [python/xss-attribute](../labs/python/xss-attribute/README.md) |
 | CWE-80 | Improper Neutralization of Script-Related HTML Tags in a Web Page (Basic XSS) | weakness | Incomplete | gap |  |
 | CWE-81 | Improper Neutralization of Script in an Error Message Web Page | weakness | Incomplete | gap |  |
@@ -100,7 +100,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-86 | Improper Neutralization of Invalid Characters in Identifiers in Web Pages | weakness | Draft | gap |  |
 | CWE-87 | Improper Neutralization of Alternate XSS Syntax | weakness | Draft | gap |  |
 | CWE-88 | Improper Neutralization of Argument Delimiters in a Command ('Argument Injection') | weakness | Draft | implemented | [python/argument-injection](../labs/python/argument-injection/README.md), [c/php-cgi-best-fit](../labs/c/php-cgi-best-fit/README.md) |
-| CWE-89 | Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection') | weakness | Stable | implemented | [python/sql-injection](../labs/python/sql-injection/README.md), [c/sql-injection](../labs/c/sql-injection/README.md), [cpp/sql-injection](../labs/cpp/sql-injection/README.md), [go/sql-injection](../labs/go/sql-injection/README.md), [php/sql-injection](../labs/php/sql-injection/README.md), [node/sql-injection](../labs/node/sql-injection/README.md), [typescript/sql-injection](../labs/typescript/sql-injection/README.md), [java/sql-injection](../labs/java/sql-injection/README.md), [ruby/sql-injection](../labs/ruby/sql-injection/README.md), [dotnet/sql-injection](../labs/dotnet/sql-injection/README.md), [rust/sql-injection](../labs/rust/sql-injection/README.md), [cgi/sql-injection](../labs/cgi/sql-injection/README.md), [rest-api/sql-injection](../labs/rest-api/sql-injection/README.md), [ai/sql-injection](../labs/ai/sql-injection/README.md), [python/sql-order-by](../labs/python/sql-order-by/README.md), [python/sql-second-order](../labs/python/sql-second-order/README.md), [python/sql-login-bypass](../labs/python/sql-login-bypass/README.md) |
+| CWE-89 | Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection') | weakness | Stable | implemented | [python/sql-injection](../labs/python/sql-injection/README.md), [c/sql-injection](../labs/c/sql-injection/README.md), [cpp/sql-injection](../labs/cpp/sql-injection/README.md), [go/sql-injection](../labs/go/sql-injection/README.md), [php/sql-injection](../labs/php/sql-injection/README.md), [node/sql-injection](../labs/node/sql-injection/README.md), [typescript/sql-injection](../labs/typescript/sql-injection/README.md), [java/sql-injection](../labs/java/sql-injection/README.md), [ruby/sql-injection](../labs/ruby/sql-injection/README.md), [dotnet/sql-injection](../labs/dotnet/sql-injection/README.md), [rust/sql-injection](../labs/rust/sql-injection/README.md), [cgi/sql-injection](../labs/cgi/sql-injection/README.md), [rest-api/sql-injection](../labs/rest-api/sql-injection/README.md), [ai/sql-injection](../labs/ai/sql-injection/README.md), [python/sql-order-by](../labs/python/sql-order-by/README.md), [python/sql-second-order](../labs/python/sql-second-order/README.md), [python/sql-login-bypass](../labs/python/sql-login-bypass/README.md), [python/zabbix-role-projection](../labs/python/zabbix-role-projection/README.md) |
 | CWE-90 | Improper Neutralization of Special Elements used in an LDAP Query ('LDAP Injection') | weakness | Draft | gap |  |
 | CWE-91 | XML Injection (aka Blind XPath Injection) | weakness | Draft | gap |  |
 | CWE-92 | DEPRECATED: Improper Sanitization of Custom Special Characters | weakness | Deprecated | gap |  |
@@ -299,7 +299,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-285 | Improper Authorization | weakness | Draft | gap |  |
 | CWE-286 | Incorrect User Management | weakness | Incomplete | gap |  |
 | CWE-287 | Improper Authentication | weakness | Draft | implemented | [rest-api/broken-authentication](../labs/rest-api/broken-authentication/README.md) |
-| CWE-288 | Authentication Bypass Using an Alternate Path or Channel | weakness | Incomplete | implemented | [python/factory-auth-bypass](../labs/python/factory-auth-bypass/README.md), [python/teamcity-dispatch-bypass](../labs/python/teamcity-dispatch-bypass/README.md) |
+| CWE-288 | Authentication Bypass Using an Alternate Path or Channel | weakness | Incomplete | implemented | [python/factory-auth-bypass](../labs/python/factory-auth-bypass/README.md), [python/teamcity-dispatch-bypass](../labs/python/teamcity-dispatch-bypass/README.md), [python/fortios-forwarded-auth](../labs/python/fortios-forwarded-auth/README.md) |
 | CWE-289 | Authentication Bypass by Alternate Name | weakness | Incomplete | gap |  |
 | CWE-290 | Authentication Bypass by Spoofing | weakness | Incomplete | gap |  |
 | CWE-291 | Reliance on IP Address for Authentication | weakness | Incomplete | gap |  |
@@ -317,7 +317,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-303 | Incorrect Implementation of Authentication Algorithm | weakness | Draft | gap |  |
 | CWE-304 | Missing Critical Step in Authentication | weakness | Draft | gap |  |
 | CWE-305 | Authentication Bypass by Primary Weakness | weakness | Draft | gap |  |
-| CWE-306 | Missing Authentication for Critical Function | weakness | Draft | gap |  |
+| CWE-306 | Missing Authentication for Critical Function | weakness | Draft | implemented | [python/minio-bootstrap-disclosure](../labs/python/minio-bootstrap-disclosure/README.md) |
 | CWE-307 | Improper Restriction of Excessive Authentication Attempts | weakness | Draft | gap |  |
 | CWE-308 | Use of Single-factor Authentication | weakness | Draft | gap |  |
 | CWE-309 | Use of Password System for Primary Authentication | weakness | Draft | gap |  |
@@ -455,7 +455,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-441 | Unintended Proxy or Intermediary ('Confused Deputy') | weakness | Draft | gap |  |
 | CWE-442 | DEPRECATED: Web Problems | category | Deprecated | taxonomy-only |  |
 | CWE-443 | DEPRECATED: HTTP response splitting | weakness | Deprecated | gap |  |
-| CWE-444 | Inconsistent Interpretation of HTTP Requests ('HTTP Request/Response Smuggling') | weakness | Incomplete | gap |  |
+| CWE-444 | Inconsistent Interpretation of HTTP Requests ('HTTP Request/Response Smuggling') | weakness | Incomplete | implemented | [python/apache-proxy-request-splitting](../labs/python/apache-proxy-request-splitting/README.md) |
 | CWE-445 | DEPRECATED: User Interface Errors | category | Deprecated | taxonomy-only |  |
 | CWE-446 | UI Discrepancy for Security Feature | weakness | Incomplete | gap |  |
 | CWE-447 | Unimplemented or Unsupported Feature in UI | weakness | Draft | gap |  |
@@ -481,7 +481,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-467 | Use of sizeof() on a Pointer Type | weakness | Draft | gap |  |
 | CWE-468 | Incorrect Pointer Scaling | weakness | Incomplete | gap |  |
 | CWE-469 | Use of Pointer Subtraction to Determine Size | weakness | Draft | gap |  |
-| CWE-470 | Use of Externally-Controlled Input to Select Classes or Code ('Unsafe Reflection') | weakness | Draft | gap |  |
+| CWE-470 | Use of Externally-Controlled Input to Select Classes or Code ('Unsafe Reflection') | weakness | Draft | implemented | [python/activemq-openwire-type](../labs/python/activemq-openwire-type/README.md) |
 | CWE-471 | Modification of Assumed-Immutable Data (MAID) | weakness | Draft | gap |  |
 | CWE-472 | External Control of Assumed-Immutable Web Parameter | weakness | Draft | gap |  |
 | CWE-473 | PHP External Variable Modification | weakness | Draft | gap |  |
@@ -651,7 +651,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-637 | Unnecessary Complexity in Protection Mechanism (Not Using 'Economy of Mechanism') | weakness | Draft | gap |  |
 | CWE-638 | Not Using Complete Mediation | weakness | Draft | gap |  |
 | CWE-639 | Authorization Bypass Through User-Controlled Key | weakness | Incomplete | implemented | [python/idor](../labs/python/idor/README.md), [rest-api/bola](../labs/rest-api/bola/README.md), [cgi/idor](../labs/cgi/idor/README.md), [ai/idor](../labs/ai/idor/README.md), [c/idor](../labs/c/idor/README.md), [cpp/idor](../labs/cpp/idor/README.md), [node/idor](../labs/node/idor/README.md), [typescript/idor](../labs/typescript/idor/README.md), [php/idor](../labs/php/idor/README.md), [ruby/idor](../labs/ruby/idor/README.md), [go/idor](../labs/go/idor/README.md), [java/idor](../labs/java/idor/README.md), [dotnet/idor](../labs/dotnet/idor/README.md), [rust/idor](../labs/rust/idor/README.md) |
-| CWE-640 | Weak Password Recovery Mechanism for Forgotten Password | weakness | Incomplete | implemented | [python/password-reset-replay](../labs/python/password-reset-replay/README.md) |
+| CWE-640 | Weak Password Recovery Mechanism for Forgotten Password | weakness | Incomplete | implemented | [python/password-reset-replay](../labs/python/password-reset-replay/README.md), [python/gitlab-reset-recipients](../labs/python/gitlab-reset-recipients/README.md) |
 | CWE-641 | Improper Restriction of Names for Files and Other Resources | weakness | Incomplete | gap |  |
 | CWE-642 | External Control of Critical State Data | weakness | Draft | gap |  |
 | CWE-643 | Improper Neutralization of Data within XPath Expressions ('XPath Injection') | weakness | Incomplete | gap |  |
@@ -926,7 +926,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-912 | Hidden Functionality | weakness | Incomplete | gap |  |
 | CWE-913 | Improper Control of Dynamically-Managed Code Resources | weakness | Incomplete | gap |  |
 | CWE-914 | Improper Control of Dynamically-Identified Variables | weakness | Incomplete | gap |  |
-| CWE-915 | Improperly Controlled Modification of Dynamically-Determined Object Attributes | weakness | Incomplete | implemented | [python/mass-assignment](../labs/python/mass-assignment/README.md), [rest-api/property-authorization](../labs/rest-api/property-authorization/README.md) |
+| CWE-915 | Improperly Controlled Modification of Dynamically-Determined Object Attributes | weakness | Incomplete | implemented | [python/mass-assignment](../labs/python/mass-assignment/README.md), [rest-api/property-authorization](../labs/rest-api/property-authorization/README.md), [python/spring4shell-binding](../labs/python/spring4shell-binding/README.md), [python/confluence-setup-reopen](../labs/python/confluence-setup-reopen/README.md) |
 | CWE-916 | Use of Password Hash With Insufficient Computational Effort | weakness | Incomplete | implemented | [python/weak-password-hash](../labs/python/weak-password-hash/README.md) |
 | CWE-917 | Improper Neutralization of Special Elements used in an Expression Language Statement ('Expression Language Injection') | weakness | Incomplete | implemented | [python/log4shell-lookup](../labs/python/log4shell-lookup/README.md), [python/confluence-expression-dispatch](../labs/python/confluence-expression-dispatch/README.md) |
 | CWE-918 | Server-Side Request Forgery (SSRF) | weakness | Incomplete | implemented | [rest-api/ssrf](../labs/rest-api/ssrf/README.md), [rest-api/ssrf-redirect](../labs/rest-api/ssrf-redirect/README.md), [python/dns-rebinding-ssrf](../labs/python/dns-rebinding-ssrf/README.md), [python/svg-resource-ssrf](../labs/python/svg-resource-ssrf/README.md), [python/remote-import-ssrf](../labs/python/remote-import-ssrf/README.md) |
