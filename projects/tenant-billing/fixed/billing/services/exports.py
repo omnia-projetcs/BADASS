@@ -10,8 +10,9 @@ queue = redis.Redis(host="cache", decode_responses=True)
 
 
 def submit(user, tenant_id, numbers):
-    job = Export.objects.create(tenant_id=tenant_id, requested_by=user, numbers=numbers)
-    queue.rpush("billing:exports", str(job.id))
+    with transaction.atomic():
+        job = Export.objects.create(tenant_id=tenant_id, requested_by=user, numbers=numbers)
+        transaction.on_commit(lambda: queue.rpush("billing:exports", str(job.id)))
     return job
 
 

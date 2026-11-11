@@ -12,9 +12,21 @@ def resolve(host):
     return HOSTS[host] if host in HOSTS else (str(ip_address(host)),)
 
 
+def is_public_address(raw):
+    address = ip_address(raw)
+    if getattr(address, "ipv4_mapped", None) is not None:
+        address = address.ipv4_mapped
+    if address.version == 6 and int(address) >> 32 == 0x0064FF9B0000000000000000:
+        return False
+    return address.is_global and not (
+        address.is_multicast or address.is_reserved or address.is_unspecified
+        or address.is_loopback or address.is_link_local or address.is_private
+    )
+
+
 def fetch(address, host, path):
     # No sockets: return deterministic fixture data for the selected endpoint.
-    return "PUBLIC_IMAGE" if ip_address(address).is_global else "LAB_INTERNAL_CONFIG"
+    return "PUBLIC_IMAGE" if is_public_address(address) else "LAB_INTERNAL_CONFIG"
 
 
 def run(request):
@@ -33,7 +45,7 @@ def run(request):
             if parsed.scheme not in {"http", "https"} or not parsed.hostname or parsed.username is not None or parsed.password is not None or parsed.port not in {None, 80, 443} or parsed.fragment:
                 raise ValueError("invalid URL")
             addresses = resolve(parsed.hostname)
-            if not addresses or not all(ip_address(address).is_global for address in addresses):
+            if not addresses or not all(is_public_address(address) for address in addresses):
                 return {"status": 403, "error": "internal destination"}
             targets.append((addresses[0], parsed.hostname, parsed.path))
     except (ValueError, UnicodeError):

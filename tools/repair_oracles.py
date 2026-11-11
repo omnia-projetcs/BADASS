@@ -62,7 +62,10 @@ def _reset_token(module, value, context):
         usable = usable and following_usable
     return {
         "issued_tokens_usable": usable,
-        "distinct_tokens": all(isinstance(t, str) for t in issued) and len(set(issued)) == 3,
+        "distinct_tokens": (
+            all(isinstance(t, str) and len(t) >= 32 for t in issued)
+            and len(set(issued)) == 3
+        ),
     }
 
 
@@ -143,8 +146,15 @@ def _session_rotation(module, value, context):
         "unrelated_session_preserved": sessions.get(untouched) == "bob" and module.resolve_session(untouched, sessions) == "bob",
     }
     if scenario == "rotation":
+        second_sessions = {value: None} if isinstance(value, str) else {}
+        second_id = module.login(value, principal, second_sessions)
         result.update({
-            "id_rotated": new_id != value,
+            "id_rotated": (
+                new_id != value
+                and isinstance(second_id, str)
+                and second_id != value
+                and second_id != new_id
+            ),
             "old_session_removed": isinstance(value, str) and value not in sessions,
             "old_session_authenticated": module.resolve_session(value, sessions) == principal,
         })

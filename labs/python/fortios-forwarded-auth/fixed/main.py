@@ -1,4 +1,5 @@
 """Store a synthetic administrator key after an appliance API check."""
+import hmac
 from pathlib import Path
 import re
 
@@ -13,7 +14,8 @@ def run(request):
         if not isinstance(name, str) or not re.fullmatch(r"[A-Za-z0-9-]{1,64}", name) or not isinstance(value, str) or len(value) > 256 or any(ord(c) < 32 or ord(c) == 127 for c in value) or name.lower() in headers:
             return {"status": 400, "error": "invalid key request"}
         headers[name.lower()] = value
-    authorized = headers.get("authorization") == "Bearer LAB_ADMIN_API_TOKEN"
+    auth_header = headers.get("authorization", "")
+    authorized = hmac.compare_digest(auth_header.encode("utf-8", errors="replace"), b"Bearer LAB_ADMIN_API_TOKEN")
     # Forwarding metadata is not an authentication credential.
     if not authorized: return {"status": 401, "error": "denied"}
     Path("appliance-admin.keys").write_text(key + "\n", encoding="utf-8")

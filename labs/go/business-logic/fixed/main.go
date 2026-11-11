@@ -4,14 +4,15 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 )
 
 func run(value string) string {
-	quantity, err := strconv.Atoi(value)
-	if err != nil {
-		panic(err)
+	if strings.HasPrefix(value, "-0") || strings.HasPrefix(value, "+") {
+		return "DENIED"
 	}
-	if quantity < 1 || quantity > 100 {
+	quantity, err := strconv.Atoi(value)
+	if err != nil || quantity < 1 || quantity > 100 {
 		return "DENIED"
 	}
 	return strconv.Itoa(1000 - quantity*10)

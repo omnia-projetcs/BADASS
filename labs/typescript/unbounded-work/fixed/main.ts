@@ -1,9 +1,9 @@
 declare const process: {argv: string[], env: {[key: string]: string | undefined}, stdout: {write(s: string): void}};
 declare function require(name: string): any;
 function run(value: string): string {
+    if (typeof value !== "string" || !/^[0-9]+$/.test(value)) return "DENIED";
     const size = Number(value);
-    if (!Number.isSafeInteger(size) || size < 0) throw new Error("Invalid size");
-    if (size > 100) return "DENIED";
+    if (!Number.isSafeInteger(size) || size < 0 || size > 100) return "DENIED";
     const data = new Uint8Array(size);
     return String(data.length);
 }

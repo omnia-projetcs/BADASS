@@ -1,12 +1,9 @@
-from pathlib import Path
-import os
-import hmac
-import html
-import subprocess
+"""AI agent webhook formatter that concatenates unvalidated header values."""
 
-def evaluate(value):
-    return 'X-User: ' + value + '\r\n\r\nBODY'
 
-def run(request):
-    # Only the value is client-controlled; identity and policy remain server-side.
-    return evaluate(request["value"])
+def format_agent_header(value):
+    return "X-User: " + value + "\r\n\r\nBODY"
+
+
+def run(tool_call):
+    return format_agent_header(tool_call["value"])

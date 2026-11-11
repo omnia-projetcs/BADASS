@@ -34,28 +34,25 @@ def run(request):
         root = Path("unpacked").resolve()
         with tarfile.open(fileobj=data, mode="r:") as tar:
             entries = tar.getmembers()
-            seen = set()
+            seen = []
             for info in entries:
                 name = PurePosixPath(info.name)
-                if name.is_absolute() or ".." in name.parts or not name.parts or str(name) in seen:
+                if name.is_absolute() or ".." in name.parts or not name.parts:
                     return {"status": 400, "error": "unsafe archive member"}
-                seen.add(str(name))
                 target = root / str(name)
-                if info.issym() and not (target.parent / info.linkname).resolve().is_relative_to(Path.cwd().resolve()):
-                    return {"status": 400, "error": "unsafe archive member"}
                 if not info.isfile() or not target.resolve().is_relative_to(root):
+                    return {"status": 400, "error": "unsafe archive member"}
+                if any(target == prev or target in prev.parents or prev in target.parents for prev in seen):
                     return {"status": 400, "error": "unsafe archive member"}
                 if any(parent.is_symlink() for parent in [target, *target.parents] if parent != root and parent.is_relative_to(root)):
                     return {"status": 400, "error": "unsafe archive member"}
+                seen.append(target)
             root.mkdir(exist_ok=True)
             for info in entries:
                 target = root / info.name
                 target.parent.mkdir(parents=True, exist_ok=True)
-                if info.issym():
-                    target.symlink_to(info.linkname, target_is_directory=True)
-                else:
-                    with tar.extractfile(info) as source:
-                        target.write_bytes(source.read())
+                with tar.extractfile(info) as source:
+                    target.write_bytes(source.read())
         return {"status": 200, "extracted": len(entries)}
     except (OSError, ValueError, UnicodeError, tarfile.TarError, RuntimeError):
         return {"status": 400, "error": "invalid archive"}

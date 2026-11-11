@@ -1,9 +1,10 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
+#include <cstdio>
+#include <cstring>
+
 int main(int argc, char **argv) {
-if(argc != 2) return 2;
-char buffer[8]; strcpy(buffer,argv[1]); puts(buffer);
-return 0;
+    if (argc != 2) return 2;
+    char buffer[8];
+    std::strcpy(buffer, argv[1]);
+    std::puts(buffer);
+    return 0;
 }

@@ -1,3 +1,4 @@
+from django.core.cache import cache
 from django.db import transaction
 from django.db.models import F
 from billing.models import Invoice, PaymentEvent
@@ -11,4 +12,7 @@ def apply(event):
         if receipt.invoice_id != invoice.id or receipt.amount != event["amount"]:
             raise ValueError("Conflicting event")
         if created:
+            if invoice.paid + event["amount"] > invoice.amount:
+                raise ValueError("Payment exceeds invoice amount")
             Invoice.objects.filter(id=invoice.id).update(paid=F("paid") + event["amount"])
+            transaction.on_commit(lambda: cache.delete(f"invoice:{invoice.tenant_id}:{invoice.number}"))

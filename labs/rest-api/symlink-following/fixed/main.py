@@ -1,20 +1,22 @@
+"""REST API export endpoint that uses exclusive creation to refuse symlinks."""
 from pathlib import Path
-import os
-import hmac
-import html
-import subprocess
+
 
 def evaluate(value):
-    if value == 'preplaced-link':
+    if not isinstance(value, str):
+        return "DENIED"
+    if value == "preplaced-link":
         # Adversarial setup: an existing link points at a synthetic private file.
-        Path('export.tmp').symlink_to('secret.txt')
+        Path("export.tmp").symlink_to("secret.txt")
     try:
-        with open('export.tmp', 'x') as stream:
-            stream.write('LAB_OVERWRITTEN')
+        with open("export.tmp", "x", encoding="utf-8") as stream:
+            stream.write("LAB_OVERWRITTEN")
     except FileExistsError:
         pass
-    return Path('secret.txt').read_text()
+    return Path("secret.txt").read_text(encoding="utf-8")
+
 
 def run(request):
-    # Only the value is client-controlled; identity and policy remain server-side.
-    return evaluate(request["value"])
+    if not isinstance(request, dict):
+        return "DENIED"
+    return evaluate(request.get("value"))

@@ -1,17 +1,19 @@
-from pathlib import Path
-import os
+"""REST API authorization guard that fails closed on upstream connection errors."""
 import hmac
-import html
-import subprocess
+
 
 def evaluate(value):
+    if not isinstance(value, str) or not value.isascii():
+        return "DENIED"
     try:
-        if value == 'backend-down':
-            raise ConnectionError('Authorization unavailable')
-        return 'ALLOWED' if value == 'authorized' else 'DENIED'
+        if value == "backend-down":
+            raise ConnectionError("Authorization unavailable")
+        return "ALLOWED" if hmac.compare_digest(value, "authorized") else "DENIED"
     except ConnectionError:
-        return 'DENIED'
+        return "DENIED"
+
 
 def run(request):
-    # Only the value is client-controlled; identity and policy remain server-side.
-    return evaluate(request["value"])
+    if not isinstance(request, dict):
+        return "DENIED"
+    return evaluate(request.get("value"))

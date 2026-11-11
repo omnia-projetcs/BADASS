@@ -1,13 +1,11 @@
-from pathlib import Path
-import os
-import hmac
-import html
-import subprocess
+"""AI agent retrieval tool that fetches any user record without ownership checks."""
 
-def evaluate(value):
-    records = {'alice': 'ALICE_DATA', 'bob': 'BOB_PRIVATE'}
-    return records.get(value, 'NOT_FOUND')
+AGENT_RECORDS = {"alice": "ALICE_DATA", "bob": "BOB_PRIVATE"}
 
-def run(request):
-    # Only the value is client-controlled; identity and policy remain server-side.
-    return evaluate(request["value"])
+
+def dispatch_record_lookup(value):
+    return AGENT_RECORDS.get(value, "NOT_FOUND")
+
+
+def run(tool_call):
+    return dispatch_record_lookup(tool_call["value"])

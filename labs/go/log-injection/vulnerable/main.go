@@ -3,11 +3,9 @@ package main
 import (
 	"fmt"
 	"os"
-	"strings"
 )
 
 func run(value string) string {
-	_ = strings.Contains
 	if err := os.WriteFile("audit.log", []byte("user="+value), 0600); err != nil {
 		panic(err)
 	}

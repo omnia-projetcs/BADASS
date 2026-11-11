@@ -1,13 +1,14 @@
 package main
 
 import (
+	"crypto/subtle"
 	"fmt"
 	"os"
 )
 
 func run(value string) string {
 	expected := os.Getenv("BADASS_ADMIN_PASSWORD")
-	if expected != "" && value == expected {
+	if expected != "" && subtle.ConstantTimeCompare([]byte(value), []byte(expected)) == 1 {
 		return "ADMIN"
 	}
 	return "DENIED"

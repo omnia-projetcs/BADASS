@@ -1,13 +1,11 @@
-from pathlib import Path
-import os
-import hmac
-import html
-import subprocess
+"""AI agent tool for order total calculation without quantity bounds."""
 
-def evaluate(value):
+
+def dispatch_order_tool(value):
     quantity = int(value)
     return str(1000 - quantity * 10)
 
-def run(request):
-    # Only the value is client-controlled; identity and policy remain server-side.
-    return evaluate(request["value"])
+
+def run(tool_call):
+    # Only the tool argument value is model-supplied; pricing policy is server-side.
+    return dispatch_order_tool(tool_call["value"])

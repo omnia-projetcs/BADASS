@@ -8,7 +8,8 @@ int main(int argc, char **argv) {
     const std::string_view value = argv[1];
     int size = 0;
     const auto result = std::from_chars(value.data(), value.data() + value.size(), size);
-    if (result.ec != std::errc{} || result.ptr != value.data() + value.size() || size < 0) {
+    if (result.ec != std::errc{} || result.ptr != value.data() + value.size() ||
+        (value.size() >= 2 && value[0] == '-' && value[1] == '0') || size < 0) {
         std::cout << "DENIED";
         return 0;
     }

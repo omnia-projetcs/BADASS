@@ -1,11 +1,9 @@
-#include <setjmp.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 typedef struct { char *value; } Request;
 static Request request;
-static jmp_buf bailout;
 static const char *failure_stage;
 
 static char *allocate(const char *stage, const char *value) {
@@ -42,17 +40,14 @@ int main(int argc, char **argv) {
         free(request.value);
         return 0;
     }
-    if (setjmp(bailout) == 0) {
-        if (!replace_value()) {
-            /* The corrected path reaches cleanup with a consistent old value. */
-            if (strcmp(request.value, "READY")) abort();
-            free(request.value);
-            request.value = NULL;
-            fputs("OOM_SAFE", stdout);
-            return 0;
-        }
+    if (!replace_value()) {
+        /* The corrected path reaches cleanup with a consistent old value. */
+        if (strcmp(request.value, "READY")) abort();
+        free(request.value);
+        request.value = NULL;
+        fputs("OOM_SAFE", stdout);
+        return 0;
     }
-    /* The vulnerable bailout resumes here with a dangling published value. */
     fputs(request.value, stdout);
     free(request.value);
     request.value = NULL;

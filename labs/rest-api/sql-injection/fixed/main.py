@@ -3,11 +3,13 @@ from contextlib import closing
 
 
 def lookup(value):
-    with closing(sqlite3.connect(':memory:')) as db:
+    with closing(sqlite3.connect(":memory:")) as db:
         db.executescript("CREATE TABLE users(name TEXT NOT NULL); INSERT INTO users VALUES ('alice'),('admin');")
-        return [row[0] for row in db.execute('SELECT name FROM users WHERE name = ?', (value,))]
+        return [row[0] for row in db.execute("SELECT name FROM users WHERE name = ?", (value,))]
 
 
 def run(request):
     # The request object represents decoded JSON at the handler boundary.
-    return {'status': 200, 'body': lookup(request['name'])}
+    if not isinstance(request, dict) or not isinstance(request.get("name"), str):
+        return {"status": 400, "body": []}
+    return {"status": 200, "body": lookup(request["name"])}

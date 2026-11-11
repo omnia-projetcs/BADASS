@@ -1,6 +1,7 @@
 """Small reporting service using the real Django ORM and JSONField transforms."""
 import json
 import os
+import re
 from django.conf import settings
 
 settings.configure(SECRET_KEY=os.environ["LAB_SESSION_KEY"], DEBUG=False, ALLOWED_HOSTS=["web", "localhost"],
@@ -8,10 +9,13 @@ settings.configure(SECRET_KEY=os.environ["LAB_SESSION_KEY"], DEBUG=False, ALLOWE
                    INSTALLED_APPS=[])
 import django
 django.setup()
+from django.core.exceptions import FieldError
 from django.db import connection, models
 from django.http import JsonResponse
 from django.urls import path
 from django.core.wsgi import get_wsgi_application
+
+ALLOWED_FIELD = re.compile(r"^[A-Za-z0-9_]{1,64}$")
 
 
 class Record(models.Model):
@@ -30,11 +34,11 @@ class Secret(models.Model):
 
 def report(request):
     field = request.GET.get("field", "customer")
-    if len(field) > 300:
-        return JsonResponse({"error": "Field too long"}, status=400)
+    if not isinstance(field, str) or not ALLOWED_FIELD.fullmatch(field):
+        return JsonResponse({"error": "Invalid field alias"}, status=400)
     try:
         rows = list(Record.objects.values_list("data__" + field, flat=True))
-    except ValueError:
+    except (ValueError, FieldError):
         return JsonResponse({"error": "Invalid field alias"}, status=400)
     return JsonResponse({"values": rows})
 

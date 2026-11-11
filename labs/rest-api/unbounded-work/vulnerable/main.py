@@ -1,13 +1,10 @@
-from pathlib import Path
-import os
-import hmac
-import html
-import subprocess
+"""REST API allocation endpoint without upper bounds on requested size."""
+
 
 def evaluate(value):
     size = int(value)
     return str(len(bytearray(size)))
 
+
 def run(request):
-    # Only the value is client-controlled; identity and policy remain server-side.
     return evaluate(request["value"])

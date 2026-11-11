@@ -1,12 +1,9 @@
-from pathlib import Path
-import os
-import hmac
-import html
-import subprocess
+"""AI agent post-action redirect builder that trusts model-chosen URLs."""
 
-def evaluate(value):
-    return 'Location: ' + value
 
-def run(request):
-    # Only the value is client-controlled; identity and policy remain server-side.
-    return evaluate(request["value"])
+def build_agent_redirect(value):
+    return "Location: " + value
+
+
+def run(tool_call):
+    return build_agent_redirect(tool_call["value"])

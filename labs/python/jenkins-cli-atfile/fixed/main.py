@@ -1,13 +1,9 @@
-"""Process CLI arguments before a synthetic help permission check."""
-from pathlib import Path
+"""Process CLI arguments without expanding @file references."""
+import hmac
 
 
 def expand(argument):
-    if not argument.startswith("@"): return [argument]
-    target = (Path.cwd() / argument[1:]).resolve()
-    if not target.is_relative_to(Path.cwd().resolve()) or not target.is_file() or target.stat().st_size > 4096:
-        raise ValueError("invalid argument file")
-    return target.read_text(encoding="utf-8").splitlines()
+    raise RuntimeError("Argument file expansion is disabled")
 
 
 def run(request):
@@ -17,7 +13,8 @@ def run(request):
     try:
         expanded = args.copy()
         if not expanded: return {"status": 400, "error": "invalid command"}
-        if request.get("token") != "LAB_CLI_READER":
+        token = request.get("token")
+        if not isinstance(token, str) or not hmac.compare_digest(token.encode("utf-8", errors="replace"), b"LAB_CLI_READER"):
             return {"status": 403, "argument": expanded[0]}
         return {"status": 200, "arguments": expanded}
     except (ValueError, OSError, UnicodeError):

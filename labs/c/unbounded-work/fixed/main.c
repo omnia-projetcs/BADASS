@@ -3,9 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <sys/stat.h>
 
 int main(int argc, char **argv) {
     if (argc != 2) return 2;
@@ -14,6 +11,7 @@ int main(int argc, char **argv) {
     errno = 0;
     long size = strtol(value, &end, 10);
     if (errno || end == value || *end ||
+        (value[0] == '-' && value[1] == '0') ||
         (*value != '-' && (*value < '0' || *value > '9')) || size < 0) {
         puts("DENIED");
         return 0;

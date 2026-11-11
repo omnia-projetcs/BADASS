@@ -1,12 +1,14 @@
-from pathlib import Path
-import os
-import hmac
-import html
+"""REST API diagnostic endpoint that executes an explicit argument list without a shell."""
 import subprocess
 
+
 def evaluate(value):
-    return subprocess.check_output(['/usr/bin/printf', '%s', value], text=True)
+    if not isinstance(value, str) or "\x00" in value:
+        return "DENIED"
+    return subprocess.check_output(["/usr/bin/printf", "%s", value], text=True)
+
 
 def run(request):
-    # Only the value is client-controlled; identity and policy remain server-side.
+    if not isinstance(request, dict) or "value" not in request:
+        return "DENIED"
     return evaluate(request["value"])

@@ -18,7 +18,9 @@ def run(request):
         return {"status": 400, "error": "invalid upload"}
     # This service accepts plain text and CSV attachments only.
     allowed = {".txt": "text/plain", ".csv": "text/csv"}
-    if Path(name).suffix.lower() not in allowed or allowed[Path(name).suffix.lower()] != mime:
+    forbidden = {".php", ".exe", ".sh", ".py", ".pl", ".cgi", ".jsp", ".asp", ".aspx", ".html", ".htm", ".js"}
+    suffixes = [s.lower() for s in Path(name).suffixes]
+    if not suffixes or suffixes[-1] not in allowed or any(s in forbidden for s in suffixes[:-1]) or allowed[suffixes[-1]] != mime:
         return {"status": 415, "error": "unsupported upload type"}
     root = Path("uploads")
     root.mkdir(exist_ok=True)

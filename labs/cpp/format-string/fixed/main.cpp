@@ -1,9 +1,9 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
+#include <iostream>
+#include <string_view>
+
 int main(int argc, char **argv) {
-if(argc != 2) return 2;
-printf("%s", argv[1]);
-return 0;
+    if (argc != 2) return 2;
+    const std::string_view message = argv[1];
+    std::cout << message;
+    return 0;
 }

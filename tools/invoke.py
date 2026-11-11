@@ -16,10 +16,11 @@ def main(argv=None):
         parser.error("--context requires --oracle")
     input_value = json.loads(args.input)
     context = json.loads(args.context) if args.context is not None else {}
+    oracle_fn = None
     if args.oracle:
-        # Load trusted observation code before the candidate's import side effects.
-        from repair_oracles import evaluate, prepare
-        prepare(args.oracle)
+        # Bind trusted observation function before the candidate's import side effects.
+        from repair_oracles import prepare
+        oracle_fn = prepare(args.oracle)
         if not isinstance(context, dict):
             parser.error("--context must encode a JSON object")
     spec = importlib.util.spec_from_file_location("fixture", args.source)
@@ -28,7 +29,7 @@ def main(argv=None):
     module = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = module
     spec.loader.exec_module(module)
-    result = evaluate(args.oracle, module, input_value, context) if args.oracle else module.run(input_value)
+    result = oracle_fn(module, input_value, context) if oracle_fn else module.run(input_value)
     print(json.dumps(result, sort_keys=True))
     return 0
 

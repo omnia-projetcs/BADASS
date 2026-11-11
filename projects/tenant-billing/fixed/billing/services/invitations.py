@@ -15,6 +15,8 @@ def accept(user, token):
         invite = Invitation.objects.select_for_update().get(id=data["invite"])
         if invite.email != user.email or invite.revoked or invite.accepted:
             raise PermissionDenied("Invitation unavailable")
-        Membership.objects.update_or_create(user=user, tenant=invite.tenant, defaults={"active": True, "role": "reader"})
+        existing = Membership.objects.select_for_update().filter(user=user, tenant=invite.tenant).first()
+        role = "admin" if existing and existing.active and existing.role == "admin" else "reader"
+        Membership.objects.update_or_create(user=user, tenant=invite.tenant, defaults={"active": True, "role": role})
         invite.accepted = True
         invite.save(update_fields=["accepted"])

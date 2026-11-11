@@ -1,25 +1,24 @@
-from pathlib import Path
+import json
 import os
-import hmac
-import html
-import subprocess
+from pathlib import Path
+from urllib.parse import parse_qs
+
 
 def evaluate(value):
-    if value == 'ok':
-        return 'OK'
+    if value == "ok":
+        return "OK"
     try:
-        Path('missing-database').read_text()
+        Path("missing-database").read_text(encoding="utf-8")
     except FileNotFoundError:
-        return 'Service unavailable'
-    return 'OK'
+        return "Service unavailable"
+    return "OK"
 
-import json
-from urllib.parse import parse_qs
 
 def run(query_string):
     value = parse_qs(query_string, keep_blank_values=True).get("value", [""])[0]
     result = evaluate(value)
     return "Content-Type: application/json\r\n\r\n" + json.dumps(result)
+
 
 if __name__ == "__main__":
     print(run(os.environ.get("QUERY_STRING", "")), end="")

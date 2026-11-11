@@ -1,4 +1,4 @@
 def run(request):
-    if request['origin'] != 'https://app.example.test':
+    if not isinstance(request, dict) or request.get("origin") != "https://app.example.test":
         return {}
-    return {'Access-Control-Allow-Origin': request['origin'], 'Access-Control-Allow-Credentials': 'true'}
+    return {"Access-Control-Allow-Origin": request["origin"], "Access-Control-Allow-Credentials": "true"}

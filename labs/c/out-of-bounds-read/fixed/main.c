@@ -12,6 +12,7 @@ int main(int argc, char **argv) {
     long index = strtol(input, &end, 10);
     /* A complete decimal integer is required before applying array bounds. */
     if (errno || end == input || *end ||
+        (input[0] == '-' && input[1] == '0') ||
         (*input != '-' && (*input < '0' || *input > '9'))) {
         puts("DENIED");
         return 0;

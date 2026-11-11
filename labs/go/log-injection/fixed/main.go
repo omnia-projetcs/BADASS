@@ -7,8 +7,8 @@ import (
 )
 
 func run(value string) string {
-	_ = strings.Contains
-	value = strings.NewReplacer("\\", "\\\\", "\r", "\\r", "\n", "\\n").Replace(value)
+	value = strings.NewReplacer("\", "\\", "", "\r", "
+", "\n").Replace(value)
 	if err := os.WriteFile("audit.log", []byte("user="+value), 0600); err != nil {
 		panic(err)
 	}

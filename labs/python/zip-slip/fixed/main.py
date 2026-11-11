@@ -32,11 +32,17 @@ def run(request):
             target = (root / relative).resolve()
             if (relative.is_absolute() or PureWindowsPath(name).drive
                     or ".." in relative.parts or not target.is_relative_to(root)
-                    or target == root or target in [path for _, path in targets]):
+                    or target == root or any(
+                        target == path or target in path.parents or path in target.parents
+                        for _, path in targets
+                    )):
                 return {"status": 400, "error": "unsafe archive path"}
             targets.append((member, target))
         # The fixture directory is owned by this process; no concurrent writers.
-        for member, target in targets:
-            target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_bytes(archive.read(member))
+        try:
+            for member, target in targets:
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes(archive.read(member))
+        except OSError:
+            return {"status": 400, "error": "unsafe archive path"}
     return {"status": 200, "extracted": len(members)}

@@ -1,3 +1,5 @@
+import csv
+import io
 from django.core import signing
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404
@@ -16,4 +18,6 @@ def read(user, token):
         raise PermissionDenied("Wrong recipient")
     invoice = get_object_or_404(Invoice, id=data["invoice"])
     membership(user, invoice.tenant_id)
-    return f"{invoice.number},{invoice.customer},{invoice.amount}\n"
+    output = io.StringIO()
+    csv.writer(output).writerow([invoice.number, invoice.customer, invoice.amount])
+    return output.getvalue()

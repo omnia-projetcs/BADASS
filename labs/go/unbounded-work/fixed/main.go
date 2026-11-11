@@ -4,14 +4,15 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 )
 
 func run(value string) string {
-	size, err := strconv.Atoi(value)
-	if err != nil || size < 0 {
-		panic("Invalid size")
+	if strings.HasPrefix(value, "-0") || strings.HasPrefix(value, "+") {
+		return "DENIED"
 	}
-	if size > 100 {
+	size, err := strconv.Atoi(value)
+	if err != nil || size < 0 || size > 100 {
 		return "DENIED"
 	}
 	data := make([]byte, size)

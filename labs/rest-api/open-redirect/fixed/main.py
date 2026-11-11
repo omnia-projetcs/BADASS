@@ -1,14 +1,13 @@
-from pathlib import Path
-import os
-import hmac
-import html
-import subprocess
+"""REST API redirect endpoint restricted to allowlisted local destinations."""
+
 
 def evaluate(value):
-    if value not in {'/home', '/profile'}:
-        return 'DENIED'
-    return 'Location: ' + value
+    if not isinstance(value, str) or value not in {"/home", "/profile"}:
+        return "DENIED"
+    return "Location: " + value
+
 
 def run(request):
-    # Only the value is client-controlled; identity and policy remain server-side.
-    return evaluate(request["value"])
+    if not isinstance(request, dict):
+        return "DENIED"
+    return evaluate(request.get("value"))

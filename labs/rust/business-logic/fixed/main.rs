@@ -1,13 +1,19 @@
-fn run(value: &str) -> Result<String, Box<dyn std::error::Error>> {
-    let quantity: i64 = value.parse()?;
-    if !(1..=100).contains(&quantity) {
-        return Ok("DENIED".to_string());
+fn run(value: &str) -> String {
+    if value.starts_with("-0") || value.starts_with('+') {
+        return "DENIED".to_string();
     }
-    Ok((1000 - quantity * 10).to_string())
+    let quantity: i64 = match value.parse() {
+        Ok(parsed) => parsed,
+        Err(_) => return "DENIED".to_string(),
+    };
+    if !(1..=100).contains(&quantity) {
+        return "DENIED".to_string();
+    }
+    (1000 - quantity * 10).to_string()
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let value = std::env::args().nth(1).ok_or("Expected one input")?;
-    print!("{}", run(&value)?);
+    print!("{}", run(&value));
     Ok(())
 }

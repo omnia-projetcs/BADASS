@@ -1,22 +1,27 @@
-from pathlib import Path
+import json
 import os
-import hmac
-import html
-import subprocess
+from urllib.parse import parse_qs
+
 
 def evaluate(value):
-    size = int(value)
+    if isinstance(value, bool) or not isinstance(value, (int, str)):
+        return "DENIED"
+    if isinstance(value, str) and (len(value) > 16 or value.strip().startswith("-0")):
+        return "DENIED"
+    try:
+        size = int(value)
+    except ValueError:
+        return "DENIED"
     if not 0 <= size <= 100:
-        return 'DENIED'
+        return "DENIED"
     return str(len(bytearray(size)))
 
-import json
-from urllib.parse import parse_qs
 
 def run(query_string):
     value = parse_qs(query_string, keep_blank_values=True).get("value", [""])[0]
     result = evaluate(value)
     return "Content-Type: application/json\r\n\r\n" + json.dumps(result)
+
 
 if __name__ == "__main__":
     print(run(os.environ.get("QUERY_STRING", "")), end="")

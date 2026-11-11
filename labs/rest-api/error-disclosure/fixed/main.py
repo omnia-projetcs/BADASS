@@ -1,18 +1,18 @@
+"""REST API handler that returns a generic error message when storage fails."""
 from pathlib import Path
-import os
-import hmac
-import html
-import subprocess
+
 
 def evaluate(value):
-    if value == 'ok':
-        return 'OK'
+    if value == "ok":
+        return "OK"
     try:
-        Path('missing-database').read_text()
+        Path("missing-database").read_text(encoding="utf-8")
     except FileNotFoundError:
-        return 'Service unavailable'
-    return 'OK'
+        return "Service unavailable"
+    return "OK"
+
 
 def run(request):
-    # Only the value is client-controlled; identity and policy remain server-side.
-    return evaluate(request["value"])
+    if not isinstance(request, dict):
+        return "Service unavailable"
+    return evaluate(request.get("value"))

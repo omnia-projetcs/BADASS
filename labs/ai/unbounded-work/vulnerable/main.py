@@ -1,13 +1,10 @@
-from pathlib import Path
-import os
-import hmac
-import html
-import subprocess
+"""AI agent memory buffer tool without allocation limits."""
 
-def evaluate(value):
+
+def allocate_agent_buffer(value):
     size = int(value)
     return str(len(bytearray(size)))
 
-def run(request):
-    # Only the value is client-controlled; identity and policy remain server-side.
-    return evaluate(request["value"])
+
+def run(tool_call):
+    return allocate_agent_buffer(tool_call["value"])

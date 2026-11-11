@@ -1,12 +1,14 @@
-from pathlib import Path
-import os
-import hmac
+"""REST API HTML snippet endpoint that escapes HTML special characters."""
 import html
-import subprocess
+
 
 def evaluate(value):
-    return '<p>' + html.escape(value, quote=False) + '</p>'
+    if not isinstance(value, str):
+        return "DENIED"
+    return "<p>" + html.escape(value, quote=False) + "</p>"
+
 
 def run(request):
-    # Only the value is client-controlled; identity and policy remain server-side.
-    return evaluate(request["value"])
+    if not isinstance(request, dict):
+        return "DENIED"
+    return evaluate(request.get("value"))

@@ -1,14 +1,14 @@
+"""REST API static document handler restricted to allowlisted filenames."""
 from pathlib import Path
-import os
-import hmac
-import html
-import subprocess
+
 
 def evaluate(value):
-    if value != 'welcome.txt':
-        return 'DENIED'
-    return (Path('public') / value).read_text()
+    if not isinstance(value, str) or value != "welcome.txt":
+        return "DENIED"
+    return (Path("public") / value).read_text(encoding="utf-8")
+
 
 def run(request):
-    # Only the value is client-controlled; identity and policy remain server-side.
-    return evaluate(request["value"])
+    if not isinstance(request, dict):
+        return "DENIED"
+    return evaluate(request.get("value"))

@@ -1,15 +1,21 @@
-from pathlib import Path
-import os
-import hmac
-import html
-import subprocess
+"""REST API order pricing endpoint with quantity range validation."""
+
 
 def evaluate(value):
-    quantity = int(value)
+    if isinstance(value, bool) or not isinstance(value, (int, str)):
+        return "DENIED"
+    if isinstance(value, str) and (len(value) > 16 or value.strip().startswith("-0")):
+        return "DENIED"
+    try:
+        quantity = int(value)
+    except ValueError:
+        return "DENIED"
     if not 1 <= quantity <= 100:
-        return 'DENIED'
+        return "DENIED"
     return str(1000 - quantity * 10)
 
+
 def run(request):
-    # Only the value is client-controlled; identity and policy remain server-side.
+    if not isinstance(request, dict) or "value" not in request:
+        return "DENIED"
     return evaluate(request["value"])

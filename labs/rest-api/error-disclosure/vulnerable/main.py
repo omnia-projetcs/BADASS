@@ -1,18 +1,16 @@
+"""REST API handler that returns internal connection credentials when storage fails."""
 from pathlib import Path
-import os
-import hmac
-import html
-import subprocess
+
 
 def evaluate(value):
-    if value == 'ok':
-        return 'OK'
+    if value == "ok":
+        return "OK"
     try:
-        Path('missing-database').read_text()
+        Path("missing-database").read_text(encoding="utf-8")
     except FileNotFoundError:
-        return 'db://admin:LAB_SECRET@database/internal'
-    return 'OK'
+        return "db://admin:LAB_SECRET@database/internal"
+    return "OK"
+
 
 def run(request):
-    # Only the value is client-controlled; identity and policy remain server-side.
     return evaluate(request["value"])

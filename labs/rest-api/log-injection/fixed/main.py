@@ -1,15 +1,17 @@
+"""REST API audit logger that escapes CR, LF, and backslashes in log lines."""
 from pathlib import Path
-import os
-import hmac
-import html
-import subprocess
+
 
 def evaluate(value):
-    value = value.replace('\\', '\\\\').replace('\r', r'\r').replace('\n', r'\n')
-    record = 'user=' + value
-    Path('audit.log').write_text(record)
-    return Path('audit.log').read_bytes().decode()
+    if not isinstance(value, str):
+        return "DENIED"
+    value = value.replace("\\", "\\\\").replace("\r", r"\r").replace("\n", r"\n")
+    record = "user=" + value
+    Path("audit.log").write_text(record, encoding="utf-8")
+    return Path("audit.log").read_bytes().decode("utf-8")
+
 
 def run(request):
-    # Only the value is client-controlled; identity and policy remain server-side.
-    return evaluate(request["value"])
+    if not isinstance(request, dict):
+        return "DENIED"
+    return evaluate(request.get("value"))

@@ -1,8 +1,5 @@
 from pathlib import Path
-import os
-import hmac
-import html
-import subprocess
+
 
 def run(value):
     if value == 'preplaced-link':

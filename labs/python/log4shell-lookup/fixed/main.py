@@ -1,34 +1,11 @@
-"""Record a log message with an offline expression lookup dependency."""
+"""Record a log message without evaluating message-embedded lookup expressions."""
 from pathlib import Path
-import re
-from urllib.parse import urlsplit
 
 CONFIG = {"LAB_LOG_SECRET": "LAB_PRIVATE_TOKEN"}
 
 
 def naming_lookup(url):
-    return "LAB_LOOKUP_RESULT"
-
-
-def interpolate(message, calls):
-    def lookup(match):
-        operation, _, value = match.group(1).partition(":")
-        if operation == "env" and value in CONFIG:
-            return CONFIG[value]
-        if operation == "jndi":
-            target = urlsplit(value)
-            if target.scheme not in {"ldap", "rmi"} or not target.hostname:
-                raise ValueError("unsupported lookup")
-            calls.append(value)
-            return naming_lookup(value)
-        raise ValueError("unsupported lookup")
-    for _ in range(8):
-        updated, count = re.subn(r"\$\{([^{}]*)\}", lookup, message)
-        if not count:
-            if "${" in message: raise ValueError("incomplete expression")
-            return message
-        message = updated
-    raise ValueError("too many nested lookups")
+    raise RuntimeError("Naming lookup is disabled")
 
 
 def run(request):

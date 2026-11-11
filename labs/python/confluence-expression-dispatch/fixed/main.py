@@ -1,25 +1,11 @@
-"""Build a login redirect with a bounded pre-auth expression interpreter."""
-import ast
-import re
+"""Build a login redirect without evaluating request-path expressions."""
 from urllib.parse import quote, unquote
 
 SECRET = "LAB_CONFLUENCE_PRIVATE"
 
 
 def evaluate(expression, headers):
-    tree = ast.parse(expression.strip(), mode="eval")
-    call = tree.body
-    if len(list(ast.walk(tree))) > 16 or not isinstance(call, ast.Call) or not isinstance(call.func, ast.Name) or call.func.id != "setHeader" or call.keywords or len(call.args) != 2:
-        raise ValueError("unsupported expression")
-    values = []
-    for node in call.args:
-        if isinstance(node, ast.Constant) and isinstance(node.value, str): values.append(node.value)
-        elif isinstance(node, ast.Name) and node.id == "secret": values.append(SECRET)
-        else: raise ValueError("unsupported argument")
-    key, value = values
-    if not re.fullmatch(r"X-[A-Za-z0-9-]{1,32}", key) or len(value) > 128 or any(ord(c) < 32 or ord(c) == 127 for c in value):
-        raise ValueError("invalid header")
-    headers[key] = value
+    raise RuntimeError("Expression evaluation is disabled")
 
 
 def run(value):

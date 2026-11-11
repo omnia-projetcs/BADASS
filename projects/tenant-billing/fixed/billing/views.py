@@ -82,9 +82,12 @@ def export_create(request, tenant_id):
 @api
 @require_http_methods(["GET"])
 def export_read(request, job_id):
-    # A job owner can inspect status after revocation. Artifact generation must
-    # therefore enforce current authorization in the asynchronous worker.
+    # A job owner can inspect status after revocation. Artifact generation and
+    # readback both require active tenant membership before returning content.
     job = get_object_or_404(Export, id=job_id, requested_by=request.user)
+    if job.status == "ready" and not Membership.objects.filter(
+            user=request.user, tenant_id=job.tenant_id, active=True).exists():
+        return JsonResponse({"status": "denied", "content": ""})
     return JsonResponse({"status": job.status, "content": job.content})
 
 
@@ -96,6 +99,9 @@ def member_revoke(request, tenant_id, username):
         item = get_object_or_404(Membership.objects.select_for_update(), tenant_id=tenant_id, user__username=username)
         item.active = False
         item.save(update_fields=["active"])
+        Invitation.objects.filter(tenant_id=tenant_id, email=item.user.email, accepted=False).update(revoked=True)
+        Export.objects.filter(tenant_id=tenant_id, requested_by=item.user, status="ready").update(
+            status="denied", content="")
     return JsonResponse({"revoked": True})
 
 

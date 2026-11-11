@@ -7,11 +7,13 @@ import (
 )
 
 func run(value string) string {
-	_ = strings.ContainsAny
-	if strings.ContainsAny(value, "\r\n") {
+	if strings.ContainsAny(value, "
+") {
 		return "DENIED"
 	}
-	return "X-User: " + value + "\r\n\r\nBODY"
+	return "X-User: " + value + "
+
+BODY"
 }
 func main() {
 	if len(os.Args) != 2 {

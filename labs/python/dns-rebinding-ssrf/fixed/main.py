@@ -24,9 +24,21 @@ class Resolver:
         return result
 
 
+def is_public_address(raw):
+    address = ip_address(raw)
+    if getattr(address, "ipv4_mapped", None) is not None:
+        address = address.ipv4_mapped
+    if address.version == 6 and int(address) >> 32 == 0x0064FF9B0000000000000000:
+        return False
+    return address.is_global and not (
+        address.is_multicast or address.is_reserved or address.is_unspecified
+        or address.is_loopback or address.is_link_local or address.is_private
+    )
+
+
 def connect(address, host, path):
     # This function is an offline endpoint registry, never a socket call.
-    return "PUBLIC_IMAGE" if ip_address(address).is_global else "LAB_INTERNAL_SERVICE"
+    return "PUBLIC_IMAGE" if is_public_address(address) else "LAB_INTERNAL_SERVICE"
 
 
 def run(url):
@@ -38,7 +50,7 @@ def run(url):
             raise ValueError("invalid URL")
         resolver = Resolver()
         addresses = resolver.resolve(target.hostname)
-        if not addresses or not all(ip_address(item).is_global for item in addresses):
+        if not addresses or not all(is_public_address(item) for item in addresses):
             return {"status": 403, "error": "internal destination"}
         address = addresses[0]
         return {"status": 200, "body": connect(address, target.hostname, target.path)}

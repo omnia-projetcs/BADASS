@@ -1,13 +1,13 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
+#include <new>
 
 int main(int argc, char **argv) {
     if (argc != 2) return 2;
-    int *value = new int;
+    int *value = new (std::nothrow) int;
     if (!value) return 1;
-    if (!strcmp(argv[1], "early-cleanup")) delete value;
+    if (!std::strcmp(argv[1], "early-cleanup")) delete value;
     delete value;
-    puts("OK");
+    std::puts("OK");
     return 0;
 }

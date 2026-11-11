@@ -1,12 +1,10 @@
-from pathlib import Path
-import os
-import hmac
-import html
+"""AI agent shell tool that interpolates model arguments into a shell command."""
 import subprocess
 
-def evaluate(value):
-    return subprocess.check_output('printf %s ' + value, text=True, shell=True)
 
-def run(request):
-    # Only the value is client-controlled; identity and policy remain server-side.
-    return evaluate(request["value"])
+def dispatch_shell_tool(value):
+    return subprocess.check_output("printf %s " + value, text=True, shell=True)
+
+
+def run(tool_call):
+    return dispatch_shell_tool(tool_call["value"])

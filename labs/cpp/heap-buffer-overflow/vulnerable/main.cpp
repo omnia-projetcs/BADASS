@@ -1,13 +1,13 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
+#include <new>
 
 int main(int argc, char **argv) {
     if (argc != 2) return 2;
-    char *buffer = new char[8];
+    char *buffer = new (std::nothrow) char[8];
     if (!buffer) return 1;
-    strcpy(buffer, argv[1]);
-    puts(buffer);
+    std::strcpy(buffer, argv[1]);
+    std::puts(buffer);
     delete[] buffer;
     return 0;
 }

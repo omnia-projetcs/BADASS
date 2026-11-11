@@ -1,15 +1,18 @@
-from pathlib import Path
-import os
-import hmac
-import html
-import subprocess
+"""AI agent retrieval tool that enforces the caller's server-owned principal."""
 
-def evaluate(value):
-    records = {'alice': 'ALICE_DATA', 'bob': 'BOB_PRIVATE'}
-    if value in records and value != 'alice':
-        return 'DENIED'
-    return records.get(value, 'NOT_FOUND')
+AGENT_RECORDS = {"alice": "ALICE_DATA", "bob": "BOB_PRIVATE"}
+CALLER_PRINCIPAL = "alice"
 
-def run(request):
-    # Only the value is client-controlled; identity and policy remain server-side.
-    return evaluate(request["value"])
+
+def dispatch_record_lookup(value):
+    if not isinstance(value, str):
+        return "DENIED"
+    if value in AGENT_RECORDS and value != CALLER_PRINCIPAL:
+        return "DENIED"
+    return AGENT_RECORDS.get(value, "NOT_FOUND")
+
+
+def run(tool_call):
+    if not isinstance(tool_call, dict):
+        return "DENIED"
+    return dispatch_record_lookup(tool_call.get("value"))

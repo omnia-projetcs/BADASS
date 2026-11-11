@@ -1,12 +1,10 @@
+"""REST API static document handler vulnerable to relative path traversal."""
 from pathlib import Path
-import os
-import hmac
-import html
-import subprocess
+
 
 def evaluate(value):
-    return (Path('public') / value).read_text()
+    return (Path("public") / value).read_text(encoding="utf-8")
+
 
 def run(request):
-    # Only the value is client-controlled; identity and policy remain server-side.
     return evaluate(request["value"])
