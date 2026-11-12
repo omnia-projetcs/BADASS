@@ -45,3 +45,10 @@ Run commands from the repository root. Cases are independent and use synthetic f
 | [Tenant signed download](tenant-signed-download/README.md) | CWE-863 | A01:2025, API1:2023 | executable |
 | [Tenant session switch](tenant-session-switch/README.md) | CWE-863 | A01:2025, API5:2023 | executable |
 | [Tenant storage prefix](tenant-storage-prefix/README.md) | CWE-22 | A01:2025, API1:2023 | executable |
+| [Coupon stacking](coupon-stacking/README.md) | CWE-841 | API6:2023, A06:2025 | state-machine-unit |
+| [Currency arbitrage](currency-arbitrage/README.md) | CWE-841, CWE-682 | API6:2023, A06:2025 | handler-unit |
+| [Split order quota](split-order-quota/README.md) | CWE-799, CWE-841 | API6:2023, A06:2025 | state-machine-unit |
+| [NoSQL operator injection](nosql-injection/README.md) | CWE-943 | A05:2025, API8:2023 | handler-unit |
+| [GraphQL depth amplification and introspection](graphql-depth-amplification/README.md) | CWE-400, CWE-200 | API4:2023, A06:2025 | handler-unit |
+| [User enumeration](user-enumeration/README.md) | CWE-203, CWE-208 | A07:2025, API2:2023 | handler-unit |
+| [Web cache poisoning](web-cache-poisoning/README.md) | CWE-525, CWE-444 | A02:2025, API8:2023 | handler-unit |

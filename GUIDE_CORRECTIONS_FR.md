@@ -12,16 +12,16 @@ corrigées de témoins négatifs et de références de réparation.
 
 | Métrique | Valeur |
 |---|---:|
-| Paires de cas (`catalog/cases.json`) | 341 |
-| Variantes vulnérables et corrigées | 682 |
-| Faiblesses CWE distinctes couvertes | 79 |
+| Paires de cas (`catalog/cases.json`) | 395 |
+| Variantes vulnérables et corrigées | 790 |
+| Faiblesses CWE distinctes couvertes | 102 |
 | Sections technologiques (`labs/*`) | 14 |
 | Catégories OWASP représentées (Web 2025, API 2023, LLM 2025) | 30 |
-| Vecteurs de régression déclarés | 1 844 |
-| Contrôles de variantes déclarés (`2 × vecteurs`) | 3 688 |
-| Conversations d’entraînement JSONL (`enrichissement/vulnerabilities.training.jsonl`) | 1 023 (0 doublon) |
+| Vecteurs de régression déclarés | 1 999 |
+| Contrôles de variantes déclarés (`2 × vecteurs`) | 3 998 |
+| Conversations d’entraînement JSONL (`enrichissement/vulnerabilities.training.jsonl`) | 1 185 (0 doublon) |
 | Projets multi-fichiers (`projects/*`) | 3 |
-| Tests unitaires de la suite `tests/` | 211 |
+| Tests unitaires de la suite `tests/` | 214 |
 
 ## 2. Corrections et harmonisations appliquées
 

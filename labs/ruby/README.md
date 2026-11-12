@@ -26,3 +26,7 @@ Run commands from the repository root. Cases are independent and use synthetic f
 | [World readable secret](world-readable-secret/README.md) | CWE-732 | A01:2025 | executable |
 | [HTTP response header injection](header-injection/README.md) | CWE-113 | A05:2025 | handler-unit |
 | [Symlink following](symlink-following/README.md) | CWE-59 | A01:2025 | executable |
+| [Unsafe deserialization](unsafe-deserialization/README.md) | CWE-502 | A08:2025 | handler-unit |
+| [XML external entities (XXE)](xxe/README.md) | CWE-611 | A02:2025 | executable |
+| [Server-side request forgery (SSRF)](ssrf/README.md) | CWE-918 | A01:2025, API7:2023 | handler-unit |
+| [Mass assignment](mass-assignment/README.md) | CWE-915 | A01:2025, API3:2023 | executable |

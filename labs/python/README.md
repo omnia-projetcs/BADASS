@@ -85,3 +85,11 @@ Run commands from the repository root. Cases are independent and use synthetic f
 | [Zabbix: role projection SQL injection](zabbix-role-projection/README.md) | CWE-89 | A05:2025 | executable |
 | [ImageTragick: delegate shell injection](imagetragick-delegate/README.md) | CWE-78 | A05:2025 | executable |
 | [Apache HTTP Server: proxy request splitting](apache-proxy-request-splitting/README.md) | CWE-444 | A05:2025 | executable |
+| [Monetary rounding](monetary-rounding/README.md) | CWE-1339, CWE-682 | A06:2025 | executable |
+| [LDAP filter injection](ldap-injection/README.md) | CWE-90 | A05:2025 | handler-unit |
+| [XPath predicate injection](xpath-injection/README.md) | CWE-643 | A05:2025 | executable |
+| [XML entity expansion (Billion Laughs)](xml-entity-expansion/README.md) | CWE-776 | A02:2025, A06:2025 | handler-unit |
+| [Regular expression denial of service (ReDoS)](redos/README.md) | CWE-1333 | A06:2025 | handler-unit |
+| [JWT algorithm confusion](jwt-alg-confusion/README.md) | CWE-347 | A04:2025, A07:2025 | executable |
+| [Cryptographic stream-cipher nonce reuse](crypto-nonce-reuse/README.md) | CWE-323, CWE-329, CWE-327 | A04:2025 | executable |
+| [Weak PRNG token generation](weak-prng-token/README.md) | CWE-338 | A04:2025, A07:2025 | executable |

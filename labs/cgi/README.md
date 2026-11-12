@@ -26,3 +26,4 @@ Run commands from the repository root. Cases are independent and use synthetic f
 | [Symlink following](symlink-following/README.md) | CWE-59 | A01:2025 | executable |
 | [Path traversal](path-traversal/README.md) | CWE-22 | A01:2025 | executable |
 | [Command injection](command-injection/README.md) | CWE-78 | A05:2025 | executable |
+| [Insecure cookie flags](insecure-cookie-flags/README.md) | CWE-614, CWE-1004, CWE-1275 | A02:2025, A07:2025 | handler-unit |

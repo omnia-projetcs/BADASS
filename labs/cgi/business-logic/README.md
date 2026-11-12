@@ -31,9 +31,13 @@ exercise malformed inputs. `benign` vectors require identical expectations.
 | Vector | Type | Vulnerable expectation | Fixed expectation |
 |---|---|---|---|
 | ordinary order | benign | {"equals": "Content-Type: application/json\r\n\r\n\"980\""} | {"equals": "Content-Type: application/json\r\n\r\n\"980\""} |
+| smallest order | benign | {"equals": "Content-Type: application/json\r\n\r\n\"990\""} | {"equals": "Content-Type: application/json\r\n\r\n\"990\""} |
 | boundary order | benign | {"equals": "Content-Type: application/json\r\n\r\n\"0\""} | {"equals": "Content-Type: application/json\r\n\r\n\"0\""} |
 | negative order | attack | {"equals": "Content-Type: application/json\r\n\r\n\"1050\""} | {"equals": "Content-Type: application/json\r\n\r\n\"DENIED\""} |
 | zero order | attack | {"equals": "Content-Type: application/json\r\n\r\n\"1000\""} | {"equals": "Content-Type: application/json\r\n\r\n\"DENIED\""} |
+| above order limit | attack | {"equals": "Content-Type: application/json\r\n\r\n\"-10\""} | {"equals": "Content-Type: application/json\r\n\r\n\"DENIED\""} |
+| negative zero order | robustness | {"equals": "Content-Type: application/json\r\n\r\n\"1000\""} | {"equals": "Content-Type: application/json\r\n\r\n\"DENIED\""} |
+| nonnumeric input | robustness | {"stderr_contains": "ValueError"} | {"equals": "Content-Type: application/json\r\n\r\n\"DENIED\""} |
 
 This example demonstrates the declared weakness within the documented fixture assumptions.
 It is not a production application or a proof that every related attack is prevented.

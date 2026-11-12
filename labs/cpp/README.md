@@ -34,3 +34,6 @@ Run commands from the repository root. Cases are independent and use synthetic f
 | [Stack buffer overflow](stack-buffer-overflow/README.md) | CWE-121 | A06:2025 | executable |
 | [Format string](format-string/README.md) | CWE-134 | A05:2025 | executable |
 | [Integer overflow](integer-overflow/README.md) | CWE-190 | A06:2025 | executable |
+| [Uninitialized memory](uninitialized-memory/README.md) | CWE-457 | A06:2025 | executable |
+| [Type confusion](type-confusion/README.md) | CWE-843 | A06:2025 | executable |
+| [Signed unsigned conversion](signed-unsigned-conversion/README.md) | CWE-195, CWE-681 | A06:2025 | executable |

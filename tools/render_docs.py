@@ -47,7 +47,20 @@ NAMES = {'xss': 'Cross-site scripting (XSS)', 'sql-injection': 'SQL injection', 
          'activemq-openwire-type': 'ActiveMQ: unchecked throwable construction',
          'zabbix-role-projection': 'Zabbix: role projection SQL injection',
          'imagetragick-delegate': 'ImageTragick: delegate shell injection',
-         'apache-proxy-request-splitting': 'Apache HTTP Server: proxy request splitting'}
+         'apache-proxy-request-splitting': 'Apache HTTP Server: proxy request splitting',
+         'nosql-injection': 'NoSQL operator injection',
+         'graphql-depth-amplification': 'GraphQL depth amplification and introspection',
+         'ldap-injection': 'LDAP filter injection',
+         'xpath-injection': 'XPath predicate injection',
+         'xml-entity-expansion': 'XML entity expansion (Billion Laughs)',
+         'redos': 'Regular expression denial of service (ReDoS)',
+         'jwt-alg-confusion': 'JWT algorithm confusion',
+         'crypto-nonce-reuse': 'Cryptographic stream-cipher nonce reuse',
+         'weak-prng-token': 'Weak PRNG token generation',
+         'mcp-tool-poisoning': 'MCP tool description poisoning',
+         'markdown-image-exfiltration': 'Markdown image exfiltration',
+         'hitl-approval-toctou': 'HITL approval TOCTOU bypass',
+         'agent-connector-ssrf': 'Agent connector SSRF'}
 
 
 def exploitdb_cases(cases):

@@ -38,3 +38,6 @@ Run commands from the repository root. Cases are independent and use synthetic f
 | [PHP2Shell: stale worker state](php2shell-stale-state/README.md) | CWE-416 | A06:2025, A10:2025 | native-model |
 | [Node2Shell: Brotli block-switch status](node2shell-block-switch/README.md) | CWE-252, CWE-787 | A06:2025, A10:2025 | native-model |
 | [PHP-CGI best-fit argument injection](php-cgi-best-fit/README.md) | CWE-88 | A05:2025 | native-model |
+| [Uninitialized memory](uninitialized-memory/README.md) | CWE-457 | A06:2025 | executable |
+| [Type confusion](type-confusion/README.md) | CWE-843 | A06:2025 | executable |
+| [Signed unsigned conversion](signed-unsigned-conversion/README.md) | CWE-195, CWE-681 | A06:2025 | executable |

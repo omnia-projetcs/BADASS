@@ -35,3 +35,8 @@ Run commands from the repository root. Cases are independent and use synthetic f
 | [Path traversal](path-traversal/README.md) | CWE-22 | A01:2025 | executable |
 | [Command injection](command-injection/README.md) | CWE-78 | A05:2025 | executable |
 | [Tool argument scope](tool-argument-scope/README.md) | CWE-863 | A01:2025, LLM06:2025 | ai-boundary-unit |
+| [MCP tool description poisoning](mcp-tool-poisoning/README.md) | CWE-1427 | LLM01:2025, LLM03:2025 | ai-boundary-unit |
+| [Markdown image exfiltration](markdown-image-exfiltration/README.md) | CWE-200 | LLM02:2025, LLM05:2025 | ai-boundary-unit |
+| [HITL approval TOCTOU bypass](hitl-approval-toctou/README.md) | CWE-367 | LLM06:2025, A01:2025 | ai-boundary-unit |
+| [Memory poisoning](memory-poisoning/README.md) | CWE-472 | LLM04:2025, LLM01:2025 | ai-boundary-unit |
+| [Agent connector SSRF](agent-connector-ssrf/README.md) | CWE-918 | LLM06:2025, API7:2023 | ai-boundary-unit |

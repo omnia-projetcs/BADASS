@@ -37,3 +37,7 @@ See [dependency setup and SCA evaluation](../../docs/DEPENDENCIES.md).
 | [Client-controlled price](client-price/README.md) | CWE-602 | A06:2025 | executable |
 | [Permissive origin regex](regex-origin/README.md) | CWE-625 | A01:2025 | executable |
 | [Signed action replay](signed-action-replay/README.md) | CWE-294 | A07:2025 | executable |
+| [Unsafe deserialization](unsafe-deserialization/README.md) | CWE-502 | A08:2025 | handler-unit |
+| [XML external entities (XXE)](xxe/README.md) | CWE-611 | A02:2025 | executable |
+| [Server-side request forgery (SSRF)](ssrf/README.md) | CWE-918 | A01:2025, API7:2023 | handler-unit |
+| [Mass assignment](mass-assignment/README.md) | CWE-915 | A01:2025, API3:2023 | executable |

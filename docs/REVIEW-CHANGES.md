@@ -62,8 +62,8 @@ projects (`projects/django-jsonfield`, `projects/nextjs-middleware`,
     path traversal in exports, enforced atomic single-use invitations with
     `select_for_update()`, and hardened view payload parsing.
 
-The catalog has **341 case pairs**, **1,844 regression vectors** (**3,688 declared
-variant checks**), and **79 distinct CWE mappings** across **14 technology
+The catalog has **395 case pairs**, **1,999 regression vectors** (**3,998 declared
+variant checks**), and **102 distinct CWE mappings** across **14 technology
 sections** and **30 OWASP categories**.
 
 `tools/export_blind.py` creates opaque source paths and a private mapping outside
@@ -73,16 +73,16 @@ training contamination.
 
 ## Verification summary
 
-- Catalog validation (`python3 tools/lab.py validate`): **341 valid pairs**.
+- Catalog validation (`python3 tools/lab.py validate`): **395 valid pairs**.
 - Documentation freshness (`python3 tools/render_docs.py --check`): **current**.
 - Training export freshness (`python3 tools/export_training.py --check`):
-  **341 cases, 1,023 examples, 0 duplicates removed, status `current`**.
+  **395 cases, 1,185 examples, 0 duplicates removed, status `current`**.
 - Tooling and boundary unit tests (`python3 -m unittest discover -s tests -v`):
-  **211 tests discovered and passing** (33 skipped when optional native/external
+  **214 tests discovered and passing** (33 skipped when optional native/external
   compilers are absent on the host).
 - Python, CGI, REST API, and AI strict regressions
   (`python3 tools/lab.py test --language {python,cgi,rest-api,ai} --strict`):
-  **all 140 Python-executed case pairs pass**.
+  **all 161 Python-executed case pairs pass**.
 
 ## Fixture boundaries
 

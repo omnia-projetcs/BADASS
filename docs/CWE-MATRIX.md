@@ -2,7 +2,7 @@
 
 Source: MITRE CWE **4.20**. All **1450** entries from the imported snapshot are included.
 
-**79 implemented weaknesses**, **890 gaps**, **481 category/view entries**.
+**102 implemented weaknesses**, **867 gaps**, **481 category/view entries**.
 
 `implemented` means source pairs and vectors exist, not that a scanner detected them or a runtime was available.
 Test results are tracked separately. `gap` is an unimplemented weakness. `taxonomy-only` is a category or view.
@@ -101,7 +101,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-87 | Improper Neutralization of Alternate XSS Syntax | weakness | Draft | gap |  |
 | CWE-88 | Improper Neutralization of Argument Delimiters in a Command ('Argument Injection') | weakness | Draft | implemented | [python/argument-injection](../labs/python/argument-injection/README.md), [c/php-cgi-best-fit](../labs/c/php-cgi-best-fit/README.md) |
 | CWE-89 | Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection') | weakness | Stable | implemented | [python/sql-injection](../labs/python/sql-injection/README.md), [c/sql-injection](../labs/c/sql-injection/README.md), [cpp/sql-injection](../labs/cpp/sql-injection/README.md), [go/sql-injection](../labs/go/sql-injection/README.md), [php/sql-injection](../labs/php/sql-injection/README.md), [node/sql-injection](../labs/node/sql-injection/README.md), [typescript/sql-injection](../labs/typescript/sql-injection/README.md), [java/sql-injection](../labs/java/sql-injection/README.md), [ruby/sql-injection](../labs/ruby/sql-injection/README.md), [dotnet/sql-injection](../labs/dotnet/sql-injection/README.md), [rust/sql-injection](../labs/rust/sql-injection/README.md), [cgi/sql-injection](../labs/cgi/sql-injection/README.md), [rest-api/sql-injection](../labs/rest-api/sql-injection/README.md), [ai/sql-injection](../labs/ai/sql-injection/README.md), [python/sql-order-by](../labs/python/sql-order-by/README.md), [python/sql-second-order](../labs/python/sql-second-order/README.md), [python/sql-login-bypass](../labs/python/sql-login-bypass/README.md), [python/zabbix-role-projection](../labs/python/zabbix-role-projection/README.md) |
-| CWE-90 | Improper Neutralization of Special Elements used in an LDAP Query ('LDAP Injection') | weakness | Draft | gap |  |
+| CWE-90 | Improper Neutralization of Special Elements used in an LDAP Query ('LDAP Injection') | weakness | Draft | implemented | [python/ldap-injection](../labs/python/ldap-injection/README.md) |
 | CWE-91 | XML Injection (aka Blind XPath Injection) | weakness | Draft | gap |  |
 | CWE-92 | DEPRECATED: Improper Sanitization of Custom Special Characters | weakness | Deprecated | gap |  |
 | CWE-93 | Improper Neutralization of CRLF Sequences ('CRLF Injection') | weakness | Draft | gap |  |
@@ -130,13 +130,13 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-116 | Improper Encoding or Escaping of Output | weakness | Draft | gap |  |
 | CWE-117 | Improper Output Neutralization for Logs | weakness | Draft | implemented | [python/log-injection](../labs/python/log-injection/README.md), [cgi/log-injection](../labs/cgi/log-injection/README.md), [rest-api/log-injection](../labs/rest-api/log-injection/README.md), [ai/log-injection](../labs/ai/log-injection/README.md), [c/log-injection](../labs/c/log-injection/README.md), [cpp/log-injection](../labs/cpp/log-injection/README.md), [node/log-injection](../labs/node/log-injection/README.md), [typescript/log-injection](../labs/typescript/log-injection/README.md), [php/log-injection](../labs/php/log-injection/README.md), [ruby/log-injection](../labs/ruby/log-injection/README.md), [go/log-injection](../labs/go/log-injection/README.md), [java/log-injection](../labs/java/log-injection/README.md), [dotnet/log-injection](../labs/dotnet/log-injection/README.md), [rust/log-injection](../labs/rust/log-injection/README.md) |
 | CWE-118 | Incorrect Access of Indexable Resource ('Range Error') | weakness | Incomplete | gap |  |
-| CWE-119 | Improper Restriction of Operations within the Bounds of a Memory Buffer | weakness | Stable | gap |  |
+| CWE-119 | Improper Restriction of Operations within the Bounds of a Memory Buffer | weakness | Stable | implemented | [rust/unsafe-slice-bounds](../labs/rust/unsafe-slice-bounds/README.md) |
 | CWE-120 | Buffer Copy without Checking Size of Input ('Classic Buffer Overflow') | weakness | Incomplete | gap |  |
 | CWE-121 | Stack-based Buffer Overflow | weakness | Draft | implemented | [c/stack-buffer-overflow](../labs/c/stack-buffer-overflow/README.md), [cpp/stack-buffer-overflow](../labs/cpp/stack-buffer-overflow/README.md) |
 | CWE-122 | Heap-based Buffer Overflow | weakness | Draft | implemented | [c/heap-buffer-overflow](../labs/c/heap-buffer-overflow/README.md), [cpp/heap-buffer-overflow](../labs/cpp/heap-buffer-overflow/README.md) |
 | CWE-123 | Write-what-where Condition | weakness | Draft | gap |  |
 | CWE-124 | Buffer Underwrite ('Buffer Underflow') | weakness | Incomplete | gap |  |
-| CWE-125 | Out-of-bounds Read | weakness | Draft | implemented | [cpp/out-of-bounds-read](../labs/cpp/out-of-bounds-read/README.md), [c/out-of-bounds-read](../labs/c/out-of-bounds-read/README.md) |
+| CWE-125 | Out-of-bounds Read | weakness | Draft | implemented | [cpp/out-of-bounds-read](../labs/cpp/out-of-bounds-read/README.md), [c/out-of-bounds-read](../labs/c/out-of-bounds-read/README.md), [rust/unsafe-slice-bounds](../labs/rust/unsafe-slice-bounds/README.md) |
 | CWE-126 | Buffer Over-read | weakness | Draft | gap |  |
 | CWE-127 | Buffer Under-read | weakness | Draft | gap |  |
 | CWE-128 | Wrap-around Error | weakness | Incomplete | gap |  |
@@ -206,20 +206,20 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-192 | Integer Coercion Error | weakness | Incomplete | gap |  |
 | CWE-193 | Off-by-one Error | weakness | Draft | gap |  |
 | CWE-194 | Unexpected Sign Extension | weakness | Incomplete | gap |  |
-| CWE-195 | Signed to Unsigned Conversion Error | weakness | Draft | gap |  |
+| CWE-195 | Signed to Unsigned Conversion Error | weakness | Draft | implemented | [c/signed-unsigned-conversion](../labs/c/signed-unsigned-conversion/README.md), [cpp/signed-unsigned-conversion](../labs/cpp/signed-unsigned-conversion/README.md) |
 | CWE-196 | Unsigned to Signed Conversion Error | weakness | Draft | gap |  |
 | CWE-197 | Numeric Truncation Error | weakness | Incomplete | gap |  |
 | CWE-198 | Use of Incorrect Byte Ordering | weakness | Draft | gap |  |
 | CWE-199 | Information Management Errors | category | Draft | taxonomy-only |  |
-| CWE-200 | Exposure of Sensitive Information to an Unauthorized Actor | weakness | Draft | implemented | [ai/sensitive-context](../labs/ai/sensitive-context/README.md), [ai/system-prompt-leakage](../labs/ai/system-prompt-leakage/README.md) |
+| CWE-200 | Exposure of Sensitive Information to an Unauthorized Actor | weakness | Draft | implemented | [ai/sensitive-context](../labs/ai/sensitive-context/README.md), [ai/system-prompt-leakage](../labs/ai/system-prompt-leakage/README.md), [rest-api/graphql-depth-amplification](../labs/rest-api/graphql-depth-amplification/README.md), [ai/markdown-image-exfiltration](../labs/ai/markdown-image-exfiltration/README.md) |
 | CWE-201 | Insertion of Sensitive Information Into Sent Data | weakness | Draft | gap |  |
 | CWE-202 | Exposure of Sensitive Information Through Data Queries | weakness | Draft | gap |  |
-| CWE-203 | Observable Discrepancy | weakness | Incomplete | gap |  |
+| CWE-203 | Observable Discrepancy | weakness | Incomplete | implemented | [rest-api/user-enumeration](../labs/rest-api/user-enumeration/README.md) |
 | CWE-204 | Observable Response Discrepancy | weakness | Incomplete | gap |  |
 | CWE-205 | Observable Behavioral Discrepancy | weakness | Incomplete | gap |  |
 | CWE-206 | Observable Internal Behavioral Discrepancy | weakness | Incomplete | gap |  |
 | CWE-207 | Observable Behavioral Discrepancy With Equivalent Products | weakness | Draft | gap |  |
-| CWE-208 | Observable Timing Discrepancy | weakness | Incomplete | gap |  |
+| CWE-208 | Observable Timing Discrepancy | weakness | Incomplete | implemented | [rest-api/user-enumeration](../labs/rest-api/user-enumeration/README.md) |
 | CWE-209 | Generation of Error Message Containing Sensitive Information | weakness | Draft | implemented | [python/error-disclosure](../labs/python/error-disclosure/README.md), [cgi/error-disclosure](../labs/cgi/error-disclosure/README.md), [rest-api/error-disclosure](../labs/rest-api/error-disclosure/README.md), [ai/error-disclosure](../labs/ai/error-disclosure/README.md), [c/error-disclosure](../labs/c/error-disclosure/README.md), [cpp/error-disclosure](../labs/cpp/error-disclosure/README.md), [node/error-disclosure](../labs/node/error-disclosure/README.md), [typescript/error-disclosure](../labs/typescript/error-disclosure/README.md), [php/error-disclosure](../labs/php/error-disclosure/README.md), [ruby/error-disclosure](../labs/ruby/error-disclosure/README.md), [go/error-disclosure](../labs/go/error-disclosure/README.md), [java/error-disclosure](../labs/java/error-disclosure/README.md), [dotnet/error-disclosure](../labs/dotnet/error-disclosure/README.md), [rust/error-disclosure](../labs/rust/error-disclosure/README.md) |
 | CWE-210 | Self-generated Error Message Containing Sensitive Information | weakness | Draft | gap |  |
 | CWE-211 | Externally-Generated Error Message Containing Sensitive Information | weakness | Incomplete | gap |  |
@@ -334,13 +334,13 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-320 | Key Management Errors | category | Obsolete | taxonomy-only |  |
 | CWE-321 | Use of Hard-coded Cryptographic Key | weakness | Draft | implemented | [python/jwt-default-key](../labs/python/jwt-default-key/README.md) |
 | CWE-322 | Key Exchange without Entity Authentication | weakness | Draft | gap |  |
-| CWE-323 | Reusing a Nonce, Key Pair in Encryption | weakness | Incomplete | gap |  |
+| CWE-323 | Reusing a Nonce, Key Pair in Encryption | weakness | Incomplete | implemented | [python/crypto-nonce-reuse](../labs/python/crypto-nonce-reuse/README.md) |
 | CWE-324 | Use of a Key Past its Expiration Date | weakness | Draft | gap |  |
 | CWE-325 | Missing Cryptographic Step | weakness | Draft | gap |  |
 | CWE-326 | Inadequate Encryption Strength | weakness | Draft | gap |  |
-| CWE-327 | Use of a Broken or Risky Cryptographic Algorithm | weakness | Draft | gap |  |
+| CWE-327 | Use of a Broken or Risky Cryptographic Algorithm | weakness | Draft | implemented | [python/crypto-nonce-reuse](../labs/python/crypto-nonce-reuse/README.md) |
 | CWE-328 | Use of Weak Hash | weakness | Draft | gap |  |
-| CWE-329 | Generation of Predictable IV with CBC Mode | weakness | Draft | gap |  |
+| CWE-329 | Generation of Predictable IV with CBC Mode | weakness | Draft | implemented | [python/crypto-nonce-reuse](../labs/python/crypto-nonce-reuse/README.md) |
 | CWE-330 | Use of Insufficiently Random Values | weakness | Stable | implemented | [python/predictable-token](../labs/python/predictable-token/README.md) |
 | CWE-331 | Insufficient Entropy | weakness | Draft | gap |  |
 | CWE-332 | Insufficient Entropy in PRNG | weakness | Draft | gap |  |
@@ -349,7 +349,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-335 | Incorrect Usage of Seeds in Pseudo-Random Number Generator (PRNG) | weakness | Draft | gap |  |
 | CWE-336 | Same Seed in Pseudo-Random Number Generator (PRNG) | weakness | Draft | gap |  |
 | CWE-337 | Predictable Seed in Pseudo-Random Number Generator (PRNG) | weakness | Draft | gap |  |
-| CWE-338 | Use of Cryptographically Weak Pseudo-Random Number Generator (PRNG) | weakness | Draft | gap |  |
+| CWE-338 | Use of Cryptographically Weak Pseudo-Random Number Generator (PRNG) | weakness | Draft | implemented | [python/weak-prng-token](../labs/python/weak-prng-token/README.md) |
 | CWE-339 | Small Seed Space in PRNG | weakness | Draft | gap |  |
 | CWE-340 | Generation of Predictable Numbers or Identifiers | weakness | Incomplete | gap |  |
 | CWE-341 | Predictable from Observable State | weakness | Draft | gap |  |
@@ -358,12 +358,12 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-344 | Use of Invariant Value in Dynamically Changing Context | weakness | Draft | gap |  |
 | CWE-345 | Insufficient Verification of Data Authenticity | weakness | Draft | implemented | [ai/unverified-security-claim](../labs/ai/unverified-security-claim/README.md) |
 | CWE-346 | Origin Validation Error | weakness | Draft | implemented | [python/password-reset-host](../labs/python/password-reset-host/README.md) |
-| CWE-347 | Improper Verification of Cryptographic Signature | weakness | Draft | implemented | [python/webhook-signature](../labs/python/webhook-signature/README.md) |
+| CWE-347 | Improper Verification of Cryptographic Signature | weakness | Draft | implemented | [python/webhook-signature](../labs/python/webhook-signature/README.md), [python/jwt-alg-confusion](../labs/python/jwt-alg-confusion/README.md) |
 | CWE-348 | Use of Less Trusted Source | weakness | Draft | gap |  |
 | CWE-349 | Acceptance of Extraneous Untrusted Data With Trusted Data | weakness | Draft | gap |  |
 | CWE-350 | Reliance on Reverse DNS Resolution for a Security-Critical Action | weakness | Draft | gap |  |
 | CWE-351 | Insufficient Type Distinction | weakness | Draft | gap |  |
-| CWE-352 | Cross-Site Request Forgery (CSRF) | weakness | Stable | implemented | [python/csrf](../labs/python/csrf/README.md) |
+| CWE-352 | Cross-Site Request Forgery (CSRF) | weakness | Stable | implemented | [python/csrf](../labs/python/csrf/README.md), [php/csrf](../labs/php/csrf/README.md) |
 | CWE-353 | Missing Support for Integrity Check | weakness | Draft | gap |  |
 | CWE-354 | Improper Validation of Integrity Check Value | weakness | Draft | gap |  |
 | CWE-355 | User Interface Security Issues | category | Draft | taxonomy-only |  |
@@ -373,12 +373,12 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-359 | Exposure of Private Personal Information to an Unauthorized Actor | weakness | Incomplete | gap |  |
 | CWE-360 | Trust of System Event Data | weakness | Incomplete | gap |  |
 | CWE-361 | 7PK - Time and State | category | Incomplete | taxonomy-only |  |
-| CWE-362 | Concurrent Execution using Shared Resource with Improper Synchronization ('Race Condition') | weakness | Draft | implemented | [rest-api/order-concurrency](../labs/rest-api/order-concurrency/README.md) |
+| CWE-362 | Concurrent Execution using Shared Resource with Improper Synchronization ('Race Condition') | weakness | Draft | implemented | [rest-api/order-concurrency](../labs/rest-api/order-concurrency/README.md), [go/race-condition](../labs/go/race-condition/README.md) |
 | CWE-363 | Race Condition Enabling Link Following | weakness | Draft | gap |  |
 | CWE-364 | Signal Handler Race Condition | weakness | Incomplete | gap |  |
 | CWE-365 | DEPRECATED: Race Condition in Switch | weakness | Deprecated | gap |  |
 | CWE-366 | Race Condition within a Thread | weakness | Draft | gap |  |
-| CWE-367 | Time-of-check Time-of-use (TOCTOU) Race Condition | weakness | Incomplete | implemented | [python/file-create-race](../labs/python/file-create-race/README.md) |
+| CWE-367 | Time-of-check Time-of-use (TOCTOU) Race Condition | weakness | Incomplete | implemented | [python/file-create-race](../labs/python/file-create-race/README.md), [ai/hitl-approval-toctou](../labs/ai/hitl-approval-toctou/README.md) |
 | CWE-368 | Context Switching Race Condition | weakness | Draft | gap |  |
 | CWE-369 | Divide By Zero | weakness | Draft | gap |  |
 | CWE-370 | Missing Check for Certificate Revocation after Initial Check | weakness | Draft | gap |  |
@@ -411,7 +411,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-397 | Declaration of Throws for Generic Exception | weakness | Draft | gap |  |
 | CWE-398 | 7PK - Code Quality | category | Draft | taxonomy-only |  |
 | CWE-399 | Resource Management Errors | category | Draft | taxonomy-only |  |
-| CWE-400 | Uncontrolled Resource Consumption | weakness | Draft | implemented | [python/unbounded-work](../labs/python/unbounded-work/README.md), [cgi/unbounded-work](../labs/cgi/unbounded-work/README.md), [rest-api/unbounded-work](../labs/rest-api/unbounded-work/README.md), [ai/unbounded-work](../labs/ai/unbounded-work/README.md), [c/unbounded-work](../labs/c/unbounded-work/README.md), [cpp/unbounded-work](../labs/cpp/unbounded-work/README.md), [node/unbounded-work](../labs/node/unbounded-work/README.md), [typescript/unbounded-work](../labs/typescript/unbounded-work/README.md), [php/unbounded-work](../labs/php/unbounded-work/README.md), [ruby/unbounded-work](../labs/ruby/unbounded-work/README.md), [go/unbounded-work](../labs/go/unbounded-work/README.md), [java/unbounded-work](../labs/java/unbounded-work/README.md), [dotnet/unbounded-work](../labs/dotnet/unbounded-work/README.md), [rust/unbounded-work](../labs/rust/unbounded-work/README.md) |
+| CWE-400 | Uncontrolled Resource Consumption | weakness | Draft | implemented | [python/unbounded-work](../labs/python/unbounded-work/README.md), [cgi/unbounded-work](../labs/cgi/unbounded-work/README.md), [rest-api/unbounded-work](../labs/rest-api/unbounded-work/README.md), [ai/unbounded-work](../labs/ai/unbounded-work/README.md), [c/unbounded-work](../labs/c/unbounded-work/README.md), [cpp/unbounded-work](../labs/cpp/unbounded-work/README.md), [node/unbounded-work](../labs/node/unbounded-work/README.md), [typescript/unbounded-work](../labs/typescript/unbounded-work/README.md), [php/unbounded-work](../labs/php/unbounded-work/README.md), [ruby/unbounded-work](../labs/ruby/unbounded-work/README.md), [go/unbounded-work](../labs/go/unbounded-work/README.md), [java/unbounded-work](../labs/java/unbounded-work/README.md), [dotnet/unbounded-work](../labs/dotnet/unbounded-work/README.md), [rust/unbounded-work](../labs/rust/unbounded-work/README.md), [rest-api/graphql-depth-amplification](../labs/rest-api/graphql-depth-amplification/README.md) |
 | CWE-401 | Missing Release of Memory after Effective Lifetime | weakness | Draft | gap |  |
 | CWE-402 | Transmission of Private Resources into a New Sphere ('Resource Leak') | weakness | Draft | gap |  |
 | CWE-403 | Exposure of File Descriptor to Unintended Control Sphere ('File Descriptor Leak') | weakness | Draft | gap |  |
@@ -445,7 +445,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-431 | Missing Handler | weakness | Draft | gap |  |
 | CWE-432 | Dangerous Signal Handler not Disabled During Sensitive Operations | weakness | Draft | gap |  |
 | CWE-433 | Unparsed Raw Web Content Delivery | weakness | Incomplete | gap |  |
-| CWE-434 | Unrestricted Upload of File with Dangerous Type | weakness | Draft | implemented | [python/unrestricted-upload](../labs/python/unrestricted-upload/README.md) |
+| CWE-434 | Unrestricted Upload of File with Dangerous Type | weakness | Draft | implemented | [python/unrestricted-upload](../labs/python/unrestricted-upload/README.md), [php/unrestricted-upload](../labs/php/unrestricted-upload/README.md) |
 | CWE-435 | Improper Interaction Between Multiple Correctly-Behaving Entities | weakness | Draft | gap |  |
 | CWE-436 | Interpretation Conflict | weakness | Incomplete | implemented | [python/json-parser-conflict](../labs/python/json-parser-conflict/README.md) |
 | CWE-437 | Incomplete Model of Endpoint Features | weakness | Incomplete | gap |  |
@@ -455,7 +455,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-441 | Unintended Proxy or Intermediary ('Confused Deputy') | weakness | Draft | gap |  |
 | CWE-442 | DEPRECATED: Web Problems | category | Deprecated | taxonomy-only |  |
 | CWE-443 | DEPRECATED: HTTP response splitting | weakness | Deprecated | gap |  |
-| CWE-444 | Inconsistent Interpretation of HTTP Requests ('HTTP Request/Response Smuggling') | weakness | Incomplete | implemented | [python/apache-proxy-request-splitting](../labs/python/apache-proxy-request-splitting/README.md) |
+| CWE-444 | Inconsistent Interpretation of HTTP Requests ('HTTP Request/Response Smuggling') | weakness | Incomplete | implemented | [python/apache-proxy-request-splitting](../labs/python/apache-proxy-request-splitting/README.md), [rest-api/web-cache-poisoning](../labs/rest-api/web-cache-poisoning/README.md) |
 | CWE-445 | DEPRECATED: User Interface Errors | category | Deprecated | taxonomy-only |  |
 | CWE-446 | UI Discrepancy for Security Feature | weakness | Incomplete | gap |  |
 | CWE-447 | Unimplemented or Unsupported Feature in UI | weakness | Draft | gap |  |
@@ -468,7 +468,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-454 | External Initialization of Trusted Variables or Data Stores | weakness | Draft | gap |  |
 | CWE-455 | Non-exit on Failed Initialization | weakness | Draft | gap |  |
 | CWE-456 | Missing Initialization of a Variable | weakness | Draft | gap |  |
-| CWE-457 | Use of Uninitialized Variable | weakness | Draft | gap |  |
+| CWE-457 | Use of Uninitialized Variable | weakness | Draft | implemented | [c/uninitialized-memory](../labs/c/uninitialized-memory/README.md), [cpp/uninitialized-memory](../labs/cpp/uninitialized-memory/README.md) |
 | CWE-458 | DEPRECATED: Incorrect Initialization | weakness | Deprecated | gap |  |
 | CWE-459 | Incomplete Cleanup | weakness | Draft | gap |  |
 | CWE-460 | Improper Cleanup on Thrown Exception | weakness | Draft | gap |  |
@@ -483,7 +483,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-469 | Use of Pointer Subtraction to Determine Size | weakness | Draft | gap |  |
 | CWE-470 | Use of Externally-Controlled Input to Select Classes or Code ('Unsafe Reflection') | weakness | Draft | implemented | [python/activemq-openwire-type](../labs/python/activemq-openwire-type/README.md) |
 | CWE-471 | Modification of Assumed-Immutable Data (MAID) | weakness | Draft | gap |  |
-| CWE-472 | External Control of Assumed-Immutable Web Parameter | weakness | Draft | gap |  |
+| CWE-472 | External Control of Assumed-Immutable Web Parameter | weakness | Draft | implemented | [ai/memory-poisoning](../labs/ai/memory-poisoning/README.md) |
 | CWE-473 | PHP External Variable Modification | weakness | Draft | gap |  |
 | CWE-474 | Use of Function with Inconsistent Implementations | weakness | Draft | gap |  |
 | CWE-475 | Undefined Behavior for Input to API | weakness | Incomplete | gap |  |
@@ -513,7 +513,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-499 | Serializable Class Containing Sensitive Data | weakness | Draft | gap |  |
 | CWE-500 | Public Static Field Not Marked Final | weakness | Draft | gap |  |
 | CWE-501 | Trust Boundary Violation | weakness | Draft | gap |  |
-| CWE-502 | Deserialization of Untrusted Data | weakness | Draft | implemented | [python/unsafe-deserialization](../labs/python/unsafe-deserialization/README.md) |
+| CWE-502 | Deserialization of Untrusted Data | weakness | Draft | implemented | [python/unsafe-deserialization](../labs/python/unsafe-deserialization/README.md), [java/unsafe-deserialization](../labs/java/unsafe-deserialization/README.md), [dotnet/unsafe-deserialization](../labs/dotnet/unsafe-deserialization/README.md), [php/unsafe-deserialization](../labs/php/unsafe-deserialization/README.md), [ruby/unsafe-deserialization](../labs/ruby/unsafe-deserialization/README.md), [node/unsafe-deserialization](../labs/node/unsafe-deserialization/README.md) |
 | CWE-503 | DEPRECATED: Byte/Object Code | category | Deprecated | taxonomy-only |  |
 | CWE-504 | DEPRECATED: Motivation/Intent | category | Deprecated | taxonomy-only |  |
 | CWE-505 | DEPRECATED: Intentionally Introduced Weakness | category | Deprecated | taxonomy-only |  |
@@ -536,7 +536,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-522 | Insufficiently Protected Credentials | weakness | Incomplete | gap |  |
 | CWE-523 | Unprotected Transport of Credentials | weakness | Incomplete | gap |  |
 | CWE-524 | Use of Cache Containing Sensitive Information | weakness | Incomplete | gap |  |
-| CWE-525 | Use of Web Browser Cache Containing Sensitive Information | weakness | Incomplete | gap |  |
+| CWE-525 | Use of Web Browser Cache Containing Sensitive Information | weakness | Incomplete | implemented | [rest-api/web-cache-poisoning](../labs/rest-api/web-cache-poisoning/README.md) |
 | CWE-526 | Cleartext Storage of Sensitive Information in an Environment Variable | weakness | Incomplete | gap |  |
 | CWE-527 | Exposure of Version-Control Repository to an Unauthorized Control Sphere | weakness | Incomplete | gap |  |
 | CWE-528 | Exposure of Core Dump File to an Unauthorized Control Sphere | weakness | Draft | gap |  |
@@ -622,10 +622,10 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-608 | Struts: Non-private Field in ActionForm Class | weakness | Draft | gap |  |
 | CWE-609 | Double-Checked Locking | weakness | Draft | gap |  |
 | CWE-610 | Externally Controlled Reference to a Resource in Another Sphere | weakness | Draft | gap |  |
-| CWE-611 | Improper Restriction of XML External Entity Reference | weakness | Draft | implemented | [java/xxe](../labs/java/xxe/README.md), [python/xxe](../labs/python/xxe/README.md) |
+| CWE-611 | Improper Restriction of XML External Entity Reference | weakness | Draft | implemented | [java/xxe](../labs/java/xxe/README.md), [python/xxe](../labs/python/xxe/README.md), [dotnet/xxe](../labs/dotnet/xxe/README.md), [php/xxe](../labs/php/xxe/README.md), [ruby/xxe](../labs/ruby/xxe/README.md), [node/xxe](../labs/node/xxe/README.md) |
 | CWE-612 | Improper Authorization of Index Containing Sensitive Information | weakness | Draft | gap |  |
 | CWE-613 | Insufficient Session Expiration | weakness | Incomplete | implemented | [python/session-expiration](../labs/python/session-expiration/README.md) |
-| CWE-614 | Sensitive Cookie in HTTPS Session Without 'Secure' Attribute | weakness | Draft | gap |  |
+| CWE-614 | Sensitive Cookie in HTTPS Session Without 'Secure' Attribute | weakness | Draft | implemented | [cgi/insecure-cookie-flags](../labs/cgi/insecure-cookie-flags/README.md) |
 | CWE-615 | Inclusion of Sensitive Information in Source Code Comments | weakness | Incomplete | gap |  |
 | CWE-616 | Incomplete Identification of Uploaded File Variables (PHP) | weakness | Incomplete | gap |  |
 | CWE-617 | Reachable Assertion | weakness | Draft | gap |  |
@@ -654,7 +654,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-640 | Weak Password Recovery Mechanism for Forgotten Password | weakness | Incomplete | implemented | [python/password-reset-replay](../labs/python/password-reset-replay/README.md), [python/gitlab-reset-recipients](../labs/python/gitlab-reset-recipients/README.md) |
 | CWE-641 | Improper Restriction of Names for Files and Other Resources | weakness | Incomplete | gap |  |
 | CWE-642 | External Control of Critical State Data | weakness | Draft | gap |  |
-| CWE-643 | Improper Neutralization of Data within XPath Expressions ('XPath Injection') | weakness | Incomplete | gap |  |
+| CWE-643 | Improper Neutralization of Data within XPath Expressions ('XPath Injection') | weakness | Incomplete | implemented | [python/xpath-injection](../labs/python/xpath-injection/README.md) |
 | CWE-644 | Improper Neutralization of HTTP Headers for Scripting Syntax | weakness | Incomplete | gap |  |
 | CWE-645 | Overly Restrictive Account Lockout Mechanism | weakness | Incomplete | gap |  |
 | CWE-646 | Reliance on File Name or Extension of Externally-Supplied File | weakness | Incomplete | gap |  |
@@ -692,8 +692,8 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-678 | Composites | view | Draft | taxonomy-only |  |
 | CWE-679 | DEPRECATED: Chain Elements | view | Deprecated | taxonomy-only |  |
 | CWE-680 | Integer Overflow to Buffer Overflow | weakness | Draft | gap |  |
-| CWE-681 | Incorrect Conversion between Numeric Types | weakness | Draft | gap |  |
-| CWE-682 | Incorrect Calculation | weakness | Draft | gap |  |
+| CWE-681 | Incorrect Conversion between Numeric Types | weakness | Draft | implemented | [c/signed-unsigned-conversion](../labs/c/signed-unsigned-conversion/README.md), [cpp/signed-unsigned-conversion](../labs/cpp/signed-unsigned-conversion/README.md) |
+| CWE-682 | Incorrect Calculation | weakness | Draft | implemented | [python/monetary-rounding](../labs/python/monetary-rounding/README.md), [rest-api/currency-arbitrage](../labs/rest-api/currency-arbitrage/README.md) |
 | CWE-683 | Function Call With Incorrect Order of Arguments | weakness | Draft | gap |  |
 | CWE-684 | Incorrect Provision of Specified Functionality | weakness | Draft | gap |  |
 | CWE-685 | Function Call With Incorrect Number of Arguments | weakness | Draft | gap |  |
@@ -787,7 +787,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-773 | Missing Reference to Active File Descriptor or Handle | weakness | Incomplete | gap |  |
 | CWE-774 | Allocation of File Descriptors or Handles Without Limits or Throttling | weakness | Incomplete | gap |  |
 | CWE-775 | Missing Release of File Descriptor or Handle after Effective Lifetime | weakness | Incomplete | gap |  |
-| CWE-776 | Improper Restriction of Recursive Entity References in DTDs ('XML Entity Expansion') | weakness | Draft | gap |  |
+| CWE-776 | Improper Restriction of Recursive Entity References in DTDs ('XML Entity Expansion') | weakness | Draft | implemented | [python/xml-entity-expansion](../labs/python/xml-entity-expansion/README.md) |
 | CWE-777 | Regular Expression without Anchors | weakness | Incomplete | gap |  |
 | CWE-778 | Insufficient Logging | weakness | Draft | implemented | [python/missing-audit](../labs/python/missing-audit/README.md) |
 | CWE-779 | Logging of Excessive Data | weakness | Draft | gap |  |
@@ -810,7 +810,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-796 | Only Filtering Special Elements Relative to a Marker | weakness | Incomplete | gap |  |
 | CWE-797 | Only Filtering Special Elements at an Absolute Position | weakness | Incomplete | gap |  |
 | CWE-798 | Use of Hard-coded Credentials | weakness | Draft | implemented | [python/hardcoded-credentials](../labs/python/hardcoded-credentials/README.md), [cgi/hardcoded-credentials](../labs/cgi/hardcoded-credentials/README.md), [rest-api/hardcoded-credentials](../labs/rest-api/hardcoded-credentials/README.md), [ai/hardcoded-credentials](../labs/ai/hardcoded-credentials/README.md), [c/hardcoded-credentials](../labs/c/hardcoded-credentials/README.md), [cpp/hardcoded-credentials](../labs/cpp/hardcoded-credentials/README.md), [node/hardcoded-credentials](../labs/node/hardcoded-credentials/README.md), [typescript/hardcoded-credentials](../labs/typescript/hardcoded-credentials/README.md), [php/hardcoded-credentials](../labs/php/hardcoded-credentials/README.md), [ruby/hardcoded-credentials](../labs/ruby/hardcoded-credentials/README.md), [go/hardcoded-credentials](../labs/go/hardcoded-credentials/README.md), [java/hardcoded-credentials](../labs/java/hardcoded-credentials/README.md), [dotnet/hardcoded-credentials](../labs/dotnet/hardcoded-credentials/README.md), [rust/hardcoded-credentials](../labs/rust/hardcoded-credentials/README.md) |
-| CWE-799 | Improper Control of Interaction Frequency | weakness | Incomplete | implemented | [rest-api/business-flow-abuse](../labs/rest-api/business-flow-abuse/README.md) |
+| CWE-799 | Improper Control of Interaction Frequency | weakness | Incomplete | implemented | [rest-api/business-flow-abuse](../labs/rest-api/business-flow-abuse/README.md), [rest-api/split-order-quota](../labs/rest-api/split-order-quota/README.md) |
 | CWE-800 | Weaknesses in the 2010 CWE/SANS Top 25 Most Dangerous Programming Errors | view | Obsolete | taxonomy-only |  |
 | CWE-801 | 2010 Top 25 - Insecure Interaction Between Components | category | Obsolete | taxonomy-only |  |
 | CWE-802 | 2010 Top 25 - Risky Resource Management | category | Obsolete | taxonomy-only |  |
@@ -852,9 +852,9 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-838 | Inappropriate Encoding for Output Context | weakness | Incomplete | gap |  |
 | CWE-839 | Numeric Range Comparison Without Minimum Check | weakness | Incomplete | gap |  |
 | CWE-840 | Business Logic Errors | category | Incomplete | taxonomy-only |  |
-| CWE-841 | Improper Enforcement of Behavioral Workflow | weakness | Incomplete | implemented | [rest-api/order-workflow](../labs/rest-api/order-workflow/README.md) |
+| CWE-841 | Improper Enforcement of Behavioral Workflow | weakness | Incomplete | implemented | [rest-api/order-workflow](../labs/rest-api/order-workflow/README.md), [rest-api/coupon-stacking](../labs/rest-api/coupon-stacking/README.md), [rest-api/currency-arbitrage](../labs/rest-api/currency-arbitrage/README.md), [rest-api/split-order-quota](../labs/rest-api/split-order-quota/README.md) |
 | CWE-842 | Placement of User into Incorrect Group | weakness | Incomplete | gap |  |
-| CWE-843 | Access of Resource Using Incompatible Type ('Type Confusion') | weakness | Incomplete | gap |  |
+| CWE-843 | Access of Resource Using Incompatible Type ('Type Confusion') | weakness | Incomplete | implemented | [c/type-confusion](../labs/c/type-confusion/README.md), [cpp/type-confusion](../labs/cpp/type-confusion/README.md) |
 | CWE-844 | Weaknesses Addressed by The CERT Oracle Secure Coding Standard for Java (2011) | view | Obsolete | taxonomy-only |  |
 | CWE-845 | The CERT Oracle Secure Coding Standard for Java (2011) Chapter 2 - Input Validation and Data Sanitization (IDS) | category | Obsolete | taxonomy-only |  |
 | CWE-846 | The CERT Oracle Secure Coding Standard for Java (2011) Chapter 3 - Declarations and Initialization (DCL) | category | Obsolete | taxonomy-only |  |
@@ -926,10 +926,10 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-912 | Hidden Functionality | weakness | Incomplete | gap |  |
 | CWE-913 | Improper Control of Dynamically-Managed Code Resources | weakness | Incomplete | gap |  |
 | CWE-914 | Improper Control of Dynamically-Identified Variables | weakness | Incomplete | gap |  |
-| CWE-915 | Improperly Controlled Modification of Dynamically-Determined Object Attributes | weakness | Incomplete | implemented | [python/mass-assignment](../labs/python/mass-assignment/README.md), [rest-api/property-authorization](../labs/rest-api/property-authorization/README.md), [python/spring4shell-binding](../labs/python/spring4shell-binding/README.md), [python/confluence-setup-reopen](../labs/python/confluence-setup-reopen/README.md) |
+| CWE-915 | Improperly Controlled Modification of Dynamically-Determined Object Attributes | weakness | Incomplete | implemented | [python/mass-assignment](../labs/python/mass-assignment/README.md), [rest-api/property-authorization](../labs/rest-api/property-authorization/README.md), [python/spring4shell-binding](../labs/python/spring4shell-binding/README.md), [python/confluence-setup-reopen](../labs/python/confluence-setup-reopen/README.md), [node/mass-assignment](../labs/node/mass-assignment/README.md), [typescript/mass-assignment](../labs/typescript/mass-assignment/README.md), [ruby/mass-assignment](../labs/ruby/mass-assignment/README.md), [php/mass-assignment](../labs/php/mass-assignment/README.md), [go/mass-assignment](../labs/go/mass-assignment/README.md), [java/mass-assignment](../labs/java/mass-assignment/README.md), [dotnet/mass-assignment](../labs/dotnet/mass-assignment/README.md) |
 | CWE-916 | Use of Password Hash With Insufficient Computational Effort | weakness | Incomplete | implemented | [python/weak-password-hash](../labs/python/weak-password-hash/README.md) |
 | CWE-917 | Improper Neutralization of Special Elements used in an Expression Language Statement ('Expression Language Injection') | weakness | Incomplete | implemented | [python/log4shell-lookup](../labs/python/log4shell-lookup/README.md), [python/confluence-expression-dispatch](../labs/python/confluence-expression-dispatch/README.md) |
-| CWE-918 | Server-Side Request Forgery (SSRF) | weakness | Incomplete | implemented | [rest-api/ssrf](../labs/rest-api/ssrf/README.md), [rest-api/ssrf-redirect](../labs/rest-api/ssrf-redirect/README.md), [python/dns-rebinding-ssrf](../labs/python/dns-rebinding-ssrf/README.md), [python/svg-resource-ssrf](../labs/python/svg-resource-ssrf/README.md), [python/remote-import-ssrf](../labs/python/remote-import-ssrf/README.md) |
+| CWE-918 | Server-Side Request Forgery (SSRF) | weakness | Incomplete | implemented | [rest-api/ssrf](../labs/rest-api/ssrf/README.md), [rest-api/ssrf-redirect](../labs/rest-api/ssrf-redirect/README.md), [python/dns-rebinding-ssrf](../labs/python/dns-rebinding-ssrf/README.md), [python/svg-resource-ssrf](../labs/python/svg-resource-ssrf/README.md), [python/remote-import-ssrf](../labs/python/remote-import-ssrf/README.md), [ai/agent-connector-ssrf](../labs/ai/agent-connector-ssrf/README.md), [go/ssrf](../labs/go/ssrf/README.md), [node/ssrf](../labs/node/ssrf/README.md), [typescript/ssrf](../labs/typescript/ssrf/README.md), [java/ssrf](../labs/java/ssrf/README.md), [dotnet/ssrf](../labs/dotnet/ssrf/README.md), [php/ssrf](../labs/php/ssrf/README.md), [ruby/ssrf](../labs/ruby/ssrf/README.md) |
 | CWE-919 | Weaknesses in Mobile Applications | view | Incomplete | taxonomy-only |  |
 | CWE-920 | Improper Restriction of Power Consumption | weakness | Incomplete | gap |  |
 | CWE-921 | Storage of Sensitive Data in a Mechanism without Access Control | weakness | Incomplete | gap |  |
@@ -954,7 +954,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-940 | Improper Verification of Source of a Communication Channel | weakness | Incomplete | gap |  |
 | CWE-941 | Incorrectly Specified Destination in a Communication Channel | weakness | Incomplete | gap |  |
 | CWE-942 | Permissive Cross-domain Security Policy with Untrusted Domains | weakness | Incomplete | implemented | [rest-api/cors-misconfiguration](../labs/rest-api/cors-misconfiguration/README.md) |
-| CWE-943 | Improper Neutralization of Special Elements in Data Query Logic | weakness | Incomplete | gap |  |
+| CWE-943 | Improper Neutralization of Special Elements in Data Query Logic | weakness | Incomplete | implemented | [rest-api/nosql-injection](../labs/rest-api/nosql-injection/README.md) |
 | CWE-944 | SFP Secondary Cluster: Access Management | category | Incomplete | taxonomy-only |  |
 | CWE-945 | SFP Secondary Cluster: Insecure Resource Access | category | Incomplete | taxonomy-only |  |
 | CWE-946 | SFP Secondary Cluster: Insecure Resource Permissions | category | Incomplete | taxonomy-only |  |
@@ -1015,7 +1015,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-1001 | SFP Secondary Cluster: Use of an Improper API | category | Incomplete | taxonomy-only |  |
 | CWE-1002 | SFP Secondary Cluster: Unexpected Entry Points | category | Incomplete | taxonomy-only |  |
 | CWE-1003 | Weaknesses for Simplified Mapping of Published Vulnerabilities | view | Incomplete | taxonomy-only |  |
-| CWE-1004 | Sensitive Cookie Without 'HttpOnly' Flag | weakness | Incomplete | gap |  |
+| CWE-1004 | Sensitive Cookie Without 'HttpOnly' Flag | weakness | Incomplete | implemented | [cgi/insecure-cookie-flags](../labs/cgi/insecure-cookie-flags/README.md) |
 | CWE-1005 | 7PK - Input Validation and Representation | category | Draft | taxonomy-only |  |
 | CWE-1006 | Bad Coding Practices | category | Draft | taxonomy-only |  |
 | CWE-1007 | Insufficient Visual Distinction of Homoglyphs Presented to User | weakness | Incomplete | gap |  |
@@ -1286,7 +1286,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-1272 | Sensitive Information Uncleared Before Debug/Power State Transition | weakness | Stable | gap |  |
 | CWE-1273 | Device Unlock Credential Sharing | weakness | Incomplete | gap |  |
 | CWE-1274 | Improper Access Control for Volatile Memory Containing Boot Code | weakness | Stable | gap |  |
-| CWE-1275 | Sensitive Cookie with Improper SameSite Attribute | weakness | Incomplete | gap |  |
+| CWE-1275 | Sensitive Cookie with Improper SameSite Attribute | weakness | Incomplete | implemented | [cgi/insecure-cookie-flags](../labs/cgi/insecure-cookie-flags/README.md) |
 | CWE-1276 | Hardware Child Block Incorrectly Connected to Parent System | weakness | Incomplete | gap |  |
 | CWE-1277 | Firmware Not Updateable | weakness | Draft | gap |  |
 | CWE-1278 | Missing Protection Against Hardware Reverse Engineering Using Integrated Circuit (IC) Imaging Techniques | weakness | Incomplete | gap |  |
@@ -1344,13 +1344,13 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-1330 | Remanent Data Readable after Memory Erase | weakness | Draft | gap |  |
 | CWE-1331 | Improper Isolation of Shared Resources in Network On Chip (NoC) | weakness | Stable | gap |  |
 | CWE-1332 | Improper Handling of Faults that Lead to Instruction Skips | weakness | Stable | gap |  |
-| CWE-1333 | Inefficient Regular Expression Complexity | weakness | Draft | gap |  |
+| CWE-1333 | Inefficient Regular Expression Complexity | weakness | Draft | implemented | [python/redos](../labs/python/redos/README.md) |
 | CWE-1334 | Unauthorized Error Injection Can Degrade Hardware Redundancy | weakness | Draft | gap |  |
 | CWE-1335 | Incorrect Bitwise Shift of Integer | weakness | Draft | gap |  |
 | CWE-1336 | Improper Neutralization of Special Elements Used in a Template Engine | weakness | Incomplete | implemented | [python/item-template-injection](../labs/python/item-template-injection/README.md) |
 | CWE-1337 | Weaknesses in the 2021 CWE Top 25 Most Dangerous Software Weaknesses | view | Stable | taxonomy-only |  |
 | CWE-1338 | Improper Protections Against Hardware Overheating | weakness | Draft | gap |  |
-| CWE-1339 | Insufficient Precision or Accuracy of a Real Number | weakness | Draft | gap |  |
+| CWE-1339 | Insufficient Precision or Accuracy of a Real Number | weakness | Draft | implemented | [python/monetary-rounding](../labs/python/monetary-rounding/README.md) |
 | CWE-1340 | CISQ Data Protection Measures | view | Incomplete | taxonomy-only |  |
 | CWE-1341 | Multiple Releases of Same Resource or Handle | weakness | Incomplete | gap |  |
 | CWE-1342 | Information Exposure through Microarchitectural State after Transient Execution | weakness | Incomplete | gap |  |
@@ -1438,7 +1438,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-1424 | Weaknesses Addressed by ISA/IEC 62443 Requirements | view | Draft | taxonomy-only |  |
 | CWE-1425 | Weaknesses in the 2023 CWE Top 25 Most Dangerous Software Weaknesses | view | Draft | taxonomy-only |  |
 | CWE-1426 | Improper Validation of Generative AI Output | weakness | Incomplete | gap |  |
-| CWE-1427 | Improper Neutralization of Input Used for LLM Prompting | weakness | Incomplete | implemented | [ai/prompt-trust-boundary](../labs/ai/prompt-trust-boundary/README.md) |
+| CWE-1427 | Improper Neutralization of Input Used for LLM Prompting | weakness | Incomplete | implemented | [ai/prompt-trust-boundary](../labs/ai/prompt-trust-boundary/README.md), [ai/mcp-tool-poisoning](../labs/ai/mcp-tool-poisoning/README.md) |
 | CWE-1428 | Reliance on HTTP instead of HTTPS | weakness | Incomplete | gap |  |
 | CWE-1429 | Missing Security-Relevant Feedback for Unexecuted Operations in Hardware Interface | weakness | Incomplete | gap |  |
 | CWE-1430 | Weaknesses in the 2024 CWE Top 25 Most Dangerous Software Weaknesses | view | Draft | taxonomy-only |  |

@@ -31,7 +31,13 @@ exercise malformed inputs. `benign` vectors require identical expectations.
 | Vector | Type | Vulnerable expectation | Fixed expectation |
 |---|---|---|---|
 | normal purchase | benign | {"equals": 980} | {"equals": 980} |
+| smallest purchase | benign | {"equals": 990} | {"equals": 990} |
+| boundary purchase | benign | {"equals": 0} | {"equals": 0} |
 | negative purchase | attack | {"equals": 1050} | {"equals": "DENIED"} |
+| zero purchase | attack | {"equals": 1000} | {"equals": "DENIED"} |
+| above order limit | attack | {"equals": -10} | {"equals": "DENIED"} |
+| boolean quantity | robustness | {"equals": 990} | {"equals": "DENIED"} |
+| fractional quantity | robustness | {"equals": 985.0} | {"equals": "DENIED"} |
 
 This example demonstrates the declared weakness within the documented fixture assumptions.
 It is not a production application or a proof that every related attack is prevented.
