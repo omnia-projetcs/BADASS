@@ -13,7 +13,7 @@ A negative order quantity credits the customer balance.
 
 ## Correction
 
-Validate business invariants before updating the balance.
+Validate exact integer types, positive bounded quantities and sufficient balance before updating the account balance.
 
 ## Regression
 

@@ -13,7 +13,7 @@ An export follows a preplaced symbolic link and overwrites a private file.
 
 ## Correction
 
-Use atomic exclusive creation; reject an existing final path instead of following it. The parent directory is trusted.
+Use atomic exclusive creation (and O_NOFOLLOW where supported) so an existing file or symbolic link at the final path is rejected instead of followed. The parent directory is trusted.
 
 ## Regression
 

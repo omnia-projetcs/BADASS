@@ -13,7 +13,7 @@ Unrestricted profile updates overwrite a privileged role.
 
 ## Correction
 
-Allowlist user-editable profile properties.
+Allowlist user-editable profile properties and validate field types before updating state.
 
 ## Regression
 

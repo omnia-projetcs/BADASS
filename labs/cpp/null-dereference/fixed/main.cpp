@@ -1,12 +1,11 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 
 int main(int argc, char **argv) {
     if (argc != 2) return 2;
     int number = 42;
-    int *value = !strcmp(argv[1], "missing") ? nullptr : &number;
-    if (!value) { puts("DENIED"); return 0; }
-    printf("%d", *value);
+    int *value = !std::strcmp(argv[1], "missing") ? nullptr : &number;
+    if (!value) { std::puts("DENIED"); return 0; }
+    std::printf("%d", *value);
     return 0;
 }

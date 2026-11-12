@@ -13,7 +13,7 @@ An embedded default password grants administrative access.
 
 ## Correction
 
-Remove the embedded credential and require an independently configured secret; fail closed when absent.
+Remove the embedded credential and require an independently configured secret; fail closed when absent and compare secrets in constant time.
 
 ## Regression
 

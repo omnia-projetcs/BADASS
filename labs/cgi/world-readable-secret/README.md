@@ -13,7 +13,7 @@ A secret file receives permissions allowing other users to read it.
 
 ## Correction
 
-Create sensitive files with owner-only permissions and retain those permissions.
+Create sensitive files with owner-only permissions (0600) at creation or descriptor level and retain those permissions.
 
 ## Regression
 

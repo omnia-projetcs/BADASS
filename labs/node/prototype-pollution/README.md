@@ -1,6 +1,6 @@
 # Prototype pollution
 
-Assigning an untrusted __proto__ property changes an object prototype.
+Recursively merging untrusted JSON properties into a target object pollutes Object.prototype through __proto__ or constructor.prototype.
 
 | Attribute | Value |
 |---|---|
@@ -13,7 +13,7 @@ Assigning an untrusted __proto__ property changes an object prototype.
 
 ## Correction
 
-Validate a non-null JSON object, copy into a prototype-free object, and exclude prototype-related keys; preserve legitimate own properties.
+Validate a non-null JSON object, copy into a prototype-free object, and exclude prototype-related keys (__proto__, constructor, prototype); preserve legitimate own properties.
 
 ## Regression
 

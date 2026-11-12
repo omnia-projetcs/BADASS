@@ -13,7 +13,7 @@ A calculator evaluates arbitrary Python expressions.
 
 ## Correction
 
-Accept only a bounded arithmetic grammar and never call eval.
+Accept only a bounded arithmetic AST with depth and exponent magnitude limits, and never call eval.
 
 ## Regression
 

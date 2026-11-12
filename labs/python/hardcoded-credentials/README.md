@@ -13,7 +13,7 @@ An embedded maintenance password grants access.
 
 ## Correction
 
-Remove the embedded credential and require an independently configured secret. Fail closed when absent; validate input types and compare strict UTF-8 bytes so configured Unicode passwords work. Synthetic environment configuration is trusted test metadata.
+Remove the embedded credential and require an independently configured secret. Fail closed when absent; validate input types and compare strict UTF-8 bytes in constant time so configured Unicode passwords work. Synthetic environment configuration is trusted test metadata.
 
 ## Regression
 

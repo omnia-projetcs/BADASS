@@ -13,7 +13,7 @@ A secret file is accessible to other local users.
 
 ## Correction
 
-Set owner-only permissions before storing sensitive bytes.
+Create the file with owner-only permissions (0600) on the open descriptor before storing sensitive bytes.
 
 ## Regression
 

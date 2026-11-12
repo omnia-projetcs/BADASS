@@ -51,11 +51,11 @@ There are six vectors per case, run against both variants (24 checks total):
 - A `__proto__` payload stays blocked in both pinned versions, guarding against
   accidentally treating every prototype-related input as an exploit.
 
-The general `tools/lab.py` runner and documentation generator were removed before
-these cases were added. The standalone targets work without those files. Existing
-general runner commands elsewhere in the repository are not the execution path
-for these dependency tests. The default Docker image does not preload these new
-npm packages; prepare them before running the checks in an offline environment.
+The standalone targets (`make dependency-prepare` and `make dependency-test`)
+isolate npm installation from the general runner. Prepare these packages before
+running the Node.js section with `tools/lab.py`. The default Docker image does not
+preload these npm packages; prepare them before running the checks in an offline
+environment.
 
 ## Scanner evaluation
 

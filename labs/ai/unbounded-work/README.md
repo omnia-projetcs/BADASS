@@ -13,7 +13,7 @@ A client controls memory allocation without an application budget.
 
 ## Correction
 
-Validate the requested size and enforce a limit before allocating.
+Parse a complete nonnegative integer size, reject malformed inputs cleanly, and enforce the allocation limit before allocating memory.
 
 ## Regression
 

@@ -3,13 +3,17 @@ using System.Text;
 Console.Write(Run(args[0]));
 
 static string Run(string value) {
-    var isPublic = value == "public";
+    bool isPublic = value == "public";
     var ownerOnly = UnixFileMode.UserRead | UnixFileMode.UserWrite;
-    using (var stream = File.Open("stored-secret", new FileStreamOptions {Mode = FileMode.CreateNew, Access = FileAccess.Write, UnixCreateMode = ownerOnly})) {
+    var mode = isPublic ? ownerOnly | UnixFileMode.GroupRead | UnixFileMode.OtherRead : ownerOnly;
+    using (var stream = File.Open("stored-secret", new FileStreamOptions {
+        Mode = FileMode.CreateNew,
+        Access = FileAccess.Write,
+        UnixCreateMode = mode
+    })) {
+        File.SetUnixFileMode(stream.SafeFileHandle, mode);
         byte[] bytes = Encoding.UTF8.GetBytes(isPublic ? "PUBLIC" : "LAB_SECRET");
         stream.Write(bytes);
     }
-    var mode = isPublic ? ownerOnly | UnixFileMode.GroupRead | UnixFileMode.OtherRead : ownerOnly;
-    File.SetUnixFileMode("stored-secret", mode);
     return Convert.ToString((int)File.GetUnixFileMode("stored-secret"), 8).PadLeft(4, '0');
 }

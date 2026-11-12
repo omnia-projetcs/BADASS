@@ -1,12 +1,19 @@
 <?php
 function run(string $value): string {
-    umask(0077);
-    $file = fopen("stored-secret", "x");
-    if (!$file) throw new RuntimeException("Creation failed");
-    fwrite($file, $value === "public" ? "PUBLIC" : "LAB_SECRET");
-    fclose($file);
-    chmod("stored-secret", $value === "public" ? 0644 : 0600);
-    clearstatcache(true, "stored-secret");
-    return sprintf("%04o", fileperms("stored-secret") & 0777);
+    $previous = umask($value === "public" ? 0022 : 0077);
+    try {
+        $file = fopen("stored-secret", "x");
+        if (!$file) throw new RuntimeException("Creation failed");
+        try {
+            fwrite($file, $value === "public" ? "PUBLIC" : "LAB_SECRET");
+            fflush($file);
+            $stat = fstat($file);
+            return sprintf("%04o", $stat["mode"] & 0777);
+        } finally {
+            fclose($file);
+        }
+    } finally {
+        umask($previous);
+    }
 }
 echo run($argv[1]);

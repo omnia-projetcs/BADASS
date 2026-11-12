@@ -13,7 +13,7 @@ A pickle payload invokes an attacker-selected callable.
 
 ## Correction
 
-Reject executable serialization and use a typed JSON contract.
+Reject executable serialization and enforce a strict JSON object schema with finite values and verified field types.
 
 ## Regression
 

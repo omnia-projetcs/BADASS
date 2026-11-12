@@ -13,7 +13,7 @@ A decoded CGI parameter injects response headers.
 
 ## Correction
 
-Reject carriage returns and line feeds in header values.
+Reject carriage returns, line feeds and null bytes in header values.
 
 ## Regression
 

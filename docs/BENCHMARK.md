@@ -169,8 +169,9 @@ Include the selected variant's manifest, lockfile and local wrapper (when presen
 in SCA input; application source alone is insufficient. The dependency advisory
 and resolved graph establish the affected version; paired runtime tests demonstrate
 reachability in these fixtures. An SCA finding alone does not establish exploitability.
-See [dependency regression and evaluation](DEPENDENCIES.md). These cases use a
-standalone runner because the general `tools/` scripts are absent from this checkout.
+See [dependency regression and evaluation](DEPENDENCIES.md). Prepare the pinned npm
+packages before running the Node.js section with `tools/lab.py`, or run them via
+their standalone `make dependency-prepare` and `make dependency-test` targets.
 
 The exhaustive matrix enumerates every entry in the imported MITRE snapshot,
 including deprecated entries. It distinguishes actual weaknesses from categories

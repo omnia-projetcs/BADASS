@@ -13,7 +13,7 @@ An untrusted username forges an extra audit event.
 
 ## Correction
 
-Encode control characters before writing line-oriented audit records.
+Escape backslashes and encode control characters before writing line-oriented audit records.
 
 ## Regression
 

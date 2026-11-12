@@ -13,7 +13,7 @@ A negative purchase quantity increases the account balance.
 
 ## Correction
 
-Enforce positive bounded purchase quantities before changing the balance.
+Parse an exact positive integer quantity, enforce the 1 through 100 bound and sufficient balance before updating state, and reject malformed inputs cleanly.
 
 ## Regression
 

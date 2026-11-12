@@ -13,7 +13,7 @@ A username containing line breaks forges another audit record.
 
 ## Correction
 
-Escape backslashes and line-break characters before writing line-oriented audit records.
+Escape backslashes before escaping line-break characters when writing line-oriented audit records.
 
 ## Regression
 

@@ -13,7 +13,7 @@ A secret file receives permissions allowing other users to read it.
 
 ## Correction
 
-Create files with owner-only permissions. Use the same classification for content and mode: only the explicit public value may publish PUBLIC with mode 0644; all other inputs retain LAB_SECRET with mode 0600.
+Create files atomically with owner-only permissions. Use the same classification for content and mode: only the explicit public value may publish PUBLIC with mode 0644; all other inputs retain LAB_SECRET with mode 0600.
 
 ## Regression
 

@@ -13,7 +13,7 @@ Authentication logs retain a supplied password.
 
 ## Correction
 
-Log an allowlisted event schema that omits credentials.
+Log an allowlisted event schema and recursively redact credential fields in nested structures.
 
 ## Regression
 

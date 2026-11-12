@@ -13,7 +13,7 @@ An untrusted display name injects another HTTP response header.
 
 ## Correction
 
-Reject carriage returns and line feeds before constructing header fields.
+Reject carriage returns, line feeds and null bytes before constructing header fields.
 
 ## Regression
 

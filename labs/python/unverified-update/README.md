@@ -13,7 +13,7 @@ Downloaded code executes without verifying its approved digest.
 
 ## Correction
 
-Verify the artifact against an independently trusted digest before execution.
+Verify the artifact SHA-256 digest in constant time against an independently trusted digest before execution, and restrict execution builtins.
 
 ## Regression
 
