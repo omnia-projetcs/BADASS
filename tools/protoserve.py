@@ -70,9 +70,39 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     def handle_error(self, request, client_address):
         import sys
         exc = sys.exc_info()[1]
-        if isinstance(exc, (BrokenPipeError, ConnectionResetError, TimeoutError, socket.timeout)):
+        if isinstance(exc, (BrokenPipeError, ConnectionResetError, TimeoutError, socket.timeout, ssl.SSLError)):
             return
         super().handle_error(request, client_address)
+
+
+def make_tls_http_server(address, handler_class, ssl_context):
+    from http.server import ThreadingHTTPServer
+
+    class TLSHTTPServer(ThreadingHTTPServer):
+        allow_reuse_address = True
+        daemon_threads = True
+
+        def process_request_thread(self, request, client_address):
+            # Perform TLS handshake in the worker thread so non-TLS probes cannot stall accept().
+            try:
+                request.settimeout(5)
+                request.do_handshake()
+                request.settimeout(None)
+            except (ssl.SSLError, OSError, TimeoutError):
+                self.shutdown_request(request)
+                return
+            super().process_request_thread(request, client_address)
+
+        def handle_error(self, request, client_address):
+            import sys
+            exc = sys.exc_info()[1]
+            if isinstance(exc, (BrokenPipeError, ConnectionResetError, TimeoutError, socket.timeout, ssl.SSLError)):
+                return
+            super().handle_error(request, client_address)
+
+    srv = TLSHTTPServer(address, handler_class)
+    srv.socket = ssl_context.wrap_socket(srv.socket, server_side=True, do_handshake_on_connect=False)
+    return srv
 
 
 class ThreadedUDPServer(socketserver.ThreadingMixIn, socketserver.UDPServer):
@@ -533,10 +563,14 @@ def make_ldap_handler(resolver):
                     length = head[1]
                 else:
                     nbytes = head[1] & 0x7F
+                    if nbytes == 0 or nbytes > 4:
+                        break
                     len_bytes = _recv_exact(self.request, nbytes)
                     if len_bytes is None:
                         break
                     length = int.from_bytes(len_bytes, "big")
+                if length > 65536:
+                    break
                 payload = _recv_exact(self.request, length)
                 if payload is None:
                     break
@@ -544,7 +578,7 @@ def make_ldap_handler(resolver):
                     _, mid_bytes, pos = _ber_read(payload, 0)
                     msg_id = int.from_bytes(mid_bytes, "big", signed=True)
                     op_tag, op_body, _ = _ber_read(payload, pos)
-                except ValueError:
+                except (ValueError, IndexError):
                     break
                 if op_tag == 0x60:  # BindRequest
                     self.request.sendall(_ldap_msg(msg_id, 0x61, _ldap_result(0)))
@@ -665,20 +699,27 @@ def _resp_read_cmd(sock):
         return None
     if not line.startswith("*"):
         return line.split()
-    count = int(line[1:] or 0)
+    try:
+        count = int(line[1:] or 0)
+    except ValueError:
+        return None
+    if not 0 <= count <= 64:
+        return None
     args = []
     for _ in range(count):
         hdr = _readline(sock)
         if hdr is None or not hdr.startswith("$"):
             return None
-        size = int(hdr[1:])
-        data = bytearray()
-        while len(data) < size + 2:
-            chunk = sock.recv(size + 2 - len(data))
-            if not chunk:
-                return None
-            data.extend(chunk)
-        args.append(bytes(data[:size]).decode("utf-8", "replace"))
+        try:
+            size = int(hdr[1:])
+        except ValueError:
+            return None
+        if not 0 <= size <= (1 << 20):
+            return None
+        data = _recv_exact(sock, size + 2)
+        if data is None:
+            return None
+        args.append(data[:size].decode("utf-8", "replace"))
     return args
 
 
@@ -762,12 +803,10 @@ def start_services(gateway, host, ports=None, variant="vulnerable", tls_dir=None
         started.append((name, port, transport, srv))
 
     if https_handler_factory and tls_dir is not None:
-        from http.server import ThreadingHTTPServer
         cert, key = generate_tls_cert(Path(tls_dir))
-        https_srv = ThreadingHTTPServer((host, cfg["https"]), https_handler_factory(gateway))
         ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
         ctx.load_cert_chain(certfile=str(cert), keyfile=str(key))
-        https_srv.socket = ctx.wrap_socket(https_srv.socket, server_side=True)
+        https_srv = make_tls_http_server((host, cfg["https"]), https_handler_factory(gateway), ctx)
         launch("https", "tcp", https_srv)
 
     launch("ftp", "tcp", ThreadedTCPServer((host, cfg["ftp"]), make_ftp_handler(resolver, ftp_data_box)))

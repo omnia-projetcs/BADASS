@@ -186,7 +186,9 @@ class NetserveTests(unittest.TestCase):
             )
             ports = {(name, tr): port for name, port, tr, _ in services}
             try:
-                # 1. HTTPS
+                # 1. HTTPS (including resilience to non-TLS probes)
+                with socket.create_connection(("127.0.0.1", ports[("https", "tcp")]), timeout=5) as raw:
+                    raw.sendall(b"GET / HTTP/1.0\r\n\r\n")
                 ctx = ssl._create_unverified_context()
                 with urllib.request.urlopen(
                     f"https://127.0.0.1:{ports[('https', 'tcp')]}/targets.json", context=ctx, timeout=5
@@ -281,7 +283,9 @@ class NetserveTests(unittest.TestCase):
                 r_txt = dns_query("secret.badass.local", 16)
                 self.assertIn(b"LAB_SECRET", r_txt)
 
-                # 8. RESP (Redis-like) unauthenticated INFO + EVAL
+                # 8. RESP (Redis-like) unauthenticated INFO + EVAL + malformed probe resilience
+                with socket.create_connection(("127.0.0.1", ports[("resp", "tcp")]), timeout=5) as bad:
+                    bad.sendall(b"*bad\r\n")
                 with socket.create_connection(("127.0.0.1", ports[("resp", "tcp")]), timeout=5) as s:
                     s.sendall(b"*1\r\n$4\r\nINFO\r\n")
                     self.assertIn(b"LAB_SECRET", s.recv(4096))

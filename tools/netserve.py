@@ -451,6 +451,17 @@ async function probe(btn) {{
 </script></body></html>"""
 
 
+class QuietHTTPServer(ThreadingHTTPServer):
+    allow_reuse_address = True
+    daemon_threads = True
+
+    def handle_error(self, request, client_address):
+        exc = sys.exc_info()[1]
+        if isinstance(exc, (BrokenPipeError, ConnectionResetError, TimeoutError)):
+            return
+        super().handle_error(request, client_address)
+
+
 def make_handler(gateway):
     class Handler(BaseHTTPRequestHandler):
         server_version = "badass-gateway"
@@ -619,7 +630,7 @@ def main(argv=None):
                 print("SKIP", lang, "missing:", ", ".join(tools), file=sys.stderr)
         gateway.http_port = args.port
         gateway.proto_variant = args.proto_variant
-        server = ThreadingHTTPServer((args.host, args.port), make_handler(gateway))
+        server = QuietHTTPServer((args.host, args.port), make_handler(gateway))
         if args.services:
             from protoserve import start_services
             gateway.services = start_services(
