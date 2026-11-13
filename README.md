@@ -67,6 +67,37 @@ make container-test LAB_ARGS='test --cwe CWE-89 --strict --output reports/sql-in
 
 See [SQL injection cases, drivers and test coverage](docs/SQL-INJECTION.md).
 
+## Micro-server (Docker multi-protocol network targets)
+
+All 14 technology stacks (790 vulnerable/fixed targets) plus non-HTTP LAN protocol listeners can be
+served inside an unprivileged, read-only Docker container, so you can test scanners or clients from
+the network only.
+
+```sh
+./run.sh               # build (first run) and start on 127.0.0.1 (HTTP :8808 + protocol ports)
+./run.sh --blind       # opaque ids; private answer key copied to .netlab/mapping.json
+./run.sh logs          # follow container logs
+./run.sh status        # show container status
+./run.sh stop          # stop and remove the container
+./update.sh            # git pull --ff-only, rebuild images, restart if running
+./uninstall.sh         # stop container, remove images and generated files (--purge deletes checkout)
+```
+
+Services published by default (`GET /` opens a live status dashboard of active/inactive services, stacks, and targets; `GET /status.json` and `GET /services.json` expose the machine-readable view):
+- **HTTP** `:8808` and **HTTPS (TLS)** `:8443` — all 790 catalog targets (`/t/<language>/<case>/<variant>` and `/targets.json`).
+- **FTP** `:2121` (data `:2122`) — anonymous / default password login (`CWE-798`), path traversal via `RETR` (`CWE-22`).
+- **Telnet / CLI** `:2323` — default password (`CWE-798`), command injection (`CWE-78`), `@file` expansion (`CWE-73`), error disclosure (`CWE-209`).
+- **SMTP** `:2525` — `VRFY` enumeration, header/log injection (`CWE-113`/`CWE-117`), unverified reset recipients (`CWE-640`).
+- **LDAPv3** `:3389` — real ASN.1/BER search filter injection (`CWE-90`).
+- **DNS** `:5353/udp+tcp` — DNS rebinding on `rebind.badass.local` (`CWE-918`) and `TXT` disclosure on `secret.badass.local`.
+- **RESP (Redis-like)** `:6379` — unauthenticated `INFO` disclosure (`CWE-209`) and `EVAL` code injection (`CWE-95`).
+- **Raw TCP** `:9001` — line protocol (`LIST`, `RUN <target_id> <input>`) to invoke any target over TCP.
+
+Options: `PORT=9000 ./run.sh` changes the HTTP port, `BIND=0.0.0.0 ./run.sh` exposes services on an
+**isolated** lab LAN, and extra flags are passed to `tools/netserve.py` (`--language`, `--cwe`,
+`--proto-variant fixed`). All ports bind to `127.0.0.1` by default; never expose them on an
+untrusted network.
+
 ## Vulnerable dependencies
 
 Two executable Node.js cases cover **CWE-1395**: a [direct dependency](labs/node/vulnerable-dependency/README.md)

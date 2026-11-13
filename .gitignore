@@ -107,3 +107,6 @@ Desktop.ini
 # Keep dependency manifests and lockfiles versioned for benchmark reproducibility:
 # package-lock.json, pnpm-lock.yaml, yarn.lock, composer.lock, go.sum,
 # Cargo.lock, Gemfile.lock, packages.lock.json and Python lockfiles.
+
+# Micro-server state (blind-mode answer keys)
+/.netlab/
