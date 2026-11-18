@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 import re
 import sys
+from urllib.parse import urlsplit
 
 from runner import ROOT, RUNTIMES, run_cases, valid_file_observation
 from technology_coverage import build_matrix, validate_plan
@@ -82,6 +83,158 @@ def coverage(cases):
             "by_technology": build_matrix(cases, taxonomy["entries"], read_plan())}
 
 
+CWE_RE = re.compile(r"\bCWE-(\d+)\b", re.IGNORECASE)
+
+
+def _extract_sarif_cwes(result, rules_by_id):
+    cwes = []
+    seen = set()
+
+    def add_text(text):
+        if not isinstance(text, str):
+            return
+        for match in CWE_RE.findall(text):
+            cwe = f"CWE-{int(match)}"
+            if cwe not in seen:
+                seen.add(cwe)
+                cwes.append(cwe)
+
+    def scan_items(items):
+        for item in items or ():
+            if isinstance(item, dict):
+                add_text(item.get("id"))
+                target = item.get("target") or {}
+                if isinstance(target, dict):
+                    add_text(target.get("id"))
+                    tool_comp = target.get("toolComponent") or {}
+                    if isinstance(tool_comp, dict) and str(tool_comp.get("name", "")).upper() == "CWE":
+                        add_text(target.get("id"))
+            elif isinstance(item, str):
+                add_text(item)
+
+    rule_id = result.get("ruleId")
+    rule = rules_by_id.get(rule_id, {}) if isinstance(rule_id, str) else {}
+    scan_items(result.get("taxa"))
+    scan_items(rule.get("relationships"))
+    scan_items((result.get("properties") or {}).get("tags"))
+    scan_items((rule.get("properties") or {}).get("tags"))
+    if not cwes:
+        add_text(rule_id)
+        add_text((result.get("message") or {}).get("text"))
+    return cwes
+
+
+def parse_sarif(doc):
+    """Convert a SARIF 2.1.0 report into finding dicts suitable for resolve_findings."""
+    if not isinstance(doc, dict) or not isinstance(doc.get("runs"), list):
+        raise ValueError("Expected a SARIF object with a runs array")
+    findings = []
+    for run in doc["runs"]:
+        if not isinstance(run, dict):
+            continue
+        driver = ((run.get("tool") or {}).get("driver") or {})
+        rules_by_id = {r["id"]: r for r in (driver.get("rules") or ()) if isinstance(r, dict) and r.get("id")}
+        for result in run.get("results") or ():
+            if not isinstance(result, dict):
+                continue
+            cwes = _extract_sarif_cwes(result, rules_by_id)
+            locations = result.get("locations") or []
+            uris = []
+            for loc in locations:
+                phys = (loc or {}).get("physicalLocation") or {}
+                uri = ((phys.get("artifactLocation") or {}).get("uri"))
+                if isinstance(uri, str) and uri:
+                    uris.append(uri)
+            if not uris:
+                uris = [None]
+            for uri in uris:
+                for cwe in cwes or [None]:
+                    item = {"cwe": cwe}
+                    if uri:
+                        if uri.startswith(("http://", "https://", "/t/")):
+                            item["url"] = uri
+                        else:
+                            clean = uri[7:] if uri.startswith("file://") else uri
+                            item["path"] = clean.lstrip("./") if clean.startswith("./") else clean
+                    findings.append(item)
+    return findings
+
+
+def _target_id_from_url(raw):
+    if not isinstance(raw, str) or not raw:
+        return None
+    path = urlsplit(raw).path
+    if path.startswith("/t/"):
+        return path[3:].strip("/")
+    return None
+
+
+def resolve_findings(findings, mapping=None, cases=None):
+    """Resolve opaque blind paths, target URLs, or repo paths to (case_id, variant, cwe)."""
+    if not isinstance(findings, list):
+        raise ValueError("Expected a findings list")
+    targets = (mapping or {}).get("targets") or {}
+    files = (mapping or {}).get("files") or {}
+    services = (mapping or {}).get("services") or {}
+    case_dirs = {}
+    for c in cases or ():
+        for v in ("vulnerable", "fixed"):
+            parent = str(Path(c[v]).parent).replace("\\", "/")
+            case_dirs[parent] = (c["id"], v)
+    named_cases = {c["id"] for c in (cases or ())}
+
+    resolved = []
+    for f in findings:
+        if not isinstance(f, dict):
+            resolved.append(f)
+            continue
+        if f.get("case_id") and f.get("variant"):
+            resolved.append(f)
+            continue
+        out = dict(f)
+        tid = f.get("target_id") or _target_id_from_url(f.get("url")) or _target_id_from_url(f.get("path"))
+        if tid and tid in targets:
+            out["case_id"] = targets[tid]["case_id"]
+            out["variant"] = targets[tid]["variant"]
+        elif tid and tid.count("/") >= 2:
+            parts = tid.rsplit("/", 1)
+            if parts[1] in {"vulnerable", "fixed"} and (not named_cases or parts[0] in named_cases):
+                out["case_id"] = parts[0]
+                out["variant"] = parts[1]
+        elif f.get("port") is not None and services:
+            key = f"{f.get('service', '')}:{f['port']}" if f.get("service") else None
+            entry = services.get(key) if key else next(
+                (v for v in services.values() if v.get("port") == f["port"]), None
+            )
+            if entry:
+                out["case_id"] = entry["case_id"]
+                out["variant"] = entry["variant"]
+        elif isinstance(f.get("path"), str):
+            norm_path = f["path"].replace("\\", "/").lstrip("./")
+            if norm_path in targets:
+                out["case_id"] = targets[norm_path]["case_id"]
+                out["variant"] = targets[norm_path]["variant"]
+            elif norm_path in files:
+                out["case_id"] = files[norm_path]["case_id"]
+                out["variant"] = files[norm_path]["variant"]
+            else:
+                matched = next(
+                    (meta for rel, meta in files.items() if norm_path.endswith("/" + rel)),
+                    None,
+                )
+                if matched:
+                    out["case_id"] = matched["case_id"]
+                    out["variant"] = matched["variant"]
+                else:
+                    for prefix, (cid, var) in case_dirs.items():
+                        if norm_path == prefix or norm_path.startswith(prefix + "/") or ("/" + prefix + "/") in norm_path:
+                            out["case_id"] = cid
+                            out["variant"] = var
+                            break
+        resolved.append(out)
+    return resolved
+
+
 def score(cases, findings):
     """Exact case + variant + CWE matching; fixed examples are negative controls."""
     known = {c["id"]: c for c in cases}
@@ -116,6 +269,8 @@ def main():
     parser.add_argument("--strict", action="store_true", help="Fail when a runtime is missing")
     parser.add_argument("--output", type=Path)
     parser.add_argument("--findings", type=Path)
+    parser.add_argument("--sarif", type=Path, help="SARIF 2.1.0 report to score")
+    parser.add_argument("--mapping", type=Path, help="Blind mapping JSON from export_blind.py or netserve.py")
     args = parser.parse_args()
     cases = read_catalog()
     validate(cases)
@@ -131,9 +286,16 @@ def main():
     elif args.command == "coverage":
         result = coverage(cases)
     elif args.command == "score":
-        if not args.findings:
-            parser.error("score requires --findings")
-        result = score(cases, json.loads(args.findings.read_text()))
+        if not args.findings and not args.sarif:
+            parser.error("score requires --findings or --sarif")
+        mapping = json.loads(args.mapping.read_text()) if args.mapping else None
+        if args.sarif:
+            raw_findings = parse_sarif(json.loads(args.sarif.read_text()))
+        else:
+            raw = json.loads(args.findings.read_text())
+            raw_findings = parse_sarif(raw) if isinstance(raw, dict) and "runs" in raw else raw
+        resolved = resolve_findings(raw_findings, mapping=mapping, cases=cases)
+        result = score(cases, resolved)
         failed = bool(result["unknown_findings"])
     else:
         records, failed = run_cases(cases, args.strict)

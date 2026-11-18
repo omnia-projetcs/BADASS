@@ -23,7 +23,7 @@ import subprocess
 import sys
 import tempfile
 import threading
-from urllib.parse import parse_qs, urlsplit
+from urllib.parse import parse_qs, urlencode, urlsplit
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lab import read_catalog, validate  # noqa: E402
@@ -183,13 +183,18 @@ class Target:
 
 
 class Gateway:
-    def __init__(self, cases, build_root, timeout=10, workers=4, named=False, work_root=None):
+    def __init__(self, cases, build_root, timeout=10, workers=4, named=False, work_root=None, queue_timeout=None):
         self.timeout = timeout
+        self.queue_timeout = min(2.0, float(timeout)) if queue_timeout is None else float(queue_timeout)
         self.slots = threading.BoundedSemaphore(workers)
+        self._metrics_lock = threading.Lock()
+        self.rejected_429 = 0
         self.named = named
         self.http_port = None
         self.proto_variant = "vulnerable"
         self.services = []
+        self.service_variants = {}
+        self.work_root = work_root
         variants = [(c, v) for c in cases for v in ("vulnerable", "fixed")]
         if not named:
             secrets.SystemRandom().shuffle(variants)
@@ -199,10 +204,35 @@ class Gateway:
             target_id = case["id"] + "/" + variant if named else secrets.token_hex(8)
             self.targets[target_id] = Target(target_id, case, variant, build_root, work_root)
 
+    def cleanup_work_dir(self):
+        if self.work_root is None or not self.work_root.exists():
+            return 0
+        removed = 0
+        for item in self.work_root.iterdir():
+            if item.is_dir() and item.name.startswith("req-"):
+                shutil.rmtree(item, ignore_errors=True)
+                removed += 1
+        return removed
+
     def mapping(self):
-        return {"schema_version": 1, "kind": "network",
-                "targets": {t.id: {"case_id": t.case["id"], "variant": t.variant}
-                            for t in self.targets.values()}}
+        from protoserve import SERVICE_PRIMARY_CASES
+        doc = {
+            "schema_version": 1,
+            "kind": "network",
+            "targets": {t.id: {"case_id": t.case["id"], "variant": t.variant}
+                        for t in self.targets.values()},
+        }
+        if self.service_variants:
+            services_map = {}
+            for (name, port, transport), var in sorted(self.service_variants.items(), key=lambda item: (item[0][1], item[0][0])):
+                if var in {"vulnerable", "fixed"}:
+                    entry = {"service": name, "port": port, "transport": transport, "variant": var}
+                    if name in SERVICE_PRIMARY_CASES:
+                        entry["case_id"] = SERVICE_PRIMARY_CASES[name]
+                    services_map[f"{name}:{port}/{transport}"] = entry
+            if services_map:
+                doc["services"] = services_map
+        return doc
 
     def discovery(self, base=""):
         items = []
@@ -214,26 +244,128 @@ class Gateway:
                           "seeds": seeds})
         return {"schema_version": 1, "targets": items}
 
+    def openapi(self, base=""):
+        """Generate an OpenAPI 3.1.0 specification for DAST scanners (ZAP, Nuclei, Schemathesis)."""
+        paths = {}
+        for t in self.targets.values():
+            if t.error is not None:
+                continue
+            kind = interface(t.case)
+            benign = next((v["input"] for v in t.case["tests"] if v["kind"] == "benign"), "")
+            seed = seed_request(t.case, benign)
+            op_id = f"target_{t.id.replace('/', '_')}"
+            path_key = f"/t/{t.id}"
+            responses = {
+                "200": {"description": "Fixture response"},
+                "400": {"description": "Malformed input"},
+                "429": {"description": "Worker pool saturated"},
+                "500": {"description": "Handled fixture error"},
+                "502": {"description": "Fixture crash"},
+                "504": {"description": "Fixture timeout"},
+            }
+            if kind == "json":
+                example_obj = benign if isinstance(benign, (dict, list, str, int, float, bool)) else {}
+                paths[path_key] = {
+                    "post": {
+                        "operationId": op_id,
+                        "summary": f"Invoke target {t.id}",
+                        "requestBody": {
+                            "required": True,
+                            "content": {
+                                "application/json": {
+                                    "schema": {"type": "object"},
+                                    "example": example_obj,
+                                }
+                            },
+                        },
+                        "responses": responses,
+                    }
+                }
+            elif kind == "query":
+                paths[path_key] = {
+                    "get": {
+                        "operationId": op_id,
+                        "summary": f"Invoke target {t.id}",
+                        "parameters": [{
+                            "name": "q",
+                            "in": "query",
+                            "required": False,
+                            "schema": {"type": "string"},
+                            "example": seed.get("query", ""),
+                        }],
+                        "responses": responses,
+                    }
+                }
+            else:
+                paths[path_key] = {
+                    "get": {
+                        "operationId": op_id + "_get",
+                        "summary": f"Invoke target {t.id} (query)",
+                        "parameters": [{
+                            "name": "input",
+                            "in": "query",
+                            "required": True,
+                            "schema": {"type": "string"},
+                            "example": str(benign),
+                        }],
+                        "responses": responses,
+                    },
+                    "post": {
+                        "operationId": op_id + "_post",
+                        "summary": f"Invoke target {t.id} (body)",
+                        "requestBody": {
+                            "required": True,
+                            "content": {
+                                "text/plain": {
+                                    "schema": {"type": "string"},
+                                    "example": str(benign),
+                                }
+                            },
+                        },
+                        "responses": responses,
+                    },
+                }
+        spec = {
+            "openapi": "3.1.0",
+            "info": {"title": "BADASS DAST Gateway", "version": "1.0.0"},
+            "paths": paths,
+        }
+        if base:
+            spec["servers"] = [{"url": base}]
+        return spec
+
     def status_report(self, http_port=None):
         from protoserve import SERVICE_SPECS
-        running = {(name, tr): (port, srv) for name, port, tr, srv in self.services}
+        running = {}
+        for name, port, tr, srv in self.services:
+            running.setdefault((name, tr), []).append((port, srv))
         port = http_port if http_port is not None else self.http_port
         services = [{
             "name": "http", "transport": "tcp", "port": port, "active": True,
-            "variant": "both", "description": "HTTP gateway serving /t/<id>, /targets.json, /status.json",
+            "variant": "both", "description": "HTTP gateway serving /t/<id>, /targets.json, /openapi.json, /crawl, /status.json",
         }]
         for name, tr, default_port, desc in SERVICE_SPECS:
-            entry = running.get((name, tr))
-            alive = entry is not None and entry[1].fileno() >= 0
-            services.append({
-                "name": name, "transport": tr,
-                "port": entry[0] if entry is not None else default_port,
-                "active": alive,
-                "variant": self.proto_variant if alive else None,
-                "description": desc,
-            })
+            entries = running.get((name, tr), [])
+            if not entries:
+                services.append({
+                    "name": name, "transport": tr,
+                    "port": default_port, "active": False,
+                    "variant": None, "description": desc,
+                })
+                continue
+            for srv_port, srv in entries:
+                alive = srv.fileno() >= 0
+                raw_var = self.service_variants.get((name, srv_port, tr), self.proto_variant)
+                shown_var = ("blind" if not self.named and raw_var in {"vulnerable", "fixed"} else raw_var) if alive else None
+                services.append({
+                    "name": name, "transport": tr,
+                    "port": srv_port, "active": alive,
+                    "variant": shown_var, "description": desc,
+                })
         active_targets = [t for t in self.targets.values() if t.error is None]
         inactive_targets = [t for t in self.targets.values() if t.error is not None]
+        with self._metrics_lock:
+            rejected_429 = self.rejected_429
         report = {
             "schema_version": 1,
             "mode": "named" if self.named else "blind",
@@ -244,6 +376,7 @@ class Gateway:
                 "active_targets": len(active_targets),
                 "inactive_targets": len(inactive_targets),
                 "total_targets": len(self.targets),
+                "rejected_429": rejected_429,
             },
         }
         if self.named:
@@ -280,10 +413,17 @@ class Gateway:
         target = self.targets.get(target_id)
         if target is None:
             return 404, {"Content-Type": "text/plain"}, "Not Found\n"
-        with self.slots:
+        if not self.slots.acquire(timeout=self.queue_timeout):
+            with self._metrics_lock:
+                self.rejected_429 += 1
+            return 429, {"Content-Type": "text/plain", "Retry-After": "1"}, "Too Many Requests\n"
+        try:
             return target.execute(value, self.timeout)
+        finally:
+            self.slots.release()
 
     def prebuild(self, log=print):
+        self.cleanup_work_dir()
         missing_runtime = {}
         for index, t in enumerate(self.targets.values(), 1):
             lang = t.case["language"]
@@ -451,9 +591,49 @@ async function probe(btn) {{
 </script></body></html>"""
 
 
+def render_crawl(discovery_doc):
+    """Render an HTML page of links and forms for traditional web-spider DAST scanners."""
+    entries = []
+    for item in discovery_doc["targets"]:
+        tid = html.escape(item["id"], quote=True)
+        kind = item["interface"]
+        seed = (item.get("seeds") or [{}])[0]
+        if kind == "query":
+            q = seed.get("query", "")
+            href = f"/t/{tid}?{html.escape(q, quote=True)}"
+            entries.append(f'<li><a href="{href}">GET /t/{tid}</a></li>')
+        elif kind == "param":
+            val = (seed.get("params") or {}).get("input", "")
+            href = f"/t/{tid}?{urlencode({'input': val})}"
+            entries.append(
+                f'<li><a href="{html.escape(href, quote=True)}">GET /t/{tid}</a> '
+                f'<form method="POST" action="/t/{tid}">'
+                f'<input type="text" name="input" value="{html.escape(str(val), quote=True)}">'
+                f'<button type="submit">Submit</button></form></li>'
+            )
+        else:
+            body = seed.get("body", "{}")
+            entries.append(
+                f'<li><button type="button" data-id="{tid}" '
+                f'data-body="{html.escape(str(body), quote=True)}" '
+                f'onclick="sendJson(this)">POST /t/{tid}</button></li>'
+            )
+    return (
+        "<!doctype html><html lang='en'><head><meta charset='utf-8'>"
+        "<title>BADASS Crawl Index</title></head><body>"
+        "<h1>BADASS DAST Crawl Index</h1>"
+        "<p><a href='/openapi.json'>OpenAPI 3.1</a> · <a href='/targets.json'>targets.json</a></p>"
+        f"<ul>{''.join(entries)}</ul>"
+        "<script>async function sendJson(b){"
+        "await fetch('/t/'+b.dataset.id,{method:'POST',headers:{'Content-Type':'application/json'},body:b.dataset.body});"
+        "}</script></body></html>"
+    )
+
+
 class QuietHTTPServer(ThreadingHTTPServer):
     allow_reuse_address = True
     daemon_threads = True
+    request_queue_size = 64
 
     def handle_error(self, request, client_address):
         exc = sys.exc_info()[1]
@@ -502,6 +682,12 @@ def make_handler(gateway):
             if method == "GET" and parts.path == "/targets.json":
                 return self.send(200, {"Content-Type": "application/json"},
                                  json.dumps(gateway.discovery()))
+            if method == "GET" and parts.path == "/openapi.json":
+                return self.send(200, {"Content-Type": "application/json"},
+                                 json.dumps(gateway.openapi()))
+            if method == "GET" and parts.path == "/crawl":
+                return self.send(200, {"Content-Type": "text/html; charset=utf-8"},
+                                 render_crawl(gateway.discovery()))
             if not parts.path.startswith("/t/"):
                 return self.send(404, {"Content-Type": "text/plain"}, "Not Found\n")
             target_id = parts.path[3:]
@@ -589,8 +775,8 @@ def main(argv=None):
                         help="Readable routes /t/<language>/<case>/<variant> instead of opaque ids")
     parser.add_argument("--services", action="store_true",
                         help="Also start non-HTTP protocol listeners (HTTPS, FTP, Telnet, SMTP, LDAP, DNS, RESP, TCP)")
-    parser.add_argument("--proto-variant", choices=["vulnerable", "fixed"], default="vulnerable",
-                        help="Default variant used by non-HTTP protocol services")
+    parser.add_argument("--proto-variant", choices=["vulnerable", "fixed", "both"], default="vulnerable",
+                        help="Variant used by non-HTTP protocol services (both = primary + secondary ports)")
     args = parser.parse_args(argv)
     cases = select(args)
     (ROOT / ".build").mkdir(exist_ok=True)
@@ -618,12 +804,8 @@ def main(argv=None):
             return 0
         if not args.mapping and not args.named:
             parser.error("serve requires --mapping (private answer key) unless --named is used")
-        if args.mapping:
-            if args.mapping.exists():
-                parser.error("Choose a new mapping path; ids are regenerated on every start")
-            args.mapping.parent.mkdir(parents=True, exist_ok=True)
-            with args.mapping.open("x", encoding="utf-8") as stream:
-                json.dump(gateway.mapping(), stream, indent=2, sort_keys=True)
+        if args.mapping and args.mapping.exists():
+            parser.error("Choose a new mapping path; ids are regenerated on every start")
         if not args.lazy:
             missing = gateway.prebuild()
             for lang, tools in sorted(missing.items()):
@@ -636,9 +818,14 @@ def main(argv=None):
             gateway.services = start_services(
                 gateway, args.host, variant=args.proto_variant,
                 tls_dir=scratch / "tls", https_handler_factory=make_handler,
+                randomize=not args.named,
             )
             for name, port, transport, _ in gateway.services:
                 print("Service %-6s %s://%s:%d/" % (name, transport, args.host, port), flush=True)
+        if args.mapping:
+            args.mapping.parent.mkdir(parents=True, exist_ok=True)
+            with args.mapping.open("x", encoding="utf-8") as stream:
+                json.dump(gateway.mapping(), stream, indent=2, sort_keys=True)
         available = sum(1 for t in gateway.targets.values() if t.error is None)
         print("Serving %d/%d targets on http://%s:%d/ (%s)" % (
             available, len(gateway.targets), args.host, args.port,

@@ -10,7 +10,7 @@ import zipfile
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 from ai_evaluate import evaluate
 from import_cwe import parse_archive
-from lab import coverage, read_catalog, read_plan, score, validate
+from lab import coverage, parse_sarif, read_catalog, read_plan, resolve_findings, score, validate
 from runner import ROOT, RUNTIMES, matches
 from technology_coverage import validate_plan
 from subprocess import CompletedProcess
@@ -142,6 +142,34 @@ class ScoringTests(unittest.TestCase):
 
     def test_missing_findings_are_not_success(self):
         self.assertEqual(score(self.cases, [])["recall"], 0)
+
+    def test_sarif_and_blind_mapping_resolution(self):
+        sarif = {
+            "version": "2.1.0",
+            "runs": [{
+                "tool": {"driver": {"name": "demo", "rules": [
+                    {"id": "rule-sqli", "properties": {"tags": ["security", "CWE-89"]}},
+                ]}},
+                "results": [
+                    {"ruleId": "rule-sqli", "locations": [{"physicalLocation": {"artifactLocation": {"uri": "deadbeef/app.py"}}}]},
+                    {"ruleId": "CWE-89", "locations": [{"physicalLocation": {"artifactLocation": {"uri": "http://127.0.0.1:8808/t/cafe1234"}}}]},
+                ],
+            }],
+        }
+        parsed = parse_sarif(sarif)
+        self.assertEqual(len(parsed), 2)
+        resolved_sast = resolve_findings(
+            [parsed[0]],
+            mapping={"files": {"deadbeef/app.py": {"case_id": "python/sql", "variant": "vulnerable"}}},
+        )
+        resolved_dast = resolve_findings(
+            [parsed[1]],
+            mapping={"targets": {"cafe1234": {"case_id": "python/sql", "variant": "fixed"}}},
+        )
+        result = score(self.cases, resolved_sast + resolved_dast)
+        self.assertEqual(result["true_positives"], 1)
+        self.assertEqual(result["false_positives"], 1)
+        self.assertEqual(result["unknown_findings"], [])
 
 
 class OracleTests(unittest.TestCase):

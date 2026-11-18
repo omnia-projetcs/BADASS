@@ -15,6 +15,7 @@ network scanners and protocol clients see realistic LAN targets:
 import ipaddress
 import json
 from pathlib import Path
+import secrets
 import socket
 import socketserver
 import ssl
@@ -33,6 +34,25 @@ DEFAULT_PORTS = {
     "dns": 5353,
     "resp": 6379,
     "tcp": 9001,
+}
+
+SECONDARY_PORTS = {
+    "ftp": 12121,
+    "ftp_data": 12122,
+    "telnet": 12323,
+    "smtp": 12525,
+    "ldap": 13389,
+    "dns": 15353,
+    "resp": 16379,
+}
+
+SERVICE_PRIMARY_CASES = {
+    "ftp": "python/path-traversal",
+    "telnet": "python/command-injection",
+    "smtp": "python/header-injection",
+    "ldap": "python/ldap-injection",
+    "dns": "python/dns-rebinding-ssrf",
+    "resp": "python/code-injection",
 }
 
 SERVICE_SPECS = [
@@ -786,35 +806,70 @@ def make_resp_handler(resolver):
 
 
 # --------------------------------------------------------------------------- lifecycle
-def start_services(gateway, host, ports=None, variant="vulnerable", tls_dir=None, https_handler_factory=None):
+def start_services(gateway, host, ports=None, variant="vulnerable", tls_dir=None,
+                   https_handler_factory=None, randomize=False):
     """Start all non-HTTP (and HTTPS) listeners in daemon threads."""
     cfg = dict(DEFAULT_PORTS)
     if ports:
         cfg.update(ports)
-    resolver = Resolver(gateway, default_variant=variant)
-    rebind_state = {"count": 0, "lock": threading.Lock()}
-    ftp_data_box = [cfg["ftp_data"]]
     started = []
+    service_variants = getattr(gateway, "service_variants", None)
+    if service_variants is None:
+        service_variants = {}
+        gateway.service_variants = service_variants
 
-    def launch(name, transport, srv):
+    def launch(name, transport, srv, actual_variant=None):
         thread = threading.Thread(target=srv.serve_forever, daemon=True)
         thread.start()
         port = srv.server_address[1]
         started.append((name, port, transport, srv))
+        if actual_variant is not None:
+            service_variants[(name, port, transport)] = actual_variant
 
     if https_handler_factory and tls_dir is not None:
         cert, key = generate_tls_cert(Path(tls_dir))
         ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
         ctx.load_cert_chain(certfile=str(cert), keyfile=str(key))
         https_srv = make_tls_http_server((host, cfg["https"]), https_handler_factory(gateway), ctx)
-        launch("https", "tcp", https_srv)
+        launch("https", "tcp", https_srv, "both")
 
-    launch("ftp", "tcp", ThreadedTCPServer((host, cfg["ftp"]), make_ftp_handler(resolver, ftp_data_box)))
-    launch("telnet", "tcp", ThreadedTCPServer((host, cfg["telnet"]), make_telnet_handler(resolver)))
-    launch("smtp", "tcp", ThreadedTCPServer((host, cfg["smtp"]), make_smtp_handler(resolver)))
-    launch("ldap", "tcp", ThreadedTCPServer((host, cfg["ldap"]), make_ldap_handler(resolver)))
-    launch("dns", "udp", ThreadedUDPServer((host, cfg["dns"]), make_dns_udp_handler(resolver, rebind_state)))
-    launch("dns", "tcp", ThreadedTCPServer((host, cfg["dns"]), make_dns_tcp_handler(resolver, rebind_state)))
-    launch("resp", "tcp", ThreadedTCPServer((host, cfg["resp"]), make_resp_handler(resolver)))
-    launch("tcp", "tcp", ThreadedTCPServer((host, cfg["tcp"]), make_tcp_handler(gateway)))
+    def variant_pairs(service_name, primary_port, secondary_port):
+        if variant != "both":
+            return [(primary_port, variant)]
+        pair = ["vulnerable", "fixed"]
+        if randomize:
+            secrets.SystemRandom().shuffle(pair)
+        return [(primary_port, pair[0]), (secondary_port, pair[1])]
+
+    ftp_data_secondary = cfg.get("ftp_data_secondary", SECONDARY_PORTS["ftp_data"] if cfg["ftp"] != 0 else 0)
+    for idx, (port, var) in enumerate(variant_pairs("ftp", cfg["ftp"], cfg.get("ftp_secondary", SECONDARY_PORTS["ftp"] if cfg["ftp"] != 0 else 0))):
+        data_port = cfg["ftp_data"] if idx == 0 else ftp_data_secondary
+        res = Resolver(gateway, default_variant=var)
+        launch("ftp", "tcp", ThreadedTCPServer((host, port), make_ftp_handler(res, [data_port])), var)
+
+    for port, var in variant_pairs("telnet", cfg["telnet"], cfg.get("telnet_secondary", SECONDARY_PORTS["telnet"] if cfg["telnet"] != 0 else 0)):
+        res = Resolver(gateway, default_variant=var)
+        launch("telnet", "tcp", ThreadedTCPServer((host, port), make_telnet_handler(res)), var)
+
+    for port, var in variant_pairs("smtp", cfg["smtp"], cfg.get("smtp_secondary", SECONDARY_PORTS["smtp"] if cfg["smtp"] != 0 else 0)):
+        res = Resolver(gateway, default_variant=var)
+        launch("smtp", "tcp", ThreadedTCPServer((host, port), make_smtp_handler(res)), var)
+
+    for port, var in variant_pairs("ldap", cfg["ldap"], cfg.get("ldap_secondary", SECONDARY_PORTS["ldap"] if cfg["ldap"] != 0 else 0)):
+        res = Resolver(gateway, default_variant=var)
+        launch("ldap", "tcp", ThreadedTCPServer((host, port), make_ldap_handler(res)), var)
+
+    for port, var in variant_pairs("dns", cfg["dns"], cfg.get("dns_secondary", SECONDARY_PORTS["dns"] if cfg["dns"] != 0 else 0)):
+        res = Resolver(gateway, default_variant=var)
+        rebind_state = {"count": 0, "lock": threading.Lock()}
+        udp_srv = ThreadedUDPServer((host, port), make_dns_udp_handler(res, rebind_state))
+        actual_dns_port = udp_srv.server_address[1]
+        launch("dns", "udp", udp_srv, var)
+        launch("dns", "tcp", ThreadedTCPServer((host, actual_dns_port), make_dns_tcp_handler(res, rebind_state)), var)
+
+    for port, var in variant_pairs("resp", cfg["resp"], cfg.get("resp_secondary", SECONDARY_PORTS["resp"] if cfg["resp"] != 0 else 0)):
+        res = Resolver(gateway, default_variant=var)
+        launch("resp", "tcp", ThreadedTCPServer((host, port), make_resp_handler(res)), var)
+
+    launch("tcp", "tcp", ThreadedTCPServer((host, cfg["tcp"]), make_tcp_handler(gateway)), "both")
     return started

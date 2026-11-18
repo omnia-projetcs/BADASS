@@ -296,6 +296,87 @@ class NetserveTests(unittest.TestCase):
                     srv.shutdown()
                     srv.server_close()
 
+    def test_openapi_crawl_and_saturation_429(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            gateway = Gateway(self.cases, root / "build", named=False, workers=1, queue_timeout=0.05, work_root=root / "work")
+            gateway.prebuild(log=lambda *_: None)
+            server = ThreadingHTTPServer(("127.0.0.1", 0), make_handler(gateway))
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            try:
+                base = f"http://127.0.0.1:{server.server_address[1]}"
+                with urllib.request.urlopen(base + "/openapi.json", timeout=5) as resp:
+                    spec = json.loads(resp.read().decode())
+                self.assertEqual(spec["openapi"], "3.1.0")
+                self.assertEqual(len(spec["paths"]), 6)
+                self.assertNotIn("xss", json.dumps(spec).lower())
+
+                with urllib.request.urlopen(base + "/crawl", timeout=5) as resp:
+                    crawl_html = resp.read().decode()
+                self.assertIn("/openapi.json", crawl_html)
+                self.assertIn("sendJson(this)", crawl_html)
+
+                # Hold the single worker slot to trigger 429 Too Many Requests.
+                self.assertTrue(gateway.slots.acquire(timeout=1))
+                try:
+                    tid = next(iter(gateway.targets))
+                    status, _, body = gateway.handle(tid, {"value": "hi"})
+                    self.assertEqual(status, 429)
+                    self.assertIn("Too Many Requests", body)
+                    self.assertEqual(gateway.status_report()["summary"]["rejected_429"], 1)
+                finally:
+                    gateway.slots.release()
+            finally:
+                server.shutdown()
+                server.server_close()
+
+    def test_proto_variant_both_in_blind_mode_populates_service_mapping(self):
+        cases = {c["id"]: c for c in read_catalog()}
+        proto_cases = [
+            cases["python/hardcoded-credentials"],
+            cases["python/path-traversal"],
+            cases["python/command-injection"],
+            cases["python/jenkins-cli-atfile"],
+            cases["python/error-disclosure"],
+            cases["python/header-injection"],
+            cases["python/log-injection"],
+            cases["python/gitlab-reset-recipients"],
+            cases["python/ldap-injection"],
+            cases["python/dns-rebinding-ssrf"],
+            cases["python/code-injection"],
+        ]
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            gateway = Gateway(proto_cases, root / "build", named=False, work_root=root / "work")
+            gateway.prebuild(log=lambda *_: None)
+            gateway.proto_variant = "both"
+            ports = {
+                "ftp": 0, "ftp_secondary": 0, "ftp_data": 0, "ftp_data_secondary": 0,
+                "telnet": 0, "telnet_secondary": 0,
+                "smtp": 0, "smtp_secondary": 0,
+                "ldap": 0, "ldap_secondary": 0,
+                "dns": 0, "dns_secondary": 0,
+                "resp": 0, "resp_secondary": 0,
+                "tcp": 0,
+            }
+            services = start_services(gateway, "127.0.0.1", ports=ports, variant="both", randomize=True)
+            gateway.services = services
+            try:
+                mapping = gateway.mapping()
+                self.assertIn("services", mapping)
+                resp_variants = {
+                    v["variant"] for v in mapping["services"].values() if v["service"] == "resp"
+                }
+                self.assertEqual(resp_variants, {"vulnerable", "fixed"})
+                status = gateway.status_report(8808)
+                resp_status_vars = {s["variant"] for s in status["services"] if s["name"] == "resp"}
+                self.assertEqual(resp_status_vars, {"blind"})
+            finally:
+                for _, _, _, srv in services:
+                    srv.shutdown()
+                    srv.server_close()
+
 
 if __name__ == "__main__":
     unittest.main()

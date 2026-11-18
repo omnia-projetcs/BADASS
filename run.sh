@@ -32,9 +32,45 @@ require_docker
 ARGS=(--named --services)
 EXTRA=()
 BLIND=""
+BOTH_PROTO=""
+prev=""
 for arg in "$@"; do
-  if [[ "$arg" == "--blind" ]]; then BLIND=1; ARGS=(--mapping /tmp/mapping.json --services); else EXTRA+=("$arg"); fi
+  if [[ "$arg" == "--blind" ]]; then
+    BLIND=1; ARGS=(--mapping /tmp/mapping.json --services)
+  else
+    EXTRA+=("$arg")
+    if [[ "$arg" == "--proto-variant=both" ]] || [[ "$prev" == "--proto-variant" && "$arg" == "both" ]]; then
+      BOTH_PROTO=1
+    fi
+  fi
+  prev="$arg"
 done
+
+PORTS=(
+  -p "$BIND:$PORT:8808"
+  -p "$BIND:8443:8443"
+  -p "$BIND:2121:2121"
+  -p "$BIND:2122:2122"
+  -p "$BIND:2323:2323"
+  -p "$BIND:2525:2525"
+  -p "$BIND:3389:3389"
+  -p "$BIND:5353:5353/tcp"
+  -p "$BIND:5353:5353/udp"
+  -p "$BIND:6379:6379"
+  -p "$BIND:9001:9001"
+)
+if [[ -n "$BOTH_PROTO" ]]; then
+  PORTS+=(
+    -p "$BIND:12121:12121"
+    -p "$BIND:12122:12122"
+    -p "$BIND:12323:12323"
+    -p "$BIND:12525:12525"
+    -p "$BIND:13389:13389"
+    -p "$BIND:15353:15353/tcp"
+    -p "$BIND:15353:15353/udp"
+    -p "$BIND:16379:16379"
+  )
+fi
 
 if ! "${DOCKER[@]}" image inspect "$IMAGE" >/dev/null 2>&1; then
   echo "First run: building images (needs network access, takes several minutes)."
@@ -45,17 +81,7 @@ fi
 "${DOCKER[@]}" run -d --name "$CONTAINER" \
   --read-only --cap-drop ALL --security-opt no-new-privileges \
   --pids-limit 512 --memory 2g --cpus 2 \
-  -p "$BIND:$PORT:8808" \
-  -p "$BIND:8443:8443" \
-  -p "$BIND:2121:2121" \
-  -p "$BIND:2122:2122" \
-  -p "$BIND:2323:2323" \
-  -p "$BIND:2525:2525" \
-  -p "$BIND:3389:3389" \
-  -p "$BIND:5353:5353/tcp" \
-  -p "$BIND:5353:5353/udp" \
-  -p "$BIND:6379:6379" \
-  -p "$BIND:9001:9001" \
+  "${PORTS[@]}" \
   --tmpfs /tmp:rw,nosuid,size=256m \
   --tmpfs /lab/.build:rw,exec,nosuid,mode=1777,size=2g \
   --env PYTHONUNBUFFERED=1 \
