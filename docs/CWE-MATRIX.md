@@ -201,7 +201,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-187 | Partial String Comparison | weakness | Incomplete | implemented | [python/partial-signature](../labs/python/partial-signature/README.md), [node/partial-signature](../labs/node/partial-signature/README.md) |
 | CWE-188 | Reliance on Data/Memory Layout | weakness | Draft | gap |  |
 | CWE-189 | Numeric Errors | category | Draft | taxonomy-only |  |
-| CWE-190 | Integer Overflow or Wraparound | weakness | Stable | implemented | [rust/integer-overflow](../labs/rust/integer-overflow/README.md), [c/integer-overflow](../labs/c/integer-overflow/README.md), [cpp/integer-overflow](../labs/cpp/integer-overflow/README.md) |
+| CWE-190 | Integer Overflow or Wraparound | weakness | Stable | implemented | [rust/integer-overflow](../labs/rust/integer-overflow/README.md), [c/integer-overflow](../labs/c/integer-overflow/README.md), [cpp/integer-overflow](../labs/cpp/integer-overflow/README.md), [c/nginx-http2-flow-overflow](../labs/c/nginx-http2-flow-overflow/README.md) |
 | CWE-191 | Integer Underflow (Wrap or Wraparound) | weakness | Draft | gap |  |
 | CWE-192 | Integer Coercion Error | weakness | Incomplete | gap |  |
 | CWE-193 | Off-by-one Error | weakness | Draft | gap |  |
@@ -378,7 +378,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-364 | Signal Handler Race Condition | weakness | Incomplete | gap |  |
 | CWE-365 | DEPRECATED: Race Condition in Switch | weakness | Deprecated | gap |  |
 | CWE-366 | Race Condition within a Thread | weakness | Draft | gap |  |
-| CWE-367 | Time-of-check Time-of-use (TOCTOU) Race Condition | weakness | Incomplete | implemented | [python/file-create-race](../labs/python/file-create-race/README.md), [ai/hitl-approval-toctou](../labs/ai/hitl-approval-toctou/README.md) |
+| CWE-367 | Time-of-check Time-of-use (TOCTOU) Race Condition | weakness | Incomplete | implemented | [python/file-create-race](../labs/python/file-create-race/README.md), [ai/hitl-approval-toctou](../labs/ai/hitl-approval-toctou/README.md), [python/phpaftershell-session-overwrite](../labs/python/phpaftershell-session-overwrite/README.md) |
 | CWE-368 | Context Switching Race Condition | weakness | Draft | gap |  |
 | CWE-369 | Divide By Zero | weakness | Draft | gap |  |
 | CWE-370 | Missing Check for Certificate Revocation after Initial Check | weakness | Draft | gap |  |
@@ -447,7 +447,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-433 | Unparsed Raw Web Content Delivery | weakness | Incomplete | gap |  |
 | CWE-434 | Unrestricted Upload of File with Dangerous Type | weakness | Draft | implemented | [python/unrestricted-upload](../labs/python/unrestricted-upload/README.md), [php/unrestricted-upload](../labs/php/unrestricted-upload/README.md) |
 | CWE-435 | Improper Interaction Between Multiple Correctly-Behaving Entities | weakness | Draft | gap |  |
-| CWE-436 | Interpretation Conflict | weakness | Incomplete | implemented | [python/json-parser-conflict](../labs/python/json-parser-conflict/README.md) |
+| CWE-436 | Interpretation Conflict | weakness | Incomplete | implemented | [python/json-parser-conflict](../labs/python/json-parser-conflict/README.md), [python/php-session-serializer-mismatch](../labs/python/php-session-serializer-mismatch/README.md) |
 | CWE-437 | Incomplete Model of Endpoint Features | weakness | Incomplete | gap |  |
 | CWE-438 | Behavioral Problems | category | Draft | taxonomy-only |  |
 | CWE-439 | Behavioral Change in New Version or Environment | weakness | Draft | gap |  |
@@ -455,7 +455,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-441 | Unintended Proxy or Intermediary ('Confused Deputy') | weakness | Draft | gap |  |
 | CWE-442 | DEPRECATED: Web Problems | category | Deprecated | taxonomy-only |  |
 | CWE-443 | DEPRECATED: HTTP response splitting | weakness | Deprecated | gap |  |
-| CWE-444 | Inconsistent Interpretation of HTTP Requests ('HTTP Request/Response Smuggling') | weakness | Incomplete | implemented | [python/apache-proxy-request-splitting](../labs/python/apache-proxy-request-splitting/README.md), [rest-api/web-cache-poisoning](../labs/rest-api/web-cache-poisoning/README.md) |
+| CWE-444 | Inconsistent Interpretation of HTTP Requests ('HTTP Request/Response Smuggling') | weakness | Incomplete | implemented | [python/apache-proxy-request-splitting](../labs/python/apache-proxy-request-splitting/README.md), [rest-api/web-cache-poisoning](../labs/rest-api/web-cache-poisoning/README.md), [python/php-fpm-request-smuggling](../labs/python/php-fpm-request-smuggling/README.md) |
 | CWE-445 | DEPRECATED: User Interface Errors | category | Deprecated | taxonomy-only |  |
 | CWE-446 | UI Discrepancy for Security Feature | weakness | Incomplete | gap |  |
 | CWE-447 | Unimplemented or Unsupported Feature in UI | weakness | Draft | gap |  |
@@ -513,7 +513,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-499 | Serializable Class Containing Sensitive Data | weakness | Draft | gap |  |
 | CWE-500 | Public Static Field Not Marked Final | weakness | Draft | gap |  |
 | CWE-501 | Trust Boundary Violation | weakness | Draft | gap |  |
-| CWE-502 | Deserialization of Untrusted Data | weakness | Draft | implemented | [python/unsafe-deserialization](../labs/python/unsafe-deserialization/README.md), [java/unsafe-deserialization](../labs/java/unsafe-deserialization/README.md), [dotnet/unsafe-deserialization](../labs/dotnet/unsafe-deserialization/README.md), [php/unsafe-deserialization](../labs/php/unsafe-deserialization/README.md), [ruby/unsafe-deserialization](../labs/ruby/unsafe-deserialization/README.md), [node/unsafe-deserialization](../labs/node/unsafe-deserialization/README.md) |
+| CWE-502 | Deserialization of Untrusted Data | weakness | Draft | implemented | [python/unsafe-deserialization](../labs/python/unsafe-deserialization/README.md), [java/unsafe-deserialization](../labs/java/unsafe-deserialization/README.md), [dotnet/unsafe-deserialization](../labs/dotnet/unsafe-deserialization/README.md), [php/unsafe-deserialization](../labs/php/unsafe-deserialization/README.md), [ruby/unsafe-deserialization](../labs/ruby/unsafe-deserialization/README.md), [node/unsafe-deserialization](../labs/node/unsafe-deserialization/README.md), [python/phpaftershell-session-overwrite](../labs/python/phpaftershell-session-overwrite/README.md), [python/php-session-serializer-mismatch](../labs/python/php-session-serializer-mismatch/README.md) |
 | CWE-503 | DEPRECATED: Byte/Object Code | category | Deprecated | taxonomy-only |  |
 | CWE-504 | DEPRECATED: Motivation/Intent | category | Deprecated | taxonomy-only |  |
 | CWE-505 | DEPRECATED: Intentionally Introduced Weakness | category | Deprecated | taxonomy-only |  |
@@ -798,7 +798,7 @@ Deprecated entries remain visible with their MITRE status. No coverage is inheri
 | CWE-784 | Reliance on Cookies without Validation and Integrity Checking in a Security Decision | weakness | Draft | gap |  |
 | CWE-785 | Use of Path Manipulation Function without Maximum-sized Buffer | weakness | Incomplete | gap |  |
 | CWE-786 | Access of Memory Location Before Start of Buffer | weakness | Incomplete | gap |  |
-| CWE-787 | Out-of-bounds Write | weakness | Draft | implemented | [c/node2shell-block-switch](../labs/c/node2shell-block-switch/README.md) |
+| CWE-787 | Out-of-bounds Write | weakness | Draft | implemented | [c/node2shell-block-switch](../labs/c/node2shell-block-switch/README.md), [c/java4shell-base64-overflow](../labs/c/java4shell-base64-overflow/README.md), [c/nginx-http2-flow-overflow](../labs/c/nginx-http2-flow-overflow/README.md) |
 | CWE-788 | Access of Memory Location After End of Buffer | weakness | Incomplete | gap |  |
 | CWE-789 | Memory Allocation with Excessive Size Value | weakness | Draft | gap |  |
 | CWE-790 | Improper Filtering of Special Elements | weakness | Incomplete | gap |  |

@@ -1,7 +1,9 @@
 # Named CVE teaching models
 
-Seventeen case pairs cover documented runtime, framework and service vulnerabilities.
-PHP2Shell has two separate cases because its two CVEs have different lifetime boundaries. Each case has
+Twenty-two case pairs cover documented runtime, framework and service vulnerabilities.
+PHP2Shell has two separate cases because its two CVEs have different lifetime boundaries,
+and the November 2026 wave adds five cases covering phpAfterShell, PHP session serializer
+mismatch, PHP-FPM FastCGI request smuggling, Java4Shell and NGINX2Root. Each case has
 benign, attack and malformed-input vectors, a vulnerable implementation and a
 corrected implementation.
 
@@ -33,6 +35,11 @@ diagnostics.
 | Zabbix | CVE-2024-42327 | [Role projection](../labs/python/zabbix-role-projection/README.md) | An authenticated SQL projection retrieves another role's token through a scalar subquery. |
 | ImageTragick | CVE-2016-3714 | [Delegate shell](../labs/python/imagetragick-delegate/README.md) | A parsed SVG URL reaches a local shell delegate and creates a marker file. |
 | Apache HTTP Server | CVE-2023-25690 | [Proxy request splitting](../labs/python/apache-proxy-request-splitting/README.md) | One decoded rewrite value produces two backend GET request lines in serialized bytes. |
+| phpAfterShell | CVE-2026-126714 | [Session file overwrite](../labs/python/phpaftershell-session-overwrite/README.md) | An interrupted in-place write leaves trailing bytes from the previous session that parse as an object. |
+| PHP session | CVE-2026-115560 | [Serializer mismatch](../labs/python/php-session-serializer-mismatch/README.md) | A `|` delimiter written via upload-progress framing splits into an object when read with the `php` serializer. |
+| PHP-FPM | CVE-2026-129289 | [FastCGI request smuggling](../labs/python/php-fpm-request-smuggling/README.md) | Leaving request-body bytes unread on a persistent connection causes the tail to execute as a second script. |
+| Java4Shell | CVE-2026-114938 | [Base64 padding overflow](../labs/c/java4shell-base64-overflow/README.md) | A vectorized fast-path Base64 decoder writes full 3-byte groups past an exact heap buffer on trailing `=` padding. |
+| NGINX2Root | CVE-2026-123007 | [HTTP/2 flow-control overflow](../labs/c/nginx-http2-flow-overflow/README.md) | An unchecked 32-bit `WINDOW_UPDATE` addition wraps to a small staging allocation before copying a larger frame. |
 
 ## Additional model boundaries
 
@@ -97,7 +104,19 @@ also change the status of an individual package.
   and [CVE-2026-109619, stale global state](https://github.com/php/php-src/security/advisories/GHSA-6wmf-4rv5-p3rp).
   PHP's [21 October 2026 release announcement](https://www.php.net/archive/2026.php)
   identifies PHP 8.2.35, 8.3.36, 8.4.27 and 8.5.12 as fixes for these two CVEs.
-  Other session-handling follow-up advisories are separate from these two models.
+- phpAfterShell & PHP November 2026 batch: `CVE-2026-126714` (non-atomic `files`
+  session overwrite), `CVE-2026-115560` (upload-progress session serializer mismatch)
+  and `CVE-2026-129289` (PHP-FPM FastCGI request smuggling on persistent connections).
+  PHP's [19 November 2026 security releases](https://www.php.net/archive/2026.php)
+  address these in PHP 8.2.36, 8.3.37, 8.4.28, 8.5.13 and 8.6.0.
+- Java4Shell: [CVE-2026-114938](https://www.cve.org/CVERecord?id=CVE-2026-114938)
+  documents the OpenJDK/Oracle HotSpot AVX-512 VBMI Base64 heap buffer overflow
+  affecting Java 17, 21, 25 and 27. The C fixture models the vectorized trailing-padding
+  over-write boundary without embedding JVM assembly.
+- NGINX2Root: [NGINX security advisories](https://nginx.org/en/security_advisories.html)
+  document `CVE-2026-123007` (HTTP/2 flow-control window overflow) fixed in
+  NGINX 1.31.9+ and 1.30.7+. The C fixture isolates the 32-bit window wraparound
+  and staging-buffer write boundary.
 - Node2Shell: [Node.js October 2026 security release](https://nodejs.org/en/blog/vulnerability/october-2026-security-releases)
   identifies CVE-2026-111497 and fixed Node.js releases 22.23.4, 24.22.1 and
   26.12.1. Node.js rates the issue **high**; severity terminology should retain

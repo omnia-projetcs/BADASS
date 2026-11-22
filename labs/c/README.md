@@ -41,3 +41,5 @@ Run commands from the repository root. Cases are independent and use synthetic f
 | [Uninitialized memory](uninitialized-memory/README.md) | CWE-457 | A06:2025 | executable |
 | [Type confusion](type-confusion/README.md) | CWE-843 | A06:2025 | executable |
 | [Signed unsigned conversion](signed-unsigned-conversion/README.md) | CWE-195, CWE-681 | A06:2025 | executable |
+| [Java4Shell: vectorized Base64 padding overflow](java4shell-base64-overflow/README.md) | CWE-787 | A06:2025, A10:2025 | native-model |
+| [NGINX2Root: HTTP/2 flow-control window overflow](nginx-http2-flow-overflow/README.md) | CWE-190, CWE-787 | A06:2025, A10:2025 | native-model |

@@ -93,3 +93,6 @@ Run commands from the repository root. Cases are independent and use synthetic f
 | [JWT algorithm confusion](jwt-alg-confusion/README.md) | CWE-347 | A04:2025, A07:2025 | executable |
 | [Cryptographic stream-cipher nonce reuse](crypto-nonce-reuse/README.md) | CWE-323, CWE-329, CWE-327 | A04:2025 | executable |
 | [Weak PRNG token generation](weak-prng-token/README.md) | CWE-338 | A04:2025, A07:2025 | executable |
+| [phpAfterShell: non-atomic session overwrite](phpaftershell-session-overwrite/README.md) | CWE-367, CWE-502 | A06:2025, A08:2025 | handler-model |
+| [PHP: upload-progress session serializer mismatch](php-session-serializer-mismatch/README.md) | CWE-436, CWE-502 | A06:2025, A08:2025 | handler-model |
+| [PHP-FPM: persistent FastCGI request smuggling](php-fpm-request-smuggling/README.md) | CWE-444 | A06:2025, A10:2025 | handler-model |

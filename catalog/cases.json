@@ -44837,5 +44837,561 @@
     ],
     "vulnerable": "labs/go/race-condition/vulnerable/main.go",
     "fixed": "labs/go/race-condition/fixed/main.go"
+  },
+  {
+    "id": "python/phpaftershell-session-overwrite",
+    "language": "python",
+    "family": "phpaftershell",
+    "cve": [
+      "CVE-2026-126714"
+    ],
+    "cwe": [
+      "CWE-367",
+      "CWE-502"
+    ],
+    "owasp": [
+      "A06:2025",
+      "A08:2025"
+    ],
+    "description": "An original Python handler model of phpAfterShell. Updating a file-based session in place without truncating or atomically replacing the file leaves old trailing bytes when a write is interrupted. Subsequent session parsing interprets the hybrid payload as a serialized object. No PHP runtime or gadget chain is embedded.",
+    "remediation": "Write updated session data to a temporary file and atomically replace the target on completion, aborting partial writes cleanly, and reject serialized object tags during session decoding. Real PHP deployments require upgrading to PHP 8.2.36, 8.3.37, 8.4.28, 8.5.13 or 8.6.0.",
+    "scope": "handler-model",
+    "references": [
+      {
+        "title": "PHP CVE-2026-126714 — phpAfterShell session file overwrite",
+        "url": "https://www.php.net/archive/2026.php"
+      }
+    ],
+    "tests": [
+      {
+        "name": "complete session update",
+        "kind": "benign",
+        "input": {
+          "initial": "note|s:11:\"old-session\";",
+          "update": "note|s:5:\"fresh\";",
+          "interrupt_at": null
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "values": {
+              "note": "fresh"
+            },
+            "objects": []
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "values": {
+              "note": "fresh"
+            },
+            "objects": []
+          }
+        }
+      },
+      {
+        "name": "interrupted overwrite leaves hybrid object tail",
+        "kind": "attack",
+        "input": {
+          "initial": "note|s:3:\"old\";g|O:6:\"Runner\":1:{s:3:\"cmd\";s:2:\"id\";}",
+          "update": "note|s:3:\"new\";tail|s:4:\"done\";",
+          "interrupt_at": 15
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "values": {
+              "note": "new"
+            },
+            "objects": [
+              "Runner"
+            ]
+          },
+          "files": [
+            {
+              "path": "gadget-ran.txt",
+              "content": "Runner\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 409,
+            "error": "interrupted session write"
+          },
+          "files": [
+            {
+              "path": "gadget-ran.txt",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "malformed payload shape",
+        "kind": "robustness",
+        "input": "not-a-dict",
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid session operation"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid session operation"
+          }
+        }
+      }
+    ],
+    "vulnerable": "labs/python/phpaftershell-session-overwrite/vulnerable/main.py",
+    "fixed": "labs/python/phpaftershell-session-overwrite/fixed/main.py"
+  },
+  {
+    "id": "python/php-session-serializer-mismatch",
+    "language": "python",
+    "family": "phpaftershell",
+    "cve": [
+      "CVE-2026-115560"
+    ],
+    "cwe": [
+      "CWE-436",
+      "CWE-502"
+    ],
+    "owasp": [
+      "A06:2025",
+      "A08:2025"
+    ],
+    "description": "An original Python handler model of PHP session serializer mismatch during upload progress. Writing an attacker-controlled key in php_serialize-style framing and reading it back with the pipe-delimited php serializer lets a '|' delimiter split the entry and instantiate an unintended object. No PHP runtime is embedded.",
+    "remediation": "Use a single structured serializer (such as JSON) across both upload-progress writes and session reads, validate upload key characters, and never instantiate arbitrary objects from session storage. Real PHP deployments require upgrading to PHP 8.2.36, 8.3.37, 8.4.28, 8.5.13 or 8.6.0.",
+    "scope": "handler-model",
+    "references": [
+      {
+        "title": "PHP CVE-2026-115560 — session upload-progress serializer mismatch",
+        "url": "https://www.php.net/archive/2026.php"
+      }
+    ],
+    "tests": [
+      {
+        "name": "normal upload progress key",
+        "kind": "benign",
+        "input": {
+          "upload_key": "avatar_1",
+          "note": "done"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "values": {
+              "upload_avatar_1": "done"
+            },
+            "objects": []
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "values": {
+              "upload_avatar_1": "done"
+            },
+            "objects": []
+          }
+        }
+      },
+      {
+        "name": "pipe delimiter injects serialized object",
+        "kind": "attack",
+        "input": {
+          "upload_key": "x|O:6:\"Runner\":1:{s:3:\"tag\";s:5:\"pwned\";}",
+          "note": "ok"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "values": {},
+            "objects": [
+              "Runner"
+            ]
+          },
+          "files": [
+            {
+              "path": "deserialized-object.txt",
+              "content": "Runner\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid upload key"
+          },
+          "files": [
+            {
+              "path": "deserialized-object.txt",
+              "type": "absent"
+            }
+          ]
+        }
+      },
+      {
+        "name": "missing upload key",
+        "kind": "robustness",
+        "input": {
+          "upload_key": "",
+          "note": "ok"
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "invalid session payload"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "invalid session payload"
+          }
+        }
+      }
+    ],
+    "vulnerable": "labs/python/php-session-serializer-mismatch/vulnerable/main.py",
+    "fixed": "labs/python/php-session-serializer-mismatch/fixed/main.py"
+  },
+  {
+    "id": "python/php-fpm-request-smuggling",
+    "language": "python",
+    "family": "php-fpm",
+    "cve": [
+      "CVE-2026-129289"
+    ],
+    "cwe": [
+      "CWE-444"
+    ],
+    "owasp": [
+      "A06:2025",
+      "A10:2025"
+    ],
+    "description": "An original Python handler model of PHP-FPM FastCGI request smuggling on persistent connections. When an application reads only a prefix of the request body and the worker does not drain remaining bytes, the unread body tail is parsed as a second FastCGI request with an attacker-chosen script name. No FastCGI daemon or network socket is used.",
+    "remediation": "Unconditionally drain or discard all remaining request-body bytes up to Content-Length (or close the backend connection) before reading the next FastCGI frame. Real PHP-FPM deployments require upgrading to PHP 8.2.36, 8.3.37, 8.4.28, 8.5.13 or 8.6.0 and disabling connection reuse as an interim mitigation.",
+    "scope": "handler-model",
+    "references": [
+      {
+        "title": "PHP CVE-2026-129289 — PHP-FPM FastCGI request smuggling",
+        "url": "https://www.php.net/archive/2026.php"
+      }
+    ],
+    "tests": [
+      {
+        "name": "single request fully read",
+        "kind": "benign",
+        "input": {
+          "wire": "SCRIPT=/var/www/index.php\nLENGTH=5\n\nhello",
+          "read_limit": 16
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "executed": [
+              "/var/www/index.php"
+            ]
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "executed": [
+              "/var/www/index.php"
+            ]
+          }
+        }
+      },
+      {
+        "name": "two sequential requests on reused connection",
+        "kind": "benign",
+        "input": {
+          "wire": "SCRIPT=/var/www/a.php\nLENGTH=2\n\nokSCRIPT=/var/www/b.php\nLENGTH=0\n\n",
+          "read_limit": 16
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "executed": [
+              "/var/www/a.php",
+              "/var/www/b.php"
+            ]
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "executed": [
+              "/var/www/a.php",
+              "/var/www/b.php"
+            ]
+          }
+        }
+      },
+      {
+        "name": "unread body tail smuggles second script",
+        "kind": "attack",
+        "input": {
+          "wire": "SCRIPT=/var/www/public.php\nLENGTH=40\n\nabcdSCRIPT=/var/www/admin.php\nLENGTH=0\n\n",
+          "read_limit": 4
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 200,
+            "executed": [
+              "/var/www/public.php",
+              "/var/www/admin.php"
+            ]
+          },
+          "files": [
+            {
+              "path": "fpm-executed.log",
+              "content": "/var/www/public.php\n/var/www/admin.php\n"
+            }
+          ]
+        },
+        "fixed": {
+          "equals": {
+            "status": 200,
+            "executed": [
+              "/var/www/public.php"
+            ]
+          },
+          "files": [
+            {
+              "path": "fpm-executed.log",
+              "content": "/var/www/public.php\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "malformed fastcgi header",
+        "kind": "robustness",
+        "input": {
+          "wire": "BADHEADER\n",
+          "read_limit": 4
+        },
+        "vulnerable": {
+          "equals": {
+            "status": 400,
+            "error": "malformed fastcgi frame"
+          }
+        },
+        "fixed": {
+          "equals": {
+            "status": 400,
+            "error": "malformed fastcgi frame"
+          }
+        }
+      }
+    ],
+    "vulnerable": "labs/python/php-fpm-request-smuggling/vulnerable/main.py",
+    "fixed": "labs/python/php-fpm-request-smuggling/fixed/main.py"
+  },
+  {
+    "id": "c/java4shell-base64-overflow",
+    "language": "c",
+    "family": "java4shell",
+    "cve": [
+      "CVE-2026-114938"
+    ],
+    "cwe": [
+      "CWE-787"
+    ],
+    "owasp": [
+      "A06:2025",
+      "A10:2025"
+    ],
+    "description": "An original native C model of Java4Shell (OpenJDK HotSpot AVX-512 Base64 heap overflow). When decoding inputs that take the vectorized fast path, unconditionally writing full 3-byte output groups despite trailing '=' padding writes past the exact-sized heap buffer. AddressSanitizer observes an actual heap-buffer-overflow. No JVM or AVX-512 assembly is embedded.",
+    "remediation": "Validate Base64 padding placement before decoding, emit only the decoded bytes not suppressed by trailing '=' characters, and enforce output-buffer capacity checks before every store. Real Java deployments require updating OpenJDK/Oracle JDK 17, 21, 25 or 27 to patched releases.",
+    "scope": "native-model",
+    "references": [
+      {
+        "title": "OpenJDK / Oracle Java CVE-2026-114938 — Java4Shell Base64 heap overflow",
+        "url": "https://www.cve.org/CVERecord?id=CVE-2026-114938"
+      }
+    ],
+    "tests": [
+      {
+        "name": "short unpadded base64",
+        "kind": "benign",
+        "input": "QUJD",
+        "vulnerable": {
+          "equals": "OK:3"
+        },
+        "fixed": {
+          "equals": "OK:3"
+        }
+      },
+      {
+        "name": "short padded base64 scalar path",
+        "kind": "benign",
+        "input": "SGVsbG8=",
+        "vulnerable": {
+          "equals": "OK:5"
+        },
+        "fixed": {
+          "equals": "OK:5"
+        }
+      },
+      {
+        "name": "fast-path unpadded base64",
+        "kind": "benign",
+        "input": "QUJDREVGR0hJSktMTU5P",
+        "vulnerable": {
+          "equals": "OK:15"
+        },
+        "fixed": {
+          "equals": "OK:15"
+        }
+      },
+      {
+        "name": "fast-path trailing double padding overflow",
+        "kind": "attack",
+        "input": "QUJDREVGR0hJSktMTU5PUA==",
+        "vulnerable": {
+          "stderr_contains": "AddressSanitizer: heap-buffer-overflow"
+        },
+        "fixed": {
+          "equals": "OK:16"
+        }
+      },
+      {
+        "name": "fast-path trailing single padding overflow",
+        "kind": "attack",
+        "input": "QUJDREVGR0hJSktMTU5PUFF=",
+        "vulnerable": {
+          "stderr_contains": "AddressSanitizer: heap-buffer-overflow"
+        },
+        "fixed": {
+          "equals": "OK:17"
+        }
+      },
+      {
+        "name": "non-multiple-of-4 input",
+        "kind": "robustness",
+        "input": "ABC",
+        "vulnerable": {
+          "equals": "FORMAT_ERROR"
+        },
+        "fixed": {
+          "equals": "FORMAT_ERROR"
+        }
+      },
+      {
+        "name": "empty input",
+        "kind": "robustness",
+        "input": "",
+        "vulnerable": {
+          "equals": "INVALID"
+        },
+        "fixed": {
+          "equals": "INVALID"
+        }
+      }
+    ],
+    "vulnerable": "labs/c/java4shell-base64-overflow/vulnerable/main.c",
+    "fixed": "labs/c/java4shell-base64-overflow/fixed/main.c"
+  },
+  {
+    "id": "c/nginx-http2-flow-overflow",
+    "language": "c",
+    "family": "nginx2root",
+    "cve": [
+      "CVE-2026-123007"
+    ],
+    "cwe": [
+      "CWE-190",
+      "CWE-787"
+    ],
+    "owasp": [
+      "A06:2025",
+      "A10:2025"
+    ],
+    "description": "An original native C model of NGINX2Root HTTP/2 flow-control window overflow. Adding an unchecked 32-bit WINDOW_UPDATE increment wraps the window size to a small allocation while still copying a larger frame payload into the heap staging buffer. AddressSanitizer detects the heap-buffer-overflow. No NGINX code or network listener is embedded.",
+    "remediation": "Reject WINDOW_UPDATE increments that are zero or would exceed the HTTP/2 0x7fffffff window limit using overflow-safe arithmetic, and check frame payload length against the allocated staging buffer before copying. Real NGINX deployments require upgrading to NGINX 1.31.9+ or 1.30.7+.",
+    "scope": "native-model",
+    "references": [
+      {
+        "title": "NGINX CVE-2026-123007 — HTTP/2 flow-control window overflow",
+        "url": "https://nginx.org/en/security_advisories.html"
+      }
+    ],
+    "tests": [
+      {
+        "name": "normal window update and frame",
+        "kind": "benign",
+        "input": "16:HELLO_WORLD",
+        "vulnerable": {
+          "equals": "OK:11"
+        },
+        "fixed": {
+          "equals": "OK:11"
+        }
+      },
+      {
+        "name": "zero window increment rejected",
+        "kind": "benign",
+        "input": "0:HELLO",
+        "vulnerable": {
+          "equals": "FLOW_CONTROL_ERROR"
+        },
+        "fixed": {
+          "equals": "FLOW_CONTROL_ERROR"
+        }
+      },
+      {
+        "name": "wrapping window increment causes heap overflow",
+        "kind": "attack",
+        "input": "4294967288:AAAAAAAAAAAAAAAAAAAA",
+        "vulnerable": {
+          "stderr_contains": "AddressSanitizer: heap-buffer-overflow"
+        },
+        "fixed": {
+          "equals": "FLOW_CONTROL_ERROR"
+        }
+      },
+      {
+        "name": "window increment exceeding RFC limit",
+        "kind": "attack",
+        "input": "2147483640:SHORT",
+        "vulnerable": {
+          "equals": "OK:5"
+        },
+        "fixed": {
+          "equals": "FLOW_CONTROL_ERROR"
+        }
+      },
+      {
+        "name": "missing separator",
+        "kind": "robustness",
+        "input": "16HELLO",
+        "vulnerable": {
+          "equals": "INVALID"
+        },
+        "fixed": {
+          "equals": "INVALID"
+        }
+      },
+      {
+        "name": "empty input",
+        "kind": "robustness",
+        "input": "",
+        "vulnerable": {
+          "equals": "INVALID"
+        },
+        "fixed": {
+          "equals": "INVALID"
+        }
+      }
+    ],
+    "vulnerable": "labs/c/nginx-http2-flow-overflow/vulnerable/main.c",
+    "fixed": "labs/c/nginx-http2-flow-overflow/fixed/main.c"
   }
 ]
